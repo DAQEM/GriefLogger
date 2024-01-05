@@ -34,6 +34,9 @@ dependencies {
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+
+    modImplementation "org.xerial:sqlite-jdbc:3.44.1.0"
+    shadowCommon "org.xerial:sqlite-jdbc:3.44.1.0"
 }
 
 processResources {

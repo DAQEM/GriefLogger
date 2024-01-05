@@ -1,0 +1,42 @@
+package com.daqem.grieflogger.database.service;
+
+import com.daqem.grieflogger.database.Database;
+import com.daqem.grieflogger.database.repository.UserRepository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+public class UserService {
+
+    private final Database database;
+    private final UserRepository userRepository;
+    private final UsernameService usernameService;
+
+    public UserService(Database database) {
+        this.database = database;
+        this.userRepository = new UserRepository(database);
+        this.usernameService = new UsernameService(database);
+    }
+
+    public void createTable() {
+        userRepository.createTable();
+    }
+
+    public void insertOrUpdateName(UUID uuid, String name) {
+        userRepository.insertOrUpdateName(name,uuid.toString());
+        usernameService.insert(uuid, name);
+    }
+
+    public Optional<Integer> getId(UUID uuid) {
+        return userRepository.getId(uuid.toString());
+    }
+
+    public Optional<Integer> getOrInsertNonPlayerId(String name) {
+        Optional<Integer> id = userRepository.getNonPlayerId(name);
+        if (id.isEmpty()) {
+            userRepository.insertNonPlayer(name);
+            id = userRepository.getNonPlayerId(name);
+        }
+        return id;
+    }
+}
