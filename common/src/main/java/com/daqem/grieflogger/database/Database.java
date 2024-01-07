@@ -22,7 +22,6 @@ public class Database {
                 path.toFile().mkdirs();
             }
             String url = "jdbc:sqlite:" + path.resolve(dbPath).toString();
-            GriefLogger.LOGGER.info("Database URL: " + url);
             connection = DriverManager.getConnection(url);
             statement = connection.createStatement();
         } catch (SQLException | ClassNotFoundException e) {

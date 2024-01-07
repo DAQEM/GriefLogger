@@ -1,2 +1,20 @@
 {
+  "grieflogger.name": "GriefLogger",
+  "grieflogger.commands.inspect.enabled": "Enabled GriefLogger inspection",
+  "grieflogger.commands.inspect.disabled": "Disabled GriefLogger inspection",
+  "grieflogger.action.prefix.removal": "-",
+  "grieflogger.action.prefix.placement": "+",
+  "grieflogger.action.break.past": "broke",
+  "grieflogger.action.place.past": "placed",
+  "grieflogger.time.minutes": "/m",
+  "grieflogger.time.hours": "/h",
+  "grieflogger.time.days": "/d",
+  "grieflogger.time.weeks": "/w",
+  "grieflogger.time.months": "/mo",
+  "grieflogger.time.years": "/y",
+  "grieflogger.inspect.position": "(x%s/y%s/z%s)",
+  "grieflogger.inspect.time.ago": "%s%s ago",
+  "grieflogger.inspect.no_history": "%s - No history found for this location.",
+  "grieflogger.inspect.history_header": "----- %s ------ %s",
+  "grieflogger.inspect.history_entry": "%s %s %s %s %s."
 }
