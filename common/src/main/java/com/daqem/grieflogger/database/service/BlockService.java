@@ -9,6 +9,7 @@ import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,6 +51,22 @@ public class BlockService {
     }
 
     public void getHistoryAsync(Level level, BlockPos pos, OnComplete<List<BlockHistory>> onComplete) {
+        ThreadManager.submit(() -> getHistory(level, pos), onComplete);
+    }
+
+    public List<BlockHistory> getHistory(Level level, List<BlockPos> pos) {
+        List<BlockHistory> blockHistories = new ArrayList<>();
+
+        for (BlockPos blockPos : pos) {
+            blockHistories.addAll(getHistory(level, blockPos));
+        }
+
+        return blockHistories.stream()
+                .sorted((o1, o2) -> (int) (o2.time().time() - o1.time().time()))
+                .toList();
+    }
+
+    public void getHistoryAsync(Level level, List<BlockPos> pos, OnComplete<List<BlockHistory>> onComplete) {
         ThreadManager.submit(() -> getHistory(level, pos), onComplete);
     }
 

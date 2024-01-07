@@ -1,8 +1,13 @@
 package com.daqem.grieflogger.block;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 public class BlockHandler {
 
@@ -38,5 +43,17 @@ public class BlockHandler {
     public static List<String> getIntractableBlocks() {
         //TODO Add config option to add blocks to this list
         return List.of();
+    }
+
+    public static Optional<BlockPos> getSecondDoorPosition(BlockPos pos, BlockState state) {
+        if (state.getBlock() instanceof DoorBlock) {
+            if (state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
+                return Optional.of(pos.above());
+            }
+            else if (state.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) {
+                return Optional.of(pos.below());
+            }
+        }
+        return Optional.empty();
     }
 }

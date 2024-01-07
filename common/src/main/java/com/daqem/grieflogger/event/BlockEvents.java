@@ -20,6 +20,9 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
+import java.util.List;
+import java.util.Optional;
+
 public class BlockEvents {
 
     public static void registerEvents() {
@@ -27,16 +30,8 @@ public class BlockEvents {
             Block block = state.getBlock();
             if (BlockHandler.isBlockIntractable(block)) {
                 if (block instanceof DoorBlock) {
-                    BlockPos secondPos = null;
-                    if (state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
-                        secondPos = pos.above();
-                    }
-                    else if (state.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) {
-                        secondPos = pos.below();
-                    }
-                    if (secondPos != null) {
-                        removeInteractionsForPosition(level, secondPos);
-                    }
+                    BlockHandler.getSecondDoorPosition(pos, state).ifPresent(secondPos ->
+                            removeInteractionsForPosition(level, secondPos));
                 }
                 removeInteractionsForPosition(level, pos);
             }
@@ -51,8 +46,23 @@ public class BlockEvents {
             return EventResult.pass();
         });
 
-        InteractionEvent.LEFT_CLICK_BLOCK.register((player, hand, pos, direction) ->
-                inspectBlock(player, pos));
+        InteractionEvent.LEFT_CLICK_BLOCK.register((player, hand, pos, direction) -> {
+            if (player instanceof ServerPlayer serverPlayer) {
+                Level level = player.level();
+                BlockState state = level.getBlockState(pos);
+                if (state.getBlock() instanceof DoorBlock) {
+                    Optional<BlockPos> secondDoorPosition = BlockHandler.getSecondDoorPosition(pos, state);
+                    if (secondDoorPosition.isPresent()) {
+                        EventResult eventResult = inspectMultiBlock(serverPlayer, level, state, List.of(pos, secondDoorPosition.get()));
+                        if (eventResult.interruptsFurtherEvaluation()) {
+                            return eventResult;
+                        }
+                    }
+                }
+            }
+            return inspectBlock(player, pos);
+        });
+
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, pos, direction) -> {
             if (hand == InteractionHand.MAIN_HAND) {
@@ -102,6 +112,17 @@ public class BlockEvents {
             if (serverPlayer.grieflogger$isInspecting()) {
                 BlockService blockService = new BlockService(GriefLogger.getDatabase());
                 blockService.getHistoryAsync(player.level(), pos, serverPlayer::grieflogger$sendInspectMessage);
+                return EventResult.interruptFalse();
+            }
+        }
+        return EventResult.pass();
+    }
+
+    private static EventResult inspectMultiBlock(ServerPlayer player, Level level, BlockState state, List<BlockPos> positions) {
+        if (player instanceof GriefLoggerServerPlayer serverPlayer) {
+            if (serverPlayer.grieflogger$isInspecting()) {
+                BlockService blockService = new BlockService(GriefLogger.getDatabase());
+                blockService.getHistoryAsync(level, positions, serverPlayer::grieflogger$sendInspectMessage);
                 return EventResult.interruptFalse();
             }
         }
