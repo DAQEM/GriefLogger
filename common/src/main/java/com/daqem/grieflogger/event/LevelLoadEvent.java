@@ -9,7 +9,7 @@ public class LevelLoadEvent {
     public static void registerEvent() {
         LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> {
             LevelService levelService = new LevelService(GriefLogger.getDatabase());
-            levelService.insert(level.dimension().location().toString());
+            levelService.insertAsync(level.dimension().location().toString());
         });
     }
 }

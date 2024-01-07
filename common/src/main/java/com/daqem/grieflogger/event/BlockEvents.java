@@ -1,12 +1,9 @@
 package com.daqem.grieflogger.event;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.block.BlockHandler;
 import com.daqem.grieflogger.database.service.BlockService;
-import com.daqem.grieflogger.database.service.LevelService;
-import com.daqem.grieflogger.database.service.MaterialService;
-import com.daqem.grieflogger.database.service.UserService;
-import com.daqem.grieflogger.model.Action;
-import com.daqem.grieflogger.model.BlockHistory;
+import com.daqem.grieflogger.model.BlockAction;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.BlockEvent;
@@ -18,46 +15,85 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.List;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 public class BlockEvents {
 
     public static void registerEvents() {
-        BlockEvent.BREAK.register((level, pos, state, player, xp) -> logBlock(player, level, state, pos, Action.BREAK));
+        BlockEvent.BREAK.register((level, pos, state, player, xp) -> {
+            Block block = state.getBlock();
+            if (BlockHandler.isBlockIntractable(block)) {
+                if (block instanceof DoorBlock) {
+                    BlockPos secondPos = null;
+                    if (state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
+                        secondPos = pos.above();
+                    }
+                    else if (state.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) {
+                        secondPos = pos.below();
+                    }
+                    if (secondPos != null) {
+                        removeInteractionsForPosition(level, secondPos);
+                    }
+                }
+                removeInteractionsForPosition(level, pos);
+            }
+
+            return logBlock(player, level, state, pos, BlockAction.BREAK);
+        });
 
         BlockEvent.PLACE.register((level, pos, state, placer) -> {
             if (placer instanceof ServerPlayer player) {
-                return logBlock(player, level, state, pos, Action.PLACE);
+                return logBlock(player, level, state, pos, BlockAction.PLACE);
             }
             return EventResult.pass();
         });
 
-        InteractionEvent.LEFT_CLICK_BLOCK.register((player, hand, pos, direction) -> inspectBlock(player, pos));
+        InteractionEvent.LEFT_CLICK_BLOCK.register((player, hand, pos, direction) ->
+                inspectBlock(player, pos));
+
         InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, pos, direction) -> {
             if (hand == InteractionHand.MAIN_HAND) {
-                return inspectBlock(player, pos.relative(direction));
+                EventResult eventResult = inspectBlock(player, pos.relative(direction));
+                if (player instanceof GriefLoggerServerPlayer griefLoggerServerPlayer) {
+                    if (!griefLoggerServerPlayer.grieflogger$isInspecting()) {
+                        logInteraction(player, pos);
+                    }
+                }
+                return eventResult;
             }
             return EventResult.pass();
         });
     }
 
-    private static EventResult logBlock(ServerPlayer player, Level level, BlockState state, BlockPos pos, Action action) {
-        UserService userService = new UserService(GriefLogger.getDatabase());
-        userService.getId(player.getUUID()).ifPresent(userId -> {
-            LevelService levelService = new LevelService(GriefLogger.getDatabase());
-            levelService.getId(level.dimension().location().toString()).ifPresent(levelId -> {
-                MaterialService materialService = new MaterialService(GriefLogger.getDatabase());
-                ResourceLocation resourceLocation = state.getBlock().arch$registryName();
-                if (resourceLocation != null) {
-                    materialService.getOrInsertId(resourceLocation.toString()).ifPresent(materialId -> {
-                        BlockService blockService = new BlockService(GriefLogger.getDatabase());
-                        blockService.insert(userId, levelId, pos.getX(), pos.getY(), pos.getZ(), materialId, action);
-                    });
-                }
-            });
-        });
+    private static void removeInteractionsForPosition(Level level, BlockPos secondPos) {
+        BlockService blockService = new BlockService(GriefLogger.getDatabase());
+        blockService.removeInteractionsForPositionAsync(level, secondPos);
+    }
+
+    private static void logInteraction(Player player, BlockPos pos) {
+        BlockState state = player.level().getBlockState(pos);
+        ResourceLocation materialLocation = state.getBlock().arch$registryName();
+        if (materialLocation != null) {
+            BlockService blockService = new BlockService(GriefLogger.getDatabase());
+            blockService.insertMaterialAsync(player.getUUID(), player.level().dimension().location().toString(), pos.getX(), pos.getY(), pos.getZ(), materialLocation.toString(), BlockAction.INTERACT);
+        }
+    }
+
+    private static EventResult logBlock(ServerPlayer player, Level level, BlockState state, BlockPos pos, BlockAction blockAction) {
+        ResourceLocation materialLocation = state.getBlock().arch$registryName();
+        if (player instanceof GriefLoggerServerPlayer serverPlayer) {
+            if (serverPlayer.grieflogger$isInspecting()) {
+                return EventResult.interruptFalse();
+            }
+        }
+        if (materialLocation != null) {
+            BlockService blockService = new BlockService(GriefLogger.getDatabase());
+            blockService.insertMaterialAsync(player.getUUID(), level.dimension().location().toString(), pos.getX(), pos.getY(), pos.getZ(), materialLocation.toString(), blockAction);
+        }
+
         return EventResult.pass();
     }
 
@@ -65,8 +101,7 @@ public class BlockEvents {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
             if (serverPlayer.grieflogger$isInspecting()) {
                 BlockService blockService = new BlockService(GriefLogger.getDatabase());
-                List<BlockHistory> history = blockService.getHistory(player.level(), pos);
-                serverPlayer.grieflogger$sendInspectMessage(history);
+                blockService.getHistoryAsync(player.level(), pos, serverPlayer::grieflogger$sendInspectMessage);
                 return EventResult.interruptFalse();
             }
         }

@@ -16,17 +16,17 @@ public class MaterialRepository {
         database.execute("""
                 CREATE TABLE IF NOT EXISTS materials (
                 	id integer PRIMARY KEY AUTOINCREMENT,
-                	material text NOT NULL
+                	name text NOT NULL UNIQUE
                 );
                 """);
     }
 
     public void insert(String material) {
-        database.executeUpdate("INSERT INTO materials(material) VALUES('" + material + "')");
+        database.executeUpdate("INSERT INTO materials(name) VALUES('" + material + "')");
     }
 
     public Optional<Integer> getId(String material) {
-        String sql = "SELECT id FROM materials WHERE material = '%s'".formatted(material);
+        String sql = "SELECT id FROM materials WHERE name = '%s'".formatted(material);
         return database.getId(sql);
     }
 }

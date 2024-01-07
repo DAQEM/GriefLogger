@@ -11,7 +11,7 @@ public class PlayerJoinEvent {
         PlayerEvent.PLAYER_JOIN.register(player -> {
             UserService userService = new UserService(GriefLogger.getDatabase());
             GameProfile gameProfile = player.getGameProfile();
-            userService.insertOrUpdateName(gameProfile.getId(), gameProfile.getName());
+            userService.insertOrUpdateNameAsync(gameProfile.getId(), gameProfile.getName());
         });
     }
 }

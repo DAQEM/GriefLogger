@@ -3,13 +3,11 @@ package com.daqem.grieflogger.database.repository;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.model.*;
-import net.minecraft.core.BlockPos;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class BlockRepository {
 
@@ -28,33 +26,58 @@ public class BlockRepository {
                 	x integer NOT NULL,
                 	y integer NOT NULL,
                 	z integer NOT NULL,
-                	material integer NOT NULL,
-                	action integer NOT NULL
+                	type integer NOT NULL,
+                	blockAction integer NOT NULL
                 );
                 """);
     }
 
-    public void insert(long time, int user, int level, int x, int y, int z, int material, int action) {
+    public void insertMaterial(long time, String userUuid, String levelName, int x, int y, int z, String material, int blockAction) {
         database.executeUpdate("""
-                INSERT INTO blocks(time, user, level, x, y, z, material, action)
-                VALUES(%d, %d, %d, %d, %d, %d, %d, %d)
-                """.formatted(time, user, level, x, y, z, material, action));
+                INSERT OR IGNORE INTO materials(name)
+                VALUES('%s');
+                
+                INSERT OR IGNORE INTO blocks(time, user, level, x, y, z, type, blockAction)
+                VALUES(%d, (
+                    SELECT id FROM users WHERE uuid = '%s'
+                ), (
+                    SELECT id FROM levels WHERE name = '%s'
+                ), %d, %d, %d, (
+                    SELECT id FROM materials WHERE name = '%s'
+                ), %d);
+                """.formatted(material, time, userUuid, levelName, x, y, z, material, blockAction));
+    }
+
+    public void insertEntity(long time, String userUuid, String levelName, int x, int y, int z, String entity, int blockAction) {
+        database.executeUpdate("""
+                INSERT OR IGNORE INTO entities(name)
+                VALUES('%s');
+                
+                INSERT OR IGNORE INTO blocks(time, user, level, x, y, z, type, blockAction)
+                VALUES(%d, (
+                    SELECT id FROM users WHERE uuid = '%s'
+                ), (
+                    SELECT id FROM levels WHERE name = '%s'
+                ), %d, %d, %d, (
+                    SELECT id FROM entities WHERE name = '%s'
+                ), %d);
+                """.formatted(entity, time, userUuid, levelName, x, y, z, entity, blockAction));
     }
 
     public List<BlockHistory> getHistory(String levelName, int x, int y, int z) {
-        ResultSet resultSet = database.executeQuery("""
-                SELECT blocks.time, users.name, users.uuid, levels.name, blocks.x, blocks.y, blocks.z, materials.material, blocks.action
+        List<BlockHistory> blockHistory;
+        try (ResultSet resultSet = database.executeQuery("""
+                SELECT blocks.time, users.name, users.uuid, levels.name, blocks.x, blocks.y, blocks.z, materials.name, blocks.blockAction
                 FROM blocks
                 INNER JOIN users ON blocks.user = users.id
                 INNER JOIN levels ON blocks.level = (
                     SELECT id FROM levels WHERE name = '%s'
                 )
-                INNER JOIN materials ON blocks.material = materials.id
-                WHERE blocks.level = levels.id AND blocks.x = %d AND blocks.y = %d AND blocks.z = %d
+                INNER JOIN materials ON blocks.type = materials.id
+                WHERE blocks.level = levels.id AND blocks.x = %d AND blocks.y = %d AND blocks.z = %d AND (blocks.blockAction = 0 OR blocks.blockAction = 1 OR blocks.blockAction = 2)
                 ORDER BY blocks.time DESC
-                """.formatted(levelName, x, y, z));
-        List<BlockHistory> blockHistory = new ArrayList<>();
-        try {
+                """.formatted(levelName, x, y, z))) {
+            blockHistory = new ArrayList<>();
             while (resultSet.next()) {
                 blockHistory.add(new BlockHistory(
                         new Time(resultSet.getLong(1)),
@@ -65,12 +88,22 @@ public class BlockRepository {
                         resultSet.getString(4),
                         new BlockPosition(resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7)),
                         resultSet.getString(8),
-                        Action.fromId(resultSet.getInt(9))
+                        BlockAction.fromId(resultSet.getInt(9))
                 ));
             }
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to get block history", e);
+            return null;
         }
         return blockHistory;
+    }
+
+    public void removeInteractionsForPosition(String levelName, int x, int y, int z) {
+        database.executeUpdate("""
+                DELETE FROM blocks
+                WHERE level = (
+                    SELECT id FROM levels WHERE name = '%s'
+                ) AND x = %d AND y = %d AND z = %d AND blockAction = 2
+                """.formatted(levelName, x, y, z));
     }
 }

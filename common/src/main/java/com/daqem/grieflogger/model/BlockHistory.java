@@ -7,7 +7,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
-public record BlockHistory(Time time, User user, String level, BlockPosition position, String material, Action action) {
+public record BlockHistory(Time time, User user, String level, BlockPosition position, String material, BlockAction blockAction) {
     public Component getMaterialComponent() {
         MutableComponent mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
         return mutableComponent

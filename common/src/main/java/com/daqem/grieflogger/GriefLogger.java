@@ -2,10 +2,7 @@ package com.daqem.grieflogger;
 
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.service.*;
-import com.daqem.grieflogger.event.LevelLoadEvent;
-import com.daqem.grieflogger.event.BlockEvents;
-import com.daqem.grieflogger.event.PlayerJoinEvent;
-import com.daqem.grieflogger.event.RegisterCommandEvent;
+import com.daqem.grieflogger.event.*;
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -24,20 +21,24 @@ public class GriefLogger {
     }
 
     private static void registerEvents() {
+        BlockEvents.registerEvents();
+        TickEvents.registerEvents();
+        EntityEvents.registerEvents();
+
         PlayerJoinEvent.registerEvent();
         LevelLoadEvent.registerEvent();
-        BlockEvents.registerEvents();
         RegisterCommandEvent.registerEvent();
     }
 
     private static void prepareDatabase() {
         DATABASE = new Database("database.db");
 
-        new MaterialService(getDatabase()).createTable();
-        new UserService(getDatabase()).createTable();
-        new UsernameService(getDatabase()).createTable();
-        new BlockService(getDatabase()).createTable();
-        new LevelService(getDatabase()).createTable();
+        new MaterialService(getDatabase()).createTableAsync();
+        new UserService(getDatabase()).createTableAsync();
+        new UsernameService(getDatabase()).createTableAsync();
+        new BlockService(getDatabase()).createTableAsync();
+        new LevelService(getDatabase()).createTableAsync();
+        new EntityService(getDatabase()).createTableAsync();
     }
 
     public static Database getDatabase() {

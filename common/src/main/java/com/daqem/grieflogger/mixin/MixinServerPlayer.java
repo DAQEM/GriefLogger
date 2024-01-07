@@ -46,9 +46,9 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
                 sendSystemMessage(
                         GriefLogger.translate("inspect.history_entry",
                                 history.time().getFormattedTimeAgo(),
-                                history.action().getPrefix(),
+                                history.blockAction().getPrefix(),
                                 history.user().getNameComponent(),
-                                history.action().getPastTense(),
+                                history.blockAction().getPastTense(),
                                 history.getMaterialComponent()
                         ));
             }

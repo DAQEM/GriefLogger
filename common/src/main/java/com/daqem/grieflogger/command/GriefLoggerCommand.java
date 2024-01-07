@@ -29,7 +29,7 @@ public class GriefLoggerCommand {
     private static int inspect(CommandSourceStack source) {
         if (source.getPlayer() instanceof GriefLoggerServerPlayer player) {
             player.grieflogger$setInspecting(!player.grieflogger$isInspecting());
-            source.sendSuccess(() -> GriefLogger.translate("commands.inspect." + (player.grieflogger$isInspecting() ? "enabled" : "disabled")), false);
+            source.sendSuccess(() -> GriefLogger.translate("commands.inspect." + (player.grieflogger$isInspecting() ? "enabled" : "disabled"), GriefLogger.getName()), false);
         }
         return 1;
     }
