@@ -43,6 +43,10 @@ public class ContainerRepository {
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, SimpleItemStack item, int itemAction) {
+        if (item.isEmpty()) {
+            return;
+        }
+
         String insertMaterialQuery = """
                 INSERT OR IGNORE INTO materials(name)
                 VALUES(?);
@@ -102,6 +106,9 @@ public class ContainerRepository {
         try (PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
              PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery)) {
             for (SimpleItemStack item : items) {
+                if (item.isEmpty()) {
+                    continue;
+                }
                 ResourceLocation itemLocation = item.getItem().arch$registryName();
                 if (itemLocation != null) {
                     materialStatement.setString(1, itemLocation.toString());
@@ -147,6 +154,9 @@ public class ContainerRepository {
              PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery)) {
             for (Map.Entry<ItemAction, List<SimpleItemStack>> entry : itemsMap.entrySet()) {
                 for (SimpleItemStack item : entry.getValue()) {
+                    if (item.isEmpty()) {
+                        continue;
+                    }
                     ResourceLocation itemLocation = item.getItem().arch$registryName();
                     if (itemLocation != null) {
                         materialStatement.setString(1, itemLocation.toString());

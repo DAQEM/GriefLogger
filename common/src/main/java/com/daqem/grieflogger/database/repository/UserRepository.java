@@ -27,9 +27,9 @@ public class UserRepository {
     public void insertOrUpdateName(String name, String uuid) {
         String query = """
                 INSERT INTO users(name, uuid)
-                VALUES('%s', '%s')
+                VALUES(?, ?)
                 ON CONFLICT(uuid)
-                DO UPDATE SET name = '%s'
+                DO UPDATE SET name = ?
                 """;
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {

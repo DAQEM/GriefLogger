@@ -3,11 +3,15 @@ package com.daqem.grieflogger.mixin;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.block.container.ContainerHandler;
 import com.daqem.grieflogger.block.container.ContainerTransactionManager;
+import com.daqem.grieflogger.database.service.ItemService;
+import com.daqem.grieflogger.model.SimpleItemStack;
+import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.BlockHistory;
 import com.daqem.grieflogger.model.history.ContainerHistory;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
@@ -22,17 +26,17 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.List;
-import java.util.OptionalInt;
+import java.util.*;
 
 @Mixin(ServerPlayer.class)
 public abstract class MixinServerPlayer extends Player implements GriefLoggerServerPlayer {
 
-    @Shadow @Final public MinecraftServer server;
     @Unique
     private boolean grieflogger$inspecting = false;
     @Unique
     private ContainerTransactionManager grieflogger$containerTransactionManager;
+    @Unique
+    private final Map<ItemAction, List<SimpleItemStack>> grieflogger$itemQueue = new HashMap<>();
 
     public MixinServerPlayer(Level level, BlockPos blockPos, float f, GameProfile gameProfile) {
         super(level, blockPos, f, gameProfile);
@@ -111,5 +115,26 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
             this.grieflogger$containerTransactionManager.finalize(grieflogger$asServerPlayer());
             this.grieflogger$containerTransactionManager = null;
         }
+    }
+
+    @Inject(at = @At("HEAD"), method = "tick")
+    public void grieflogger$tick(CallbackInfo ci) {
+        if (!grieflogger$itemQueue.isEmpty()) {
+            ItemService itemService = new ItemService(GriefLogger.getDatabase());
+            itemService.insertMapAsync(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
+            grieflogger$itemQueue.clear();
+        }
+    }
+
+    public void griefLogger$addItemToQueue(ItemAction action, SimpleItemStack itemStack) {
+        List<SimpleItemStack> itemStacks = grieflogger$itemQueue.get(action);
+        if (itemStacks != null) {
+            SimpleItemStack existingItemStack = itemStacks.stream().filter(itemStack::equals).findFirst().orElse(null);
+            if (existingItemStack != null) {
+                existingItemStack.setCount(existingItemStack.getCount() + itemStack.getCount());
+                return;
+            }
+        }
+        grieflogger$itemQueue.computeIfAbsent(action, k -> new ArrayList<>()).add(itemStack);
     }
 }

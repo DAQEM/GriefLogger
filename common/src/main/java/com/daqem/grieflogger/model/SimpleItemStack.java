@@ -95,4 +95,8 @@ public class SimpleItemStack {
         itemStack.setTag(tag);
         return itemStack;
     }
+
+    public boolean isEmpty() {
+        return item.equals(ItemStack.EMPTY.getItem()) || count == 0;
+    }
 }

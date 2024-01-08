@@ -6,7 +6,10 @@
   "client": [
   ],
   "mixins": [
-    "MixinServerPlayer"
+    "ItemMixin",
+    "MixinItemStack",
+    "MixinServerPlayer",
+    "ProjectileMixin"
   ],
   "injectors": {
     "defaultRequire": 1

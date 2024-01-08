@@ -9,6 +9,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class ItemService {
@@ -39,5 +41,19 @@ public class ItemService {
 
     public void insertAsync(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {
         ThreadManager.execute(() -> insert(userUuid, level, pos, item, itemAction));
+    }
+
+    public void insertMap(UUID userUuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
+        itemRepository.insertMap(System.currentTimeMillis(),
+                userUuid.toString(),
+                level.dimension().location().toString(),
+                pos.getX(),
+                pos.getY(),
+                pos.getZ(),
+                itemsMap);
+    }
+
+    public void insertMapAsync(UUID uuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
+        ThreadManager.execute(() -> insertMap(uuid, level, pos, itemsMap));
     }
 }

@@ -4,6 +4,7 @@ import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.service.*;
 import com.daqem.grieflogger.event.*;
 import com.daqem.grieflogger.event.block.BlockEvents;
+import com.daqem.grieflogger.event.item.ItemEvents;
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -25,6 +26,7 @@ public class GriefLogger {
         BlockEvents.registerEvents();
         TickEvents.registerEvents();
         EntityEvents.registerEvents();
+        ItemEvents.registerEvents();
 
         PlayerJoinEvent.registerEvent();
         PlayerQuitEvent.registerEvent();
@@ -48,6 +50,7 @@ public class GriefLogger {
         new SessionService(getDatabase()).createTableAsync();
         new ChatService(getDatabase()).createTableAsync();
         new CommandService(getDatabase()).createTableAsync();
+        new ItemService(getDatabase()).createTableAsync();
     }
 
     public static Database getDatabase() {
