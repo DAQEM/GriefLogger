@@ -15,14 +15,22 @@ import java.util.List;
 
 public class InspectDoorEvent extends AbstractEvent {
 
-    public static EventResult inspectDoor(GriefLoggerServerPlayer player, Level level, BlockPos pos, BlockState state) {
+    public static EventResult inspectDoor(GriefLoggerServerPlayer player, Level level, BlockPos pos, BlockState state, boolean isInteraction) {
         List<BlockPos> positions = new ArrayList<>(List.of(pos));
         BlockHandler.getSecondDoorPosition(pos, state).ifPresent(positions::add);
         BlockService blockService = new BlockService(GriefLogger.getDatabase());
-        blockService.getHistoryAsync(
-                level,
-                positions,
-                player::grieflogger$sendBlockInspectMessage);
+        if (isInteraction) {
+            blockService.getInteractionHistoryAsync(
+                    level,
+                    positions,
+                    player::grieflogger$sendBlockInspectMessage);
+            return interrupt();
+        } else {
+            blockService.getBlockHistoryAsync(
+                    level,
+                    positions,
+                    player::grieflogger$sendBlockInspectMessage);
+        }
         return interrupt();
     }
 }

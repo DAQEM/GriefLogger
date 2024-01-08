@@ -11,7 +11,7 @@ public class InspectBlockEvent extends AbstractEvent {
 
     public static EventResult inspectBlock(GriefLoggerServerPlayer player, BlockPos pos) {
         BlockService blockService = new BlockService(GriefLogger.getDatabase());
-        blockService.getHistoryAsync(
+        blockService.getBlockHistoryAsync(
                 player.grieflogger$asServerPlayer().level(),
                 pos,
                 player::grieflogger$sendBlockInspectMessage);

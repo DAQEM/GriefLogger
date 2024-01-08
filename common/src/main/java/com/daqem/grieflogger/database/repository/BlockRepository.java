@@ -108,7 +108,7 @@ public class BlockRepository {
         }
     }
 
-    public List<BlockHistory> getHistory(String levelName, int x, int y, int z) {
+    public List<BlockHistory> getBlockHistory(String levelName, int x, int y, int z) {
         List<BlockHistory> blockHistory = new ArrayList<>();
         String query = """
                 SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z, materials.name, blocks.action
@@ -118,7 +118,45 @@ public class BlockRepository {
                     SELECT id FROM levels WHERE name = ?
                 )
                 INNER JOIN materials ON blocks.type = materials.id
-                WHERE blocks.level = levels.id AND blocks.x = ? AND blocks.y = ? AND blocks.z = ? AND (blocks.action = 0 OR blocks.action = 1 OR blocks.action = 2)
+                WHERE blocks.level = levels.id AND blocks.x = ? AND blocks.y = ? AND blocks.z = ? AND (blocks.action = 0 OR blocks.action = 1)
+                ORDER BY blocks.time DESC
+                """;
+
+        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+            preparedStatement.setString(1, levelName);
+            preparedStatement.setInt(2, x);
+            preparedStatement.setInt(3, y);
+            preparedStatement.setInt(4, z);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                blockHistory.add(new BlockHistory(
+                        resultSet.getLong(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getInt(4),
+                        resultSet.getInt(5),
+                        resultSet.getInt(6),
+                        resultSet.getString(7),
+                        resultSet.getInt(8)
+                ));
+            }
+        } catch (SQLException e) {
+            GriefLogger.LOGGER.error("Failed to get block history", e);
+        }
+        return blockHistory;
+    }
+
+    public List<BlockHistory> getInteractionHistory(String levelName, int x, int y, int z) {
+        List<BlockHistory> blockHistory = new ArrayList<>();
+        String query = """
+                SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z, materials.name, blocks.action
+                FROM blocks
+                INNER JOIN users ON blocks.user = users.id
+                INNER JOIN levels ON blocks.level = (
+                    SELECT id FROM levels WHERE name = ?
+                )
+                INNER JOIN materials ON blocks.type = materials.id
+                WHERE blocks.level = levels.id AND blocks.x = ? AND blocks.y = ? AND blocks.z = ? AND blocks.action = 2
                 ORDER BY blocks.time DESC
                 """;
 
