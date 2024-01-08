@@ -1,8 +1,10 @@
 package com.daqem.grieflogger.database.repository;
 
+import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.database.Database;
 
-import java.util.Optional;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class UsernameRepository {
 
@@ -13,9 +15,9 @@ public class UsernameRepository {
     }
 
     public void createTable() {
-        database.execute("""
+        database.createTable("""
                 CREATE TABLE IF NOT EXISTS usernames (
-                	id integer PRIMARY KEY AUTOINCREMENT,
+                	id integer PRIMARY KEY,
                 	time integer NOT NULL,
                 	uuid text NOT NULL,
                 	name text NOT NULL,
@@ -25,16 +27,18 @@ public class UsernameRepository {
     }
 
     public void insert(long time, String uuid, String name) {
-        database.executeUpdate("""
-                INSERT INTO usernames(time, uuid, name)
-                VALUES(%d, '%s', '%s')
-                ON CONFLICT(uuid, name)
-                DO NOTHING
-                """.formatted(time, uuid, name));
-    }
+        String query = """
+                INSERT OR IGNORE INTO usernames(time, uuid, name)
+                VALUES(?, ?, ?);
+                """;
 
-    public Optional<String> getName(String uuid) {
-        String sql = "SELECT name FROM usernames WHERE uuid = '" + uuid + "' ORDER BY time DESC LIMIT 1";
-        return database.getString(sql, "name");
+        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+            preparedStatement.setLong(1, time);
+            preparedStatement.setString(2, uuid);
+            preparedStatement.setString(3, name);
+            preparedStatement.executeUpdate();
+        } catch (SQLException exception) {
+            GriefLogger.LOGGER.error("Failed to insert username into database", exception);
+        }
     }
 }

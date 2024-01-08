@@ -1,13 +1,24 @@
-package com.daqem.grieflogger.model;
+package com.daqem.grieflogger.model.history;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.model.BlockPosition;
+import com.daqem.grieflogger.model.Time;
+import com.daqem.grieflogger.model.User;
+import com.daqem.grieflogger.model.action.BlockAction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
-public record BlockHistory(Time time, User user, String level, BlockPosition position, String material, BlockAction blockAction) {
+import java.util.UUID;
+
+public record BlockHistory(Time time, User user, BlockPosition position, String material, BlockAction action) {
+
+    public BlockHistory(long time, String name, String uuid, int x, int y, int z, String material, int blockAction) {
+        this(new Time(time), new User(name, UUID.fromString(uuid)), new BlockPosition(x, y, z), material, BlockAction.fromId(blockAction));
+    }
+
     public Component getMaterialComponent() {
         MutableComponent mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
         return mutableComponent

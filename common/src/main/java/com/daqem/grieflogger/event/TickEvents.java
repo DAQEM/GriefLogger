@@ -1,5 +1,6 @@
 package com.daqem.grieflogger.event;
 
+import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.thread.ThreadManager;
 import dev.architectury.event.events.common.TickEvent;
 
@@ -14,7 +15,7 @@ public class TickEvents {
                         try {
                             onComplete.onComplete(future.get());
                         } catch (InterruptedException | ExecutionException e) {
-                            throw new RuntimeException(e);
+                            GriefLogger.LOGGER.error("Error executing task", e);
                         }
                     }
             );

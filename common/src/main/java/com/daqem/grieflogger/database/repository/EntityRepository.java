@@ -1,6 +1,10 @@
 package com.daqem.grieflogger.database.repository;
 
+import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.database.Database;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class EntityRepository {
 
@@ -11,15 +15,25 @@ public class EntityRepository {
     }
 
     public void createTable() {
-        database.execute("""
+        database.createTable("""
                 CREATE TABLE IF NOT EXISTS entities (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL UNIQUE
                 )
                 """);
     }
 
     public void insert(String name) {
-        database.executeUpdate("INSERT OR IGNORE INTO entity(name) VALUES('" + name + "')");
+        String query = """
+                INSERT OR IGNORE INTO entities(name)
+                VALUES(?);
+                """;
+
+        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+            preparedStatement.setString(1, name);
+            preparedStatement.executeUpdate();
+        } catch (SQLException exception) {
+            GriefLogger.LOGGER.error("Failed to insert entity into database", exception);
+        }
     }
 }

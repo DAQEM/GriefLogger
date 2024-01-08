@@ -1,8 +1,10 @@
 package com.daqem.grieflogger.database.repository;
 
+import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.database.Database;
 
-import java.util.Optional;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class UserRepository {
 
@@ -13,9 +15,9 @@ public class UserRepository {
     }
 
     public void createTable() {
-        database.execute("""
+        database.createTable("""
                 CREATE TABLE IF NOT EXISTS users (
-                	id integer PRIMARY KEY AUTOINCREMENT,
+                	id integer PRIMARY KEY,
                 	name text NOT NULL,
                 	uuid text DEFAULT NULL UNIQUE
                 );
@@ -23,30 +25,36 @@ public class UserRepository {
     }
 
     public void insertOrUpdateName(String name, String uuid) {
-        database.executeUpdate("""
+        String query = """
                 INSERT INTO users(name, uuid)
                 VALUES('%s', '%s')
                 ON CONFLICT(uuid)
                 DO UPDATE SET name = '%s'
-                """.formatted(name, uuid, name));
+                """;
+
+        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+            preparedStatement.setString(1, name);
+            preparedStatement.setString(2, uuid);
+            preparedStatement.setString(3, name);
+            preparedStatement.executeUpdate();
+        } catch (SQLException exception) {
+            GriefLogger.LOGGER.error("Failed to insert username into database", exception);
+        }
     }
 
     public void insertNonPlayer(String name) {
-        database.executeUpdate("""
+        String query = """
                 INSERT INTO users(name)
                 VALUES('%s')
                 ON CONFLICT(name)
                 DO NOTHING
-                """.formatted(name));
-    }
+                """;
 
-    public Optional<Integer> getId(String uuid) {
-        String sql = "SELECT id FROM users WHERE uuid = '%s'".formatted(uuid);
-        return database.getId(sql);
-    }
-
-    public Optional<Integer> getNonPlayerId(String name) {
-        String sql = "SELECT id FROM users WHERE name = '%s'".formatted(name);
-        return database.getId(sql);
+        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+            preparedStatement.setString(1, name);
+            preparedStatement.executeUpdate();
+        } catch (SQLException exception) {
+            GriefLogger.LOGGER.error("Failed to insert username into database", exception);
+        }
     }
 }

@@ -2,7 +2,7 @@ package com.daqem.grieflogger.event;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.database.service.BlockService;
-import com.daqem.grieflogger.model.BlockAction;
+import com.daqem.grieflogger.model.action.BlockAction;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
 import net.minecraft.resources.ResourceLocation;
@@ -19,9 +19,7 @@ public class EntityEvents {
                     blockService.insertEntityAsync(
                             serverPlayer.getUUID(),
                             entity.level().dimension().location().toString(),
-                            entity.blockPosition().getX(),
-                            entity.blockPosition().getY(),
-                            entity.blockPosition().getZ(),
+                            entity.blockPosition(),
                             entityLocation.toString(),
                             BlockAction.KILL
                     );

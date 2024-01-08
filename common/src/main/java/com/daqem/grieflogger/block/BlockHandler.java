@@ -37,7 +37,7 @@ public class BlockHandler {
         ) {
             return true;
         }
-        return getIntractableBlocks().contains(block);
+        return getIntractableBlocks().contains(block.arch$registryName().toString());
     }
 
     public static List<String> getIntractableBlocks() {

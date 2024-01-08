@@ -1,10 +1,10 @@
 package com.daqem.grieflogger.database.repository;
 
+import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.database.Database;
 
-import java.sql.ResultSet;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Optional;
 
 public class LevelRepository {
 
@@ -15,20 +15,25 @@ public class LevelRepository {
     }
 
     public void createTable() {
-        database.execute("""
+        database.createTable("""
                 CREATE TABLE IF NOT EXISTS levels (
-                	id integer PRIMARY KEY AUTOINCREMENT,
+                	id integer PRIMARY KEY,
                 	name text NOT NULL UNIQUE
                 );
                 """);
     }
 
     public void insert(String name) {
-        database.executeUpdate("INSERT INTO levels(name) VALUES('" + name + "') ON CONFLICT(name) DO NOTHING");
-    }
+        String query = """
+                INSERT OR IGNORE INTO levels(name)
+                VALUES(?);
+                """;
 
-    public Optional<Integer> getId(String string) {
-        String sql = "SELECT id FROM levels WHERE name = '%s'".formatted(string);
-        return database.getId(sql);
+        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+            preparedStatement.setString(1, name);
+            preparedStatement.executeUpdate();
+        } catch (SQLException exception) {
+            GriefLogger.LOGGER.error("Failed to insert level into database", exception);
+        }
     }
 }

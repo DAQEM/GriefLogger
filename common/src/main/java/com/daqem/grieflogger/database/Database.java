@@ -5,7 +5,6 @@ import com.daqem.grieflogger.GriefLoggerExpectPlatform;
 
 import java.nio.file.Path;
 import java.sql.*;
-import java.util.Optional;
 
 public class Database {
 
@@ -29,72 +28,15 @@ public class Database {
         }
     }
 
-    public ResultSet executeQuery(String sql) {
-        try {
-            resultSet = statement.executeQuery(sql);
-        } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to execute query", e);
-        }
-        return resultSet;
-    }
-
-    public void execute(String sql) {
+    public void createTable(String sql) {
         try {
             statement.execute(sql);
         } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to execute", e);
+            GriefLogger.LOGGER.error("Failed to create table", e);
         }
     }
 
-    public void executeUpdate(String sql) {
-        try {
-            statement.executeUpdate(sql);
-        } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to execute update", e);
-        }
-    }
-
-    public void close() {
-        try {
-            if (resultSet != null) {
-                resultSet.close();
-            }
-            if (statement != null) {
-                statement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
-        } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to close database", e);
-        }
-    }
-
-    public Connection getConnection() {
-        return connection;
-    }
-
-    public Optional<Integer> getId(String sql) {
-        ResultSet resultSet = executeQuery(sql);
-        try {
-            if (resultSet.next()) {
-                return Optional.of(resultSet.getInt("id"));
-            }
-        } catch (Exception e) {
-            GriefLogger.LOGGER.error("Failed to get id from table", e);
-        }
-        return Optional.empty();
-    }
-
-    public Optional<String> getString(String sql, String column) {
-        ResultSet resultSet = executeQuery(sql);
-        try {
-            if (resultSet.next()) {
-                return Optional.of(resultSet.getString(column));
-            }
-        } catch (Exception e) {
-            GriefLogger.LOGGER.error("Failed to get string from table", e);
-        }
-        return Optional.empty();
+    public PreparedStatement prepareStatement(String query) throws SQLException {
+        return connection.prepareStatement(query);
     }
 }

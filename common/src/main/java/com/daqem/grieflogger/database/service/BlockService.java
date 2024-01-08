@@ -2,8 +2,8 @@ package com.daqem.grieflogger.database.service;
 
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.BlockRepository;
-import com.daqem.grieflogger.model.BlockAction;
-import com.daqem.grieflogger.model.BlockHistory;
+import com.daqem.grieflogger.model.action.BlockAction;
+import com.daqem.grieflogger.model.history.BlockHistory;
 import com.daqem.grieflogger.thread.OnComplete;
 import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
@@ -25,20 +25,20 @@ public class BlockService {
         ThreadManager.execute(blockRepository::createTable);
     }
 
-    public void insertMaterial(UUID userUuid, String levelName, int x, int y, int z, String material, BlockAction blockAction) {
-        blockRepository.insertMaterial(System.currentTimeMillis(), userUuid.toString(), levelName, x, y, z, material, blockAction.getId());
+    public void insertMaterial(UUID userUuid, String levelName, BlockPos pos, String material, BlockAction blockAction) {
+        blockRepository.insertMaterial(System.currentTimeMillis(), userUuid.toString(), levelName, pos.getX(), pos.getY(), pos.getZ(), material, blockAction.getId());
     }
 
-    public void insertMaterialAsync(UUID userUuid, String levelName, int x, int y, int z, String material, BlockAction blockAction) {
-        ThreadManager.execute(() -> insertMaterial(userUuid, levelName, x, y, z, material, blockAction));
+    public void insertMaterialAsync(UUID userUuid, String levelName, BlockPos pos, String material, BlockAction blockAction) {
+        ThreadManager.execute(() -> insertMaterial(userUuid, levelName, pos, material, blockAction));
     }
 
-    public void insertEntity(UUID userUuid, String levelName, int x, int y, int z, String entity, BlockAction blockAction) {
-        blockRepository.insertEntity(System.currentTimeMillis(), userUuid.toString(), levelName, x, y, z, entity, blockAction.getId());
+    public void insertEntity(UUID userUuid, String levelName, BlockPos pos, String entity, BlockAction blockAction) {
+        blockRepository.insertEntity(System.currentTimeMillis(), userUuid.toString(), levelName, pos.getX(), pos.getY(), pos.getZ(), entity, blockAction.getId());
     }
 
-    public void insertEntityAsync(UUID userUuid, String levelName, int x, int y, int z, String entity, BlockAction blockAction) {
-        ThreadManager.execute(() -> insertEntity(userUuid, levelName, x, y, z, entity, blockAction));
+    public void insertEntityAsync(UUID userUuid, String levelName, BlockPos pos, String entity, BlockAction blockAction) {
+        ThreadManager.execute(() -> insertEntity(userUuid, levelName, pos, entity, blockAction));
     }
 
     public List<BlockHistory> getHistory(Level level, BlockPos pos) {
