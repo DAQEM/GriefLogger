@@ -9,7 +9,7 @@ version = "${version}"
 displayName = "GriefLogger"
 authors = "DAQEM"
 description = '''
-A mod that logs griefing attempts.
+A mod that logs all player interactions with blocks and entities and stores them in a database.
 '''
 #logoFile = ""
 
@@ -32,4 +32,11 @@ modId = "architectury"
 mandatory = true
 versionRange = "[9.1.12,)"
 ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.grieflogger]]
+modId = "supermartijn642configlib"
+mandatory = true
+versionRange = "[${config_library_version},)"
+ordering = "NONE"
 side = "BOTH"
