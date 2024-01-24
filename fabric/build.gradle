@@ -127,3 +127,19 @@ curseforge {
 afterEvaluate {
     tasks.curseforge435029.dependsOn remapJar
 }
+
+modrinth {
+    token = System.getenv("MODRINTH_API_KEY")
+    projectId = "8oGVUFuX"
+    versionName = "GriefLogger Fabric $rootProject.minecraft_version - $rootProject.mod_version"
+    versionNumber = "$rootProject.mod_version"
+    versionType = "$rootProject.curse_forge_release_type"
+    uploadFile = remapJar
+    additionalFiles = [remapSourcesJar]
+    gameVersions = ["$rootProject.minecraft_version"]
+    loaders = ["fabric"]
+    dependencies {
+        required.project "architectury-api"
+        required.project "supermartijn642s-config-lib"
+    }
+}
