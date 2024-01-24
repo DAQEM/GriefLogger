@@ -1,5 +1,7 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.matthewprenger.cursegradle" version "1.4.0"
+    id "com.modrinth.minotaur" version "2.+"
 }
 
 architectury {
@@ -46,9 +48,13 @@ dependencies {
 
 processResources {
     inputs.property "version", project.version
+    inputs.property "config_library_version", config_library_version
 
     filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
+        expand([
+                "version": project.version,
+                "config_library_version": config_library_version
+        ])
     }
 }
 
@@ -63,12 +69,18 @@ shadowJar {
 remapJar {
     input.set shadowJar.archiveFile
     dependsOn shadowJar
+    archiveClassifier = "forge"
 }
 
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
     from commonSources.archiveFile.map { zipTree(it) }
+}
+
+remapSourcesJar {
+    //noinspection GroovyAccessibility
+    archiveClassifier = "forge-sources"
 }
 
 components.java {
@@ -88,5 +100,30 @@ publishing {
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
         // Add repositories to publish to here.
+    }
+}
+
+curseforge {
+    apiKey = System.getenv("CURSEFORGE_API_KEY")
+    project {
+        id = project.curse_forge_project_id
+        releaseType = project.curse_forge_release_type
+        changelogType = "markdown"
+        changelog = rootProject.file('changelog.md')
+        addGameVersion project.minecraft_version
+        addGameVersion "Java 17"
+        addGameVersion "Forge"
+
+        relations {
+            requiredDependency("architectury-api")
+            requiredDependency("supermartijn642s-config-lib")
+        }
+
+        mainArtifact(remapJar) {
+            displayName = "GriefLogger Forge $project.minecraft_version - $project.mod_version"
+        }
+
+        addArtifact(sourcesJar) {
+        }
     }
 }

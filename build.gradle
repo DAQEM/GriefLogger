@@ -52,4 +52,10 @@ allprojects {
     java {
         withSourcesJar()
     }
+
+    task printVersionName  {
+        doLast {
+            println version
+        }
+    }
 }

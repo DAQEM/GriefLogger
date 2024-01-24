@@ -3,7 +3,7 @@
   "id": "grieflogger",
   "version": "${version}",
   "name": "GriefLogger",
-  "description": "A mod that logs griefing attempts.",
+  "description": "A mod that logs all player interactions with blocks and entities and stores them in a database.",
   "authors": [
     "DAQEM"
   ],
@@ -26,6 +26,7 @@
   "depends": {
     "fabric": "*",
     "minecraft": ">=1.20.1",
-    "architectury": ">=9.1.12"
+    "architectury": ">=9.1.12",
+    "supermartijn642configlib": ">=${config_library_version}"
   }
 }
