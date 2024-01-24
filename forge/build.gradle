@@ -37,6 +37,11 @@ dependencies {
 
     modImplementation "org.xerial:sqlite-jdbc:3.44.1.0"
     shadowCommon "org.xerial:sqlite-jdbc:3.44.1.0"
+
+    modImplementation "mysql:mysql-connector-java:8.0.33"
+    shadowCommon "mysql:mysql-connector-java:8.0.33"
+
+    modImplementation "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file_forge}"
 }
 
 processResources {

@@ -1,7 +1,5 @@
 package com.daqem.grieflogger.event.item;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.service.ItemService;
 import com.daqem.grieflogger.event.AbstractEvent;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
@@ -13,7 +11,7 @@ public class SmeltItemEvent extends AbstractEvent {
 
     public static void onSmeltItem(Player player, ItemStack itemStack) {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
-            serverPlayer.griefLogger$addItemToQueue(ItemAction.CRAFT, new SimpleItemStack(itemStack));
+            serverPlayer.griefLogger$addItemToQueue(ItemAction.CRAFT_ITEM, new SimpleItemStack(itemStack));
         }
     }
 }

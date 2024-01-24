@@ -13,7 +13,7 @@ public class MaterialService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(materialRepository::createTable);
+        materialRepository.createTable();
     }
 
     public void insert(String material) {

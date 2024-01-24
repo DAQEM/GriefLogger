@@ -1,12 +1,13 @@
 package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class ChatRepository {
+public class ChatRepository extends Repository {
 
     private final Database database;
 
@@ -15,19 +16,36 @@ public class ChatRepository {
     }
 
     public void createTable() {
-        database.createTable("""
+        String sql = """
                 CREATE TABLE IF NOT EXISTS chats (
-                    time INTEGER NOT NULL,
-                    user INTEGER NOT NULL,
-                    level INTEGER NOT NULL,
-                    x INTEGER NOT NULL,
-                    y INTEGER NOT NULL,
-                    z INTEGER NOT NULL,
-                    message TEXT NOT NULL,
+                    time integer NOT NULL,
+                    user integer NOT NULL,
+                    level integer NOT NULL,
+                    x integer NOT NULL,
+                    y integer NOT NULL,
+                    z integer NOT NULL,
+                    message text NOT NULL,
                     FOREIGN KEY(user) REFERENCES users(id),
                     FOREIGN KEY(level) REFERENCES levels(id)
                 )
-                """);
+                """;
+        if (isMysql()) {
+            sql = """
+                    CREATE TABLE IF NOT EXISTS chats (
+                        time bigint NOT NULL,
+                        user int NOT NULL,
+                        level int NOT NULL,
+                        x int NOT NULL,
+                        y int NOT NULL,
+                        z int NOT NULL,
+                        message varchar(256) NOT NULL,
+                        FOREIGN KEY(user) REFERENCES users(id),
+                        FOREIGN KEY(level) REFERENCES levels(id)
+                    )
+                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
+                    """;
+        }
+        database.createTable(sql);
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, String message) {
@@ -39,6 +57,17 @@ public class ChatRepository {
                     SELECT id FROM levels WHERE name = ?
                 ), ?, ?, ?, ?);
                 """;
+
+        if (isMysql()) {
+            query = """
+                    INSERT IGNORE INTO chats(time, user, level, x, y, z, message)
+                    VALUES(?, (
+                        SELECT id FROM users WHERE uuid = ?
+                    ), (
+                        SELECT id FROM levels WHERE name = ?
+                    ), ?, ?, ?, ?);
+                    """;
+        }
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setLong(1, time);

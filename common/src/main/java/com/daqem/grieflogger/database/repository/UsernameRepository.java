@@ -1,12 +1,13 @@
 package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class UsernameRepository {
+public class UsernameRepository extends Repository {
 
     private final Database database;
 
@@ -15,7 +16,7 @@ public class UsernameRepository {
     }
 
     public void createTable() {
-        database.createTable("""
+        String sql = """
                 CREATE TABLE IF NOT EXISTS usernames (
                 	id integer PRIMARY KEY,
                 	time integer NOT NULL,
@@ -23,7 +24,20 @@ public class UsernameRepository {
                 	name text NOT NULL,
                 	UNIQUE(uuid, name)
                 );
-                """);
+                """;
+        if (isMysql()) {
+            sql = """
+                    CREATE TABLE IF NOT EXISTS usernames (
+                    	id int PRIMARY KEY AUTO_INCREMENT,
+                    	time bigint NOT NULL,
+                    	uuid varchar(36) NOT NULL,
+                    	name varchar(16) NOT NULL,
+                    	UNIQUE(uuid, name)
+                    )
+                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
+                    """;
+        }
+        database.createTable(sql);
     }
 
     public void insert(long time, String uuid, String name) {
@@ -31,6 +45,13 @@ public class UsernameRepository {
                 INSERT OR IGNORE INTO usernames(time, uuid, name)
                 VALUES(?, ?, ?);
                 """;
+
+        if (isMysql()) {
+            query = """
+                    INSERT IGNORE INTO usernames(time, uuid, name)
+                    VALUES(?, ?, ?);
+                    """;
+        }
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setLong(1, time);

@@ -17,7 +17,7 @@ public class ChatService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(chatRepository::createTable);
+        chatRepository.createTable();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, String message) {

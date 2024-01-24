@@ -12,7 +12,7 @@ public class CraftItemEvent extends AbstractEvent {
 
     public static void onCraftItem(Player player, ItemStack itemStack, Container container) {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
-            serverPlayer.griefLogger$addItemToQueue(ItemAction.CRAFT, new SimpleItemStack(itemStack));
+            serverPlayer.griefLogger$addItemToQueue(ItemAction.CRAFT_ITEM, new SimpleItemStack(itemStack));
         }
     }
 }

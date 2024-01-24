@@ -1,12 +1,15 @@
 package com.daqem.grieflogger.database.service;
 
+import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.SessionRepository;
 import com.daqem.grieflogger.model.action.SessionAction;
+import com.daqem.grieflogger.model.history.SessionHistory;
 import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
+import java.util.List;
 import java.util.UUID;
 
 public class SessionService {
@@ -18,7 +21,7 @@ public class SessionService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(sessionRepository::createTable);
+        sessionRepository.createTable();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SessionAction sessionAction) {
@@ -33,5 +36,12 @@ public class SessionService {
 
     public void insertAsync(UUID userUuid, Level level, BlockPos pos, SessionAction sessionAction) {
         ThreadManager.execute(() -> insert(userUuid, level, pos, sessionAction));
+    }
+
+    public List<SessionHistory> getFilteredSessionHistory(Level level, FilterList filterList) {
+        return sessionRepository.getFilteredSessionHistory(
+                level.dimension().location().toString(),
+                filterList
+        );
     }
 }

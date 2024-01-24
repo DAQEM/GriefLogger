@@ -12,7 +12,7 @@ public class DropItemEvent extends AbstractEvent {
 
     public static EventResult onDropItem(Player player, ItemEntity itemEntity) {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
-            serverPlayer.griefLogger$addItemToQueue(ItemAction.DROP, new SimpleItemStack(itemEntity.getItem()));
+            serverPlayer.griefLogger$addItemToQueue(ItemAction.DROP_ITEM, new SimpleItemStack(itemEntity.getItem()));
         }
         return pass();
     }

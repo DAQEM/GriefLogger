@@ -1,7 +1,6 @@
 package com.daqem.grieflogger.event;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.service.BlockService;
+import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.action.BlockAction;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
@@ -12,16 +11,15 @@ public class EntityEvents {
 
     public static void registerEvents() {
         EntityEvent.LIVING_DEATH.register((entity, source) -> {
-            BlockService blockService = new BlockService(GriefLogger.getDatabase());
             if (source.getEntity() instanceof ServerPlayer serverPlayer) {
                 ResourceLocation entityLocation = entity.getType().arch$registryName();
                 if (entityLocation != null) {
-                    blockService.insertEntityAsync(
+                    Services.BLOCK.insertEntityAsync(
                             serverPlayer.getUUID(),
                             entity.level().dimension().location().toString(),
                             entity.blockPosition(),
                             entityLocation.toString(),
-                            BlockAction.KILL
+                            BlockAction.KILL_ENTITY
                     );
                 }
             }

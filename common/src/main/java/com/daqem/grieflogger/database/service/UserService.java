@@ -4,6 +4,7 @@ import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.UserRepository;
 import com.daqem.grieflogger.thread.ThreadManager;
 
+import java.util.Map;
 import java.util.UUID;
 
 public class UserService {
@@ -17,7 +18,7 @@ public class UserService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(userRepository::createTable);
+        userRepository.createTable();
     }
 
     public void insertOrUpdateName(UUID uuid, String name) {
@@ -27,5 +28,9 @@ public class UserService {
 
     public void insertOrUpdateNameAsync(UUID uuid, String name) {
         ThreadManager.execute(() -> insertOrUpdateName(uuid, name));
+    }
+
+    public Map<Integer, String> getAllUsernames() {
+        return userRepository.getAllUsernames();
     }
 }

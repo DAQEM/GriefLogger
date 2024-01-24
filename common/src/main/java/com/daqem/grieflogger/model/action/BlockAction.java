@@ -2,11 +2,11 @@ package com.daqem.grieflogger.model.action;
 
 import com.daqem.grieflogger.model.Operation;
 
-public enum BlockAction implements Action {
-    BREAK(0, Operation.REMOVE),
-    PLACE(1, Operation.ADD),
-    INTERACT(2, Operation.NEUTRAL),
-    KILL(3, Operation.REMOVE);
+public enum BlockAction implements IAction {
+    BREAK_BLOCK(0, Operation.REMOVE),
+    PLACE_BLOCK(1, Operation.ADD),
+    INTERACT_BLOCK(2, Operation.NEUTRAL),
+    KILL_ENTITY(3, Operation.REMOVE);
 
     private final int id;
     private final Operation operation;

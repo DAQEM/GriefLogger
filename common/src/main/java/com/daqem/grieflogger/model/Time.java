@@ -10,15 +10,15 @@ import java.util.Date;
 
 public record Time(long time) {
 
-    private static final Component MINUTES = GriefLogger.translate("time.minutes");
-    private static final Component HOURS = GriefLogger.translate("time.hours");
-    private static final Component DAYS = GriefLogger.translate("time.days");
-    private static final Component YEARS = GriefLogger.translate("time.years");
+    private static final Component MINUTES = TimeUnit.MINUTE.getComponent();
+    private static final Component HOURS = TimeUnit.HOUR.getComponent();
+    private static final Component DAYS = TimeUnit.DAY.getComponent();
+    private static final Component YEARS = TimeUnit.YEAR.getComponent();
 
-    private static final long MINUTE = 60 * 1000L;
-    private static final long HOUR = 60 * MINUTE;
-    private static final long DAY = 24 * HOUR;
-    private static final long YEAR = 365 * DAY;
+    private static final long MINUTE = TimeUnit.MINUTE.getMilliseconds();
+    private static final long HOUR = TimeUnit.HOUR.getMilliseconds();
+    private static final long DAY = TimeUnit.DAY.getMilliseconds();
+    private static final long YEAR = TimeUnit.YEAR.getMilliseconds();
 
     public Component getFormattedTimeAgo() {
         long timeAgo = System.currentTimeMillis() - time;
@@ -34,7 +34,7 @@ public record Time(long time) {
     }
 
     private Component getTimeAgoComponent(double timeAgo, Component unit) {
-        return GriefLogger.translate("inspect.time.ago", String.format("%.2f", timeAgo), unit)
+        return GriefLogger.translate("lookup.time.ago", String.format("%.2f", timeAgo), GriefLogger.translate("time.divider"), unit)
                 .withStyle(Style.EMPTY
                         .withColor(ChatFormatting.GRAY)
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,

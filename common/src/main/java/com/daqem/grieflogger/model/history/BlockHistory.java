@@ -13,10 +13,29 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.UUID;
 
-public record BlockHistory(Time time, User user, BlockPosition position, String material, BlockAction action) {
+public class BlockHistory extends History {
+
+
+    private final String material;
 
     public BlockHistory(long time, String name, String uuid, int x, int y, int z, String material, int blockAction) {
         this(new Time(time), new User(name, UUID.fromString(uuid)), new BlockPosition(x, y, z), material, BlockAction.fromId(blockAction));
+    }
+
+    public BlockHistory(Time time, User user, BlockPosition position, String material, BlockAction action) {
+        super(time, user, position, action);
+        this.material = material;
+    }
+
+    @Override
+    public Component getComponent() {
+        return GriefLogger.translate("lookup.block.history_entry",
+                getTime().getFormattedTimeAgo(),
+                getAction().getPrefix(),
+                getUser().getNameComponent(),
+                getAction().getPastTense(),
+                getMaterialComponent()
+        );
     }
 
     public Component getMaterialComponent() {
@@ -32,6 +51,5 @@ public record BlockHistory(Time time, User user, BlockPosition position, String 
                                                         new ResourceLocation(material)
                                                 ).asItem()
                                                         .getDefaultInstance()))));
-
     }
 }

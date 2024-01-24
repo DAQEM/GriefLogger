@@ -13,7 +13,7 @@ public class LevelService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(levelRepository::createTable);
+        levelRepository.createTable();
     }
 
     public void insert(String name) {

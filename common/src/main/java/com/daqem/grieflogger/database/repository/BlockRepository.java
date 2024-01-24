@@ -1,16 +1,22 @@
 package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.command.filter.FilterList;
+import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.model.history.BlockHistory;
+import com.daqem.grieflogger.model.history.IHistory;
+import com.daqem.grieflogger.model.history.SessionHistory;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockRepository {
+public class BlockRepository extends Repository {
 
     private final Database database;
 
@@ -19,7 +25,7 @@ public class BlockRepository {
     }
 
     public void createTable() {
-        database.createTable("""
+        String sql = """
                 CREATE TABLE IF NOT EXISTS blocks (
                 	time integer NOT NULL,
                 	user integer NOT NULL,
@@ -33,7 +39,26 @@ public class BlockRepository {
                 	FOREIGN KEY(level) REFERENCES levels(id),
                 	FOREIGN KEY(type) REFERENCES materials(id)
                 );
-                """);
+                """;
+        if (isMysql()) {
+            sql = """
+                    CREATE TABLE IF NOT EXISTS blocks (
+                    	time bigint NOT NULL,
+                    	user int NOT NULL,
+                    	level int NOT NULL,
+                    	x int NOT NULL,
+                    	y int NOT NULL,
+                    	z int NOT NULL,
+                    	type int NOT NULL,
+                    	action int NOT NULL,
+                    	FOREIGN KEY(user) REFERENCES users(id),
+                    	FOREIGN KEY(level) REFERENCES levels(id),
+                    	FOREIGN KEY(type) REFERENCES materials(id)
+                    )
+                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
+                    """;
+        }
+        database.createTable(sql);
     }
 
     public void insertMaterial(long time, String userUuid, String levelName, int x, int y, int z, String material, int blockAction) {
@@ -41,6 +66,13 @@ public class BlockRepository {
                 INSERT OR IGNORE INTO materials(name)
                 VALUES(?);
                 """;
+
+        if (isMysql()) {
+            materialQuery = """
+                    INSERT IGNORE INTO materials(name)
+                    VALUES(?);
+                    """;
+        }
 
         String blockQuery = """
                 INSERT OR IGNORE INTO blocks(time, user, level, x, y, z, type, action)
@@ -52,6 +84,19 @@ public class BlockRepository {
                     SELECT id FROM materials WHERE name = ?
                 ), ?);
                 """;
+
+        if (isMysql()) {
+            blockQuery = """
+                    INSERT IGNORE INTO blocks(time, user, level, x, y, z, type, action)
+                    VALUES(?, (
+                        SELECT id FROM users WHERE uuid = ?
+                    ), (
+                        SELECT id FROM levels WHERE name = ?
+                    ), ?, ?, ?, (
+                        SELECT id FROM materials WHERE name = ?
+                    ), ?);
+                    """;
+        }
 
         try (PreparedStatement materialStatement = database.prepareStatement(materialQuery);
              PreparedStatement blockStatement = database.prepareStatement(blockQuery)) {
@@ -78,6 +123,13 @@ public class BlockRepository {
                 VALUES(?);
                 """;
 
+        if (isMysql()) {
+            materialQuery = """
+                    INSERT IGNORE INTO entities(name)
+                    VALUES(?);
+                    """;
+        }
+
         String blockQuery = """
                 INSERT OR IGNORE INTO blocks(time, user, level, x, y, z, type, action)
                 VALUES(?, (
@@ -88,6 +140,19 @@ public class BlockRepository {
                     SELECT id FROM entities WHERE name = ?
                 ), ?);
                 """;
+
+        if (isMysql()) {
+            blockQuery = """
+                    INSERT IGNORE INTO blocks(time, user, level, x, y, z, type, action)
+                    VALUES(?, (
+                        SELECT id FROM users WHERE uuid = ?
+                    ), (
+                        SELECT id FROM levels WHERE name = ?
+                    ), ?, ?, ?, (
+                        SELECT id FROM entities WHERE name = ?
+                    ), ?);
+                    """;
+        }
 
         try (PreparedStatement materialStatement = database.prepareStatement(materialQuery);
              PreparedStatement blockStatement = database.prepareStatement(blockQuery)) {
@@ -108,8 +173,8 @@ public class BlockRepository {
         }
     }
 
-    public List<BlockHistory> getBlockHistory(String levelName, int x, int y, int z) {
-        List<BlockHistory> blockHistory = new ArrayList<>();
+    public List<IHistory> getBlockHistory(String levelName, int x, int y, int z) {
+        List<IHistory> blockHistory = new ArrayList<>();
         String query = """
                 SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z, materials.name, blocks.action
                 FROM blocks
@@ -146,8 +211,8 @@ public class BlockRepository {
         return blockHistory;
     }
 
-    public List<BlockHistory> getInteractionHistory(String levelName, int x, int y, int z) {
-        List<BlockHistory> blockHistory = new ArrayList<>();
+    public List<IHistory> getInteractionHistory(String levelName, int x, int y, int z) {
+        List<IHistory> blockHistory = new ArrayList<>();
         String query = """
                 SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z, materials.name, blocks.action
                 FROM blocks
@@ -200,6 +265,86 @@ public class BlockRepository {
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to remove interactions for position", e);
+        }
+    }
+
+    public List<IHistory> getFilteredBlockHistory(String levelName, FilterList filterList) {
+        @Nullable String actions = filterList.getActionString();
+        @Nullable String users = filterList.getUserString();
+        @Nullable String includeMaterials = filterList.getIncludeMaterialsString();
+        @Nullable String excludeMaterials = filterList.getExcludeMaterialsString();
+
+        String query = """
+                SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z, materials.name, blocks.action
+                FROM blocks
+                INNER JOIN users ON blocks.user = users.id
+                INNER JOIN levels ON blocks.level = levels.id
+                INNER JOIN materials ON blocks.type = materials.id
+                WHERE levels.name = ?
+                AND blocks.time > ?
+                AND (? IS NULL OR blocks.action IN (%s))
+                AND (? IS NULL OR users.id IN (%s))
+                AND (? IS NULL OR materials.name IN ('%s'))
+                AND (? IS NULL OR materials.name NOT IN ('%s'))
+                AND blocks.x BETWEEN ? AND ?
+                AND blocks.y BETWEEN ? AND ?
+                AND blocks.z BETWEEN ? AND ?
+                ORDER BY blocks.time DESC
+                LIMIT 1000;
+                """.formatted(actions, users, includeMaterials, excludeMaterials);
+
+        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+            preparedStatement.setString(1, levelName);
+            preparedStatement.setLong(2, filterList.getTime());
+
+            if (actions == null || actions.isEmpty()) {
+                preparedStatement.setNull(3, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(3, "not null");
+            }
+
+            if (users == null || users.isEmpty()) {
+                preparedStatement.setNull(4, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(4, "not null");
+            }
+
+            if (includeMaterials == null || includeMaterials.isEmpty()) {
+                preparedStatement.setNull(5, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(5, "not null");
+            }
+
+            if (excludeMaterials == null || excludeMaterials.isEmpty()) {
+                preparedStatement.setNull(6, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(6, "not null");
+            }
+
+            preparedStatement.setInt(7, filterList.getRadiusMinX());
+            preparedStatement.setInt(8, filterList.getRadiusMaxX());
+            preparedStatement.setInt(9, filterList.getRadiusMinY());
+            preparedStatement.setInt(10, filterList.getRadiusMaxY());
+            preparedStatement.setInt(11, filterList.getRadiusMinZ());
+            preparedStatement.setInt(12, filterList.getRadiusMaxZ());
+
+            List<IHistory> blockHistory = new ArrayList<>();
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                blockHistory.add(new BlockHistory(
+                        resultSet.getLong(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getInt(4),
+                        resultSet.getInt(5),
+                        resultSet.getInt(6),
+                        resultSet.getString(7),
+                        resultSet.getInt(8)));
+            }
+            return blockHistory;
+        } catch (SQLException exception) {
+            GriefLogger.LOGGER.error("Failed to get block history from database", exception);
+            return List.of();
         }
     }
 }

@@ -1,15 +1,18 @@
 package com.daqem.grieflogger;
 
+import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.service.*;
 import com.daqem.grieflogger.event.*;
 import com.daqem.grieflogger.event.block.BlockEvents;
 import com.daqem.grieflogger.event.item.ItemEvents;
+import com.daqem.grieflogger.thread.ThreadManager;
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 
 public class GriefLogger {
@@ -18,8 +21,13 @@ public class GriefLogger {
     private static Database DATABASE;
 
     public static void init() {
+        initConfigs();
         registerEvents();
-        prepareDatabase();
+        prepareDatabaseAsync();
+    }
+
+    private static void initConfigs() {
+        GriefLoggerCommonConfig.init();
     }
 
     private static void registerEvents() {
@@ -37,20 +45,30 @@ public class GriefLogger {
         CommandEvent.registerEvent();
     }
 
+    private static void prepareDatabaseAsync() {
+        ThreadManager.execute(() -> {
+            LOGGER.info("Preparing database asynchronously.");
+            long start = System.currentTimeMillis();
+            prepareDatabase();
+            long end = System.currentTimeMillis();
+            LOGGER.info("Database prepared in {}ms.", end - start);
+        });
+    }
+
     private static void prepareDatabase() {
         DATABASE = new Database("database.db");
 
-        new MaterialService(getDatabase()).createTableAsync();
-        new UserService(getDatabase()).createTableAsync();
-        new UsernameService(getDatabase()).createTableAsync();
-        new BlockService(getDatabase()).createTableAsync();
-        new LevelService(getDatabase()).createTableAsync();
-        new EntityService(getDatabase()).createTableAsync();
-        new ContainerService(getDatabase()).createTableAsync();
-        new SessionService(getDatabase()).createTableAsync();
-        new ChatService(getDatabase()).createTableAsync();
-        new CommandService(getDatabase()).createTableAsync();
-        new ItemService(getDatabase()).createTableAsync();
+        Services.MATERIAL.createTableAsync();
+        Services.USER.createTableAsync();
+        Services.USERNAME.createTableAsync();
+        Services.LEVEL.createTableAsync();
+        Services.ENTITY.createTableAsync();
+        Services.BLOCK.createTableAsync();
+        Services.CONTAINER.createTableAsync();
+        Services.SESSION.createTableAsync();
+        Services.CHAT.createTableAsync();
+        Services.COMMAND.createTableAsync();
+        Services.ITEM.createTableAsync();
     }
 
     public static Database getDatabase() {
@@ -87,5 +105,9 @@ public class GriefLogger {
 
     public static Style getTheme() {
         return Style.EMPTY.withColor(0xFCBA03);
+    }
+
+    public static ResourceLocation getId(String id) {
+        return new ResourceLocation(MOD_ID, id);
     }
 }

@@ -1,10 +1,12 @@
 package com.daqem.grieflogger.database.service;
 
-import com.daqem.grieflogger.model.SimpleItemStack;
+import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.ContainerRepository;
+import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.ContainerHistory;
+import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.thread.OnComplete;
 import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
@@ -24,7 +26,7 @@ public class ContainerService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(containerRepository::createTable);
+        containerRepository.createTable();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {
@@ -74,7 +76,7 @@ public class ContainerService {
         ThreadManager.execute(() -> insertMap(uuid, level, pos, itemsMap));
     }
 
-    public List<ContainerHistory> getHistory(Level level, BlockPos pos) {
+    public List<IHistory> getHistory(Level level, BlockPos pos) {
         return containerRepository.getHistory(
                 level.dimension().location().toString(),
                 pos.getX(),
@@ -83,7 +85,14 @@ public class ContainerService {
         );
     }
 
-    public void getHistoryAsync(Level level, BlockPos pos, OnComplete<List<ContainerHistory>> onComplete) {
+    public void getHistoryAsync(Level level, BlockPos pos, OnComplete<List<IHistory>> onComplete) {
         ThreadManager.submit(() -> getHistory(level, pos), onComplete);
+    }
+
+    public List<IHistory> getFilteredContainerHistory(Level level, FilterList filterList) {
+        return containerRepository.getFilteredContainerHistory(
+                level.dimension().location().toString(),
+                filterList
+        );
     }
 }

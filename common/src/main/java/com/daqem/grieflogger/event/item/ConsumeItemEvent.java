@@ -10,7 +10,7 @@ public class ConsumeItemEvent {
 
     public static void consumeItem(Player player, ItemStack itemStack) {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
-            serverPlayer.griefLogger$addItemToQueue(ItemAction.CONSUME, new SimpleItemStack(itemStack));
+            serverPlayer.griefLogger$addItemToQueue(ItemAction.CONSUME_ITEM, new SimpleItemStack(itemStack));
         }
     }
 }

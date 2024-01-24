@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +38,7 @@ public class BreakBlockEvent extends AbstractEvent {
                         BreakContainerEvent.breakContainer(serverPlayer, level, pos, container));
             }
 
-            LogBlockEvent.logBlock(serverPlayer, level, state, pos, BlockAction.BREAK);
+            LogBlockEvent.logBlock(serverPlayer, level, state, pos, BlockAction.BREAK_BLOCK);
         }
         return pass();
     }

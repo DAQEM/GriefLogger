@@ -3,6 +3,7 @@ package com.daqem.grieflogger.event.block;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.block.BlockHandler;
 import com.daqem.grieflogger.database.service.BlockService;
+import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.event.AbstractEvent;
 import dev.architectury.event.EventResult;
 import net.minecraft.core.BlockPos;
@@ -17,9 +18,8 @@ public class RemoveDoorInteractionsEvent extends AbstractEvent {
     public static void removeDoorInteractions(Level level, BlockPos pos, BlockState state) {
         List<BlockPos> positions = new ArrayList<>(List.of(pos));
         BlockHandler.getSecondDoorPosition(pos, state).ifPresent(positions::add);
-        BlockService blockService = new BlockService(GriefLogger.getDatabase());
         for (BlockPos position : positions) {
-            blockService.removeInteractionsForPositionAsync(level, position);
+            Services.BLOCK.removeInteractionsForPositionAsync(level, position);
         }
     }
 }

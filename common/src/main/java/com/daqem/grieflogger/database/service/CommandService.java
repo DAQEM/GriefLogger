@@ -18,7 +18,7 @@ public class CommandService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(commandRepository::createTable);
+        commandRepository.createTable();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, String command) {

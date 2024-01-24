@@ -15,7 +15,7 @@ public class UsernameService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(usernameRepository::createTable);
+        usernameRepository.createTable();
     }
 
     public void insert(UUID uuid, String name) {

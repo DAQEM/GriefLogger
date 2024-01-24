@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 public class ThrowItemEvent {
     public static void throwItem(Player player, ItemStack itemStack) {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
-            serverPlayer.griefLogger$addItemToQueue(ItemAction.THROW, new SimpleItemStack(itemStack));
+            serverPlayer.griefLogger$addItemToQueue(ItemAction.THROW_ITEM, new SimpleItemStack(itemStack));
         }
     }
 }

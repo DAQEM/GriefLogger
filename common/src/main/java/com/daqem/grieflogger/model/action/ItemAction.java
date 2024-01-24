@@ -2,18 +2,18 @@ package com.daqem.grieflogger.model.action;
 
 import com.daqem.grieflogger.model.Operation;
 
-public enum ItemAction implements Action {
-    REMOVE(0, Operation.REMOVE), //DONE
-    ADD(1, Operation.ADD), //DONE
-    DROP(2, Operation.REMOVE), //DONE
-    PICKUP(3, Operation.ADD), //DONE
-    CRAFT(4, Operation.ADD), //DONE
-    BREAK(5, Operation.REMOVE), //DONE
-    CONSUME(6, Operation.REMOVE), //DONE
-    THROW(7, Operation.REMOVE), //DONE
-    SHOOT(8, Operation.REMOVE), //DONE
-    ADD_ENDER_CHEST(9, Operation.ADD),
-    REMOVE_ENDER_CHEST(10, Operation.REMOVE);
+public enum ItemAction implements IAction {
+    REMOVE_ITEM(0, Operation.REMOVE),
+    ADD_ITEM(1, Operation.ADD),
+    DROP_ITEM(2, Operation.REMOVE),
+    PICKUP_ITEM(3, Operation.ADD),
+    CRAFT_ITEM(4, Operation.ADD),
+    BREAK_ITEM(5, Operation.REMOVE),
+    CONSUME_ITEM(6, Operation.REMOVE),
+    THROW_ITEM(7, Operation.REMOVE),
+    SHOOT_ITEM(8, Operation.REMOVE),
+    ADD_ITEM_ENDER(9, Operation.ADD),
+    REMOVE_ITEM_ENDER(10, Operation.REMOVE);
 
     private final int id;
     private final Operation operation;

@@ -3,6 +3,7 @@ package com.daqem.grieflogger.event.block;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.block.BlockHandler;
 import com.daqem.grieflogger.database.service.BlockService;
+import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.event.AbstractEvent;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import dev.architectury.event.EventResult;
@@ -18,18 +19,17 @@ public class InspectDoorEvent extends AbstractEvent {
     public static EventResult inspectDoor(GriefLoggerServerPlayer player, Level level, BlockPos pos, BlockState state, boolean isInteraction) {
         List<BlockPos> positions = new ArrayList<>(List.of(pos));
         BlockHandler.getSecondDoorPosition(pos, state).ifPresent(positions::add);
-        BlockService blockService = new BlockService(GriefLogger.getDatabase());
         if (isInteraction) {
-            blockService.getInteractionHistoryAsync(
+            Services.BLOCK.getInteractionHistoryAsync(
                     level,
                     positions,
-                    player::grieflogger$sendBlockInspectMessage);
+                    player::grieflogger$sendInspectMessage);
             return interrupt();
         } else {
-            blockService.getBlockHistoryAsync(
+            Services.BLOCK.getBlockHistoryAsync(
                     level,
                     positions,
-                    player::grieflogger$sendBlockInspectMessage);
+                    player::grieflogger$sendInspectMessage);
         }
         return interrupt();
     }

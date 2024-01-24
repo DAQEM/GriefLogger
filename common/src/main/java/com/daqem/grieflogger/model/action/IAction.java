@@ -5,8 +5,9 @@ import com.daqem.grieflogger.model.Operation;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
-public interface Action {
+public interface IAction {
 
+    String name();
     int getId();
     Operation getOperation();
 

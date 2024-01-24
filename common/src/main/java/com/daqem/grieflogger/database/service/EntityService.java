@@ -13,7 +13,7 @@ public class EntityService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(entityRepository::createTable);
+        entityRepository.createTable();
     }
 
     public void insert(String name) {

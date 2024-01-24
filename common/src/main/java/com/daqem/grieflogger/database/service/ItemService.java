@@ -1,9 +1,11 @@
 package com.daqem.grieflogger.database.service;
 
+import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.ItemRepository;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
+import com.daqem.grieflogger.model.history.ItemHistory;
 import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -22,7 +24,7 @@ public class ItemService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(itemRepository::createTable);
+        itemRepository.createTable();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {
@@ -55,5 +57,12 @@ public class ItemService {
 
     public void insertMapAsync(UUID uuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         ThreadManager.execute(() -> insertMap(uuid, level, pos, itemsMap));
+    }
+
+    public List<ItemHistory> getFilteredItemHistory(Level level, FilterList filterList) {
+        return itemRepository.getFilteredItemHistory(
+                level.dimension().location().toString(),
+                filterList
+        );
     }
 }

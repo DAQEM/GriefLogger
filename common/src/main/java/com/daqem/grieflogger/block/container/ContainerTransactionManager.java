@@ -1,8 +1,7 @@
 package com.daqem.grieflogger.block.container;
 
-import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.SimpleItemStack;
-import com.daqem.grieflogger.database.service.ContainerService;
 import com.daqem.grieflogger.model.action.ItemAction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -32,14 +31,13 @@ public class ContainerTransactionManager {
         List<SimpleItemStack> removedItems = getRemovedItems();
         List<SimpleItemStack> addedItems = getAddedItems();
 
-        ContainerService containerService = new ContainerService(GriefLogger.getDatabase());
-        containerService.insertMapAsync(
+        Services.CONTAINER.insertMapAsync(
                 serverPlayer.getUUID(),
                 blockEntity.getLevel() != null ? blockEntity.getLevel() : serverPlayer.level(),
                 blockEntity.getBlockPos(),
                 Map.of(
-                        ItemAction.REMOVE, removedItems,
-                        ItemAction.ADD, addedItems
+                        ItemAction.REMOVE_ITEM, removedItems,
+                        ItemAction.ADD_ITEM, addedItems
                 )
         );
     }

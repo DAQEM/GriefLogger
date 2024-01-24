@@ -1,9 +1,12 @@
 package com.daqem.grieflogger.database.service;
 
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.BlockRepository;
 import com.daqem.grieflogger.model.action.BlockAction;
 import com.daqem.grieflogger.model.history.BlockHistory;
+import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.thread.OnComplete;
 import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
@@ -22,10 +25,11 @@ public class BlockService {
     }
 
     public void createTableAsync() {
-        ThreadManager.execute(blockRepository::createTable);
+        blockRepository.createTable();
     }
 
     public void insertMaterial(UUID userUuid, String levelName, BlockPos pos, String material, BlockAction blockAction) {
+        material = material.replace("minecraft:", "");
         blockRepository.insertMaterial(System.currentTimeMillis(), userUuid.toString(), levelName, pos.getX(), pos.getY(), pos.getZ(), material, blockAction.getId());
     }
 
@@ -34,6 +38,7 @@ public class BlockService {
     }
 
     public void insertEntity(UUID userUuid, String levelName, BlockPos pos, String entity, BlockAction blockAction) {
+        entity = entity.replace("minecraft:", "");
         blockRepository.insertEntity(System.currentTimeMillis(), userUuid.toString(), levelName, pos.getX(), pos.getY(), pos.getZ(), entity, blockAction.getId());
     }
 
@@ -41,7 +46,7 @@ public class BlockService {
         ThreadManager.execute(() -> insertEntity(userUuid, levelName, pos, entity, blockAction));
     }
 
-    public List<BlockHistory> getBlockHistory(Level level, BlockPos pos) {
+    public List<IHistory> getBlockHistory(Level level, BlockPos pos) {
         return blockRepository.getBlockHistory(
                 level.dimension().location().toString(),
                 pos.getX(),
@@ -50,27 +55,27 @@ public class BlockService {
         );
     }
 
-    public void getBlockHistoryAsync(Level level, BlockPos pos, OnComplete<List<BlockHistory>> onComplete) {
+    public void getBlockHistoryAsync(Level level, BlockPos pos, OnComplete<List<IHistory>> onComplete) {
         ThreadManager.submit(() -> getBlockHistory(level, pos), onComplete);
     }
 
-    public List<BlockHistory> getBlockHistory(Level level, List<BlockPos> pos) {
-        List<BlockHistory> blockHistories = new ArrayList<>();
+    public List<IHistory> getBlockHistory(Level level, List<BlockPos> pos) {
+        List<IHistory> blockHistories = new ArrayList<>();
 
         for (BlockPos blockPos : pos) {
             blockHistories.addAll(getBlockHistory(level, blockPos));
         }
 
         return blockHistories.stream()
-                .sorted((o1, o2) -> (int) (o2.time().time() - o1.time().time()))
+                .sorted((o1, o2) -> (int) (o2.getTime().time() - o1.getTime().time()))
                 .toList();
     }
 
-    public void getBlockHistoryAsync(Level level, List<BlockPos> pos, OnComplete<List<BlockHistory>> onComplete) {
+    public void getBlockHistoryAsync(Level level, List<BlockPos> pos, OnComplete<List<IHistory>> onComplete) {
         ThreadManager.submit(() -> getBlockHistory(level, pos), onComplete);
     }
 
-    public List<BlockHistory> getInteractionHistory(Level level, BlockPos pos) {
+    public List<IHistory> getInteractionHistory(Level level, BlockPos pos) {
         return blockRepository.getInteractionHistory(
                 level.dimension().location().toString(),
                 pos.getX(),
@@ -79,23 +84,23 @@ public class BlockService {
         );
     }
 
-    public void getInteractionHistoryAsync(Level level, BlockPos pos, OnComplete<List<BlockHistory>> onComplete) {
+    public void getInteractionHistoryAsync(Level level, BlockPos pos, OnComplete<List<IHistory>> onComplete) {
         ThreadManager.submit(() -> getBlockHistory(level, pos), onComplete);
     }
 
-    public List<BlockHistory> getInteractionHistory(Level level, List<BlockPos> pos) {
-        List<BlockHistory> blockHistories = new ArrayList<>();
+    public List<IHistory> getInteractionHistory(Level level, List<BlockPos> pos) {
+        List<IHistory> blockHistories = new ArrayList<>();
 
         for (BlockPos blockPos : pos) {
             blockHistories.addAll(getInteractionHistory(level, blockPos));
         }
 
         return blockHistories.stream()
-                .sorted((o1, o2) -> (int) (o2.time().time() - o1.time().time()))
+                .sorted((o1, o2) -> (int) (o2.getTime().time() - o1.getTime().time()))
                 .toList();
     }
 
-    public void getInteractionHistoryAsync(Level level, List<BlockPos> pos, OnComplete<List<BlockHistory>> onComplete) {
+    public void getInteractionHistoryAsync(Level level, List<BlockPos> pos, OnComplete<List<IHistory>> onComplete) {
         ThreadManager.submit(() -> getInteractionHistory(level, pos), onComplete);
     }
 
@@ -110,5 +115,12 @@ public class BlockService {
 
     public void removeInteractionsForPositionAsync(Level level, BlockPos secondPos) {
         ThreadManager.execute(() -> removeInteractionsForPosition(level, secondPos));
+    }
+
+    public List<IHistory> getFilteredBlockHistory(Level level, FilterList filterList) {
+        return blockRepository.getFilteredBlockHistory(
+                level.dimension().location().toString(),
+                filterList
+        );
     }
 }

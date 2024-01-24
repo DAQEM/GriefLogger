@@ -1,12 +1,13 @@
 package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class MaterialRepository {
+public class MaterialRepository extends Repository {
 
     private final Database database;
 
@@ -15,12 +16,22 @@ public class MaterialRepository {
     }
 
     public void createTable() {
-        database.createTable("""
+        String sql = """
                 CREATE TABLE IF NOT EXISTS materials (
                 	id integer PRIMARY KEY,
                 	name text NOT NULL UNIQUE
                 );
-                """);
+                """;
+        if (isMysql()) {
+            sql = """
+                    CREATE TABLE IF NOT EXISTS materials (
+                    	id int PRIMARY KEY AUTO_INCREMENT,
+                    	name varchar(256) NOT NULL UNIQUE
+                    )
+                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
+                    """;
+        }
+        database.createTable(sql);
     }
 
     public void insert(String material) {
@@ -28,6 +39,13 @@ public class MaterialRepository {
                 INSERT OR IGNORE INTO materials(name)
                 VALUES(?);
                 """;
+
+        if (isMysql()) {
+            query = """
+                    INSERT IGNORE INTO materials(name)
+                    VALUES(?);
+                    """;
+        }
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setString(1, material);

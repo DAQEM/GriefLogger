@@ -1,12 +1,13 @@
 package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class CommandRepository {
+public class CommandRepository extends Repository {
 
     private final Database database;
 
@@ -15,19 +16,36 @@ public class CommandRepository {
     }
 
     public void createTable() {
-        database.createTable("""
+        String sql = """
                 CREATE TABLE IF NOT EXISTS commands (
-                    time INTEGER NOT NULL,
-                    user INTEGER NOT NULL,
-                    level INTEGER NOT NULL,
-                    x INTEGER NOT NULL,
-                    y INTEGER NOT NULL,
-                    z INTEGER NOT NULL,
-                    command TEXT NOT NULL,
+                    time integer NOT NULL,
+                    user integer NOT NULL,
+                    level integer NOT NULL,
+                    x integer NOT NULL,
+                    y integer NOT NULL,
+                    z integer NOT NULL,
+                    command text NOT NULL,
                     FOREIGN KEY(user) REFERENCES users(id),
                     FOREIGN KEY(level) REFERENCES levels(id)
                 )
-                """);
+                """;
+        if (isMysql()) {
+            sql = """
+                    CREATE TABLE IF NOT EXISTS commands (
+                        time bigint NOT NULL,
+                        user int NOT NULL,
+                        level int NOT NULL,
+                        x int NOT NULL,
+                        y int NOT NULL,
+                        z int NOT NULL,
+                        command varchar(256) NOT NULL,
+                        FOREIGN KEY(user) REFERENCES users(id),
+                        FOREIGN KEY(level) REFERENCES levels(id)
+                    )
+                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
+                    """;
+        }
+        database.createTable(sql);
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, String command) {
@@ -39,6 +57,17 @@ public class CommandRepository {
                     SELECT id FROM levels WHERE name = ?
                 ), ?, ?, ?, ?);
                 """;
+
+        if (isMysql()) {
+            query = """
+                    INSERT IGNORE INTO commands(time, user, level, x, y, z, command)
+                    VALUES(?, (
+                        SELECT id FROM users WHERE uuid = ?
+                    ), (
+                        SELECT id FROM levels WHERE name = ?
+                    ), ?, ?, ?, ?);
+                    """;
+        }
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setLong(1, time);

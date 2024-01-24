@@ -1,7 +1,6 @@
 package com.daqem.grieflogger.event;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.service.ChatService;
+import com.daqem.grieflogger.database.service.Services;
 import dev.architectury.event.EventResult;
 
 public class ChatEvent {
@@ -9,8 +8,7 @@ public class ChatEvent {
     public static void registerEvent() {
         dev.architectury.event.events.common.ChatEvent.RECEIVED.register((player, component) -> {
             if (player != null) {
-                ChatService chatService = new ChatService(GriefLogger.getDatabase());
-                chatService.insertAsync(
+                Services.CHAT.insertAsync(
                         player.getUUID(),
                         player.level(),
                         player.getOnPos(),

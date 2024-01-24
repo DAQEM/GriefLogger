@@ -1,12 +1,13 @@
 package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class EntityRepository {
+public class EntityRepository extends Repository {
 
     private final Database database;
 
@@ -15,12 +16,22 @@ public class EntityRepository {
     }
 
     public void createTable() {
-        database.createTable("""
+        String sql = """
                 CREATE TABLE IF NOT EXISTS entities (
-                    id INTEGER PRIMARY KEY,
-                    name TEXT NOT NULL UNIQUE
+                    id integer PRIMARY KEY,
+                    name text NOT NULL UNIQUE
                 )
-                """);
+                """;
+        if (isMysql()) {
+            sql = """
+                    CREATE TABLE IF NOT EXISTS entities (
+                        id int PRIMARY KEY AUTO_INCREMENT,
+                        name varchar(256) NOT NULL UNIQUE
+                    )
+                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
+                    """;
+        }
+        database.createTable(sql);
     }
 
     public void insert(String name) {
@@ -28,6 +39,13 @@ public class EntityRepository {
                 INSERT OR IGNORE INTO entities(name)
                 VALUES(?);
                 """;
+
+        if (isMysql()) {
+            query = """
+                    INSERT IGNORE INTO entities(name)
+                    VALUES(?);
+                    """;
+        }
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setString(1, name);
