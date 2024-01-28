@@ -15,7 +15,7 @@
   "icon": "assets/grieflogger/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
+    "server": [
       "com.daqem.grieflogger.fabric.GriefLoggerFabric"
     ]
   },
