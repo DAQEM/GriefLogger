@@ -7,11 +7,10 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 
-public class GriefLoggerFabric implements DedicatedServerModInitializer {
+public class GriefLoggerFabric implements ModInitializer {
 
     @Override
-    public void onInitializeServer() {
-        GriefLogger.init();
+    public void onInitialize() {
         registerCommandArgumentTypes();
     }
 
