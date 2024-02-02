@@ -53,6 +53,7 @@ processResources {
 
 shadowJar {
     exclude "architectury.common.json"
+    exclude "org/slf4j/**"
 
     configurations = [project.configurations.shadowCommon]
     archiveClassifier = "dev-shadow"
