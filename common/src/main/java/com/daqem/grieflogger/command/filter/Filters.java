@@ -9,9 +9,9 @@ public interface Filters {
     IFilter INCLUDE = new IncludeFilter();
     IFilter RADIUS = new RadiusFilter();
     IFilter TIME = new TimeFilter();
-    IFilter USER = new UserFilter();
+//    IFilter USER = new UserFilter();
 
-    List<IFilter> FILTERS = List.of(ACTION, EXCLUDE, INCLUDE, RADIUS, TIME, USER);
+    List<IFilter> FILTERS = List.of(ACTION, EXCLUDE, INCLUDE, RADIUS, TIME);
 
     static IFilter fromPrefix(String prefix) {
         if (prefix == null || prefix.isEmpty()) {

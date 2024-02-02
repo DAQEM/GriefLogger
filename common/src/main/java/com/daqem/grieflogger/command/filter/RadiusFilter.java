@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 
 public class RadiusFilter implements IFilter {
 
-    private int radius;
+    private final int radius;
     private BlockPosition position = new BlockPosition(0, 0, 0);
 
     public RadiusFilter() {
@@ -21,7 +21,6 @@ public class RadiusFilter implements IFilter {
 
     public RadiusFilter(int radius) {
         this.radius = radius;
-        this.position = position;
     }
 
     @Override
