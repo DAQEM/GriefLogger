@@ -9,9 +9,9 @@ public interface Filters {
     IFilter INCLUDE = new IncludeFilter();
     IFilter RADIUS = new RadiusFilter();
     IFilter TIME = new TimeFilter();
-//    IFilter USER = new UserFilter();
+    IFilter USER = new UserFilter();
 
-    List<IFilter> FILTERS = List.of(ACTION, EXCLUDE, INCLUDE, RADIUS, TIME);
+    List<IFilter> FILTERS = List.of(ACTION, EXCLUDE, INCLUDE, RADIUS, TIME, USER);
 
     static IFilter fromPrefix(String prefix) {
         if (prefix == null || prefix.isEmpty()) {
@@ -33,7 +33,7 @@ public interface Filters {
         return FILTERS.stream()
                 .filter(x -> !hasItemFilter || !(x instanceof ItemFilter))
                 .filter(x -> filters.stream().noneMatch(y -> y.getClass() == x.getClass()))
-                .map(x -> x.getName() + ":")
+                .map(x -> x.getName() + '.')
                 .toArray(String[]::new);
     }
 }

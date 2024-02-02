@@ -4,6 +4,7 @@ import com.daqem.grieflogger.GriefLogger;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 
 import java.util.Date;
@@ -20,7 +21,7 @@ public record Time(long time) {
     private static final long DAY = TimeUnit.DAY.getMilliseconds();
     private static final long YEAR = TimeUnit.YEAR.getMilliseconds();
 
-    public Component getFormattedTimeAgo() {
+    public MutableComponent getFormattedTimeAgo() {
         long timeAgo = System.currentTimeMillis() - time;
         if (timeAgo < HOUR / 2) {
             return getTimeAgoComponent((double) timeAgo / MINUTE, MINUTES);
@@ -33,7 +34,7 @@ public record Time(long time) {
         }
     }
 
-    private Component getTimeAgoComponent(double timeAgo, Component unit) {
+    private MutableComponent getTimeAgoComponent(double timeAgo, Component unit) {
         return GriefLogger.translate("lookup.time.ago", String.format("%.2f", timeAgo), GriefLogger.translate("time.divider"), unit)
                 .withStyle(Style.EMPTY
                         .withColor(ChatFormatting.GRAY)

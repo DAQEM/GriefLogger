@@ -34,7 +34,7 @@ public class TimeFilter implements IFilter {
     @Override
     public String[] listSuggestions(SuggestionsBuilder builder, String prefix, String suffix) {
         if (suffix.isEmpty()) {
-            return numbers.stream().map(s -> getName() + ":" + s).toArray(String[]::new);
+            return numbers.stream().map(s -> getName() + '.' + s).toArray(String[]::new);
         } else {
             // Check if suffix ends with a time unit
             if (TimeUnit.getAbbreviations().stream().anyMatch(suffix::endsWith)) {
@@ -42,7 +42,7 @@ public class TimeFilter implements IFilter {
                 String number = suffix.substring(0, suffix.length() - 1);
                 try {
                     Integer.parseInt(number);
-                    return new String[]{getName() + ":" + number + suffix.substring(suffix.length() - 1)};
+                    return new String[]{getName() + '.' + number + suffix.substring(suffix.length() - 1)};
                 } catch (NumberFormatException e) {
                     return new String[]{};
                 }
@@ -52,7 +52,7 @@ public class TimeFilter implements IFilter {
             try {
                 Integer.parseInt(suffix);
                 //add all time units to the suggestion
-                return TimeUnit.getAbbreviations().stream().map(s -> getName() + ":" + suffix + s).toArray(String[]::new);
+                return TimeUnit.getAbbreviations().stream().map(s -> getName() + '.' + suffix + s).toArray(String[]::new);
             } catch (NumberFormatException e) {
                 return new String[]{};
             }

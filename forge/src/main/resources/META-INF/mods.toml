@@ -18,25 +18,25 @@ modId = "forge"
 mandatory = true
 versionRange = "[47,)"
 ordering = "NONE"
-side = "BOTH"
+side = "SERVER"
 
 [[dependencies.grieflogger]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.20.1,)"
 ordering = "NONE"
-side = "BOTH"
+side = "SERVER"
 
 [[dependencies.grieflogger]]
 modId = "architectury"
 mandatory = true
 versionRange = "[9.1.12,)"
 ordering = "AFTER"
-side = "BOTH"
+side = "SERVER"
 
 [[dependencies.grieflogger]]
 modId = "supermartijn642configlib"
 mandatory = true
 versionRange = "[${config_library_version},)"
 ordering = "NONE"
-side = "BOTH"
+side = "SERVER"

@@ -29,13 +29,11 @@ public class BlockHistory extends History {
 
     @Override
     public Component getComponent() {
-        return GriefLogger.translate("lookup.block.history_entry",
-                getTime().getFormattedTimeAgo(),
-                getAction().getPrefix(),
-                getUser().getNameComponent(),
-                getAction().getPastTense(),
-                getMaterialComponent()
-        );
+        return getTime().getFormattedTimeAgo().append(" ")
+                .append(getAction().getPrefix()).append(" ")
+                .append(getUser().getNameComponent()).append(" ")
+                .append(getAction().getPastTense()).append(" ")
+                .append(getMaterialComponent());
     }
 
     public Component getMaterialComponent() {

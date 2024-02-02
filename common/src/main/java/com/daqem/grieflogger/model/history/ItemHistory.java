@@ -33,14 +33,12 @@ public class ItemHistory extends History {
 
     @Override
     public Component getComponent() {
-        return GriefLogger.translate("lookup.container.history_entry",
-                getTime().getFormattedTimeAgo(),
-                getAction().getPrefix(),
-                getUser().getNameComponent(),
-                getAction().getPastTense(),
-                getItemStack().getCount(),
-                getMaterialComponent()
-        );
+        return getTime().getFormattedTimeAgo().append(" ")
+                .append(getAction().getPrefix()).append(" ")
+                .append(getUser().getNameComponent()).append(" ")
+                .append(getAction().getPastTense()).append(" ")
+                .append(Component.literal(String.valueOf(getItemStack().getCount()))).append(" ")
+                .append(getMaterialComponent());
     }
 
     @Override

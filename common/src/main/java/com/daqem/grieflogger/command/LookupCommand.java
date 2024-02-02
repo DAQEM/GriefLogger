@@ -7,6 +7,7 @@ import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.history.*;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -23,11 +24,16 @@ public class LookupCommand implements ICommand {
     public LiteralArgumentBuilder<CommandSourceStack> getCommand() {
         return Commands.literal("lookup")
                 .requires(source -> source.hasPermission(2))
-                .then(Commands.argument("filter1", FilterArgument.filter())
-                        .then(Commands.argument("filter2", FilterArgument.filter())
-                                .then(Commands.argument("filter3", FilterArgument.filter())
-                                        .then(Commands.argument("filter4", FilterArgument.filter())
-                                                .then(Commands.argument("filter5", FilterArgument.filter())
+                .then(Commands.argument("filter1", StringArgumentType.string())
+                        .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
+                        .then(Commands.argument("filter2", StringArgumentType.string())
+                                .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
+                                .then(Commands.argument("filter3", StringArgumentType.string())
+                                        .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
+                                        .then(Commands.argument("filter4", StringArgumentType.string())
+                                                .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
+                                                .then(Commands.argument("filter5", StringArgumentType.string())
+                                                        .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
                                                         .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2"), FilterArgument.getFilter(context, "filter3"), FilterArgument.getFilter(context, "filter4"), FilterArgument.getFilter(context, "filter5")), context.getSource()))))
                                                 .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2"), FilterArgument.getFilter(context, "filter3"), FilterArgument.getFilter(context, "filter4")), context.getSource()))))
                                         .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2"), FilterArgument.getFilter(context, "filter3")), context.getSource()))))

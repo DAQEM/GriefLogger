@@ -2,11 +2,9 @@ package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.command.filter.FilterList;
-import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.model.history.BlockHistory;
 import com.daqem.grieflogger.model.history.IHistory;
-import com.daqem.grieflogger.model.history.SessionHistory;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.PreparedStatement;

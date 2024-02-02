@@ -2,11 +2,9 @@ package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.command.filter.FilterList;
-import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
-import com.daqem.grieflogger.model.history.ContainerHistory;
 import com.daqem.grieflogger.model.history.ItemHistory;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
