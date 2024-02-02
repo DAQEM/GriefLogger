@@ -23,12 +23,10 @@ public class SessionHistory extends History {
 
     @Override
     public Component getComponent() {
-        return GriefLogger.translate("lookup.session.history_entry",
-                getTime().getFormattedTimeAgo(),
-                getAction().getPrefix(),
-                getUser().getNameComponent(),
-                getAction().getPastTense()
-        );
+        return getTime().getFormattedTimeAgo().append(" ")
+                .append(getAction().getPrefix()).append(" ")
+                .append(getUser().getNameComponent()).append(" ")
+                .append(getAction().getPastTense());
     }
 
     @Override

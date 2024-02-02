@@ -1,6 +1,6 @@
 package com.daqem.grieflogger;
 
-import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
+import com.daqem.grieflogger.config.GriefLoggerConfig;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.service.*;
 import com.daqem.grieflogger.event.*;
@@ -27,7 +27,7 @@ public class GriefLogger {
     }
 
     private static void initConfigs() {
-        GriefLoggerCommonConfig.init();
+        GriefLoggerConfig.init();
     }
 
     private static void registerEvents() {
@@ -76,11 +76,19 @@ public class GriefLogger {
     }
 
     public static MutableComponent translate(String str) {
-        return translate(str, TranslatableContents.NO_ARGS);
+        MutableComponent component = translate(str, TranslatableContents.NO_ARGS);
+        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
+            component = Component.literal(component.getString()).withStyle(component.getStyle());
+        }
+        return component;
     }
 
     public static MutableComponent translate(String str, Object... args) {
-        return Component.translatable(MOD_ID + "." + str, args);
+        MutableComponent component = Component.translatable(MOD_ID + "." + str, args);
+        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
+            component = Component.literal(component.getString()).withStyle(component.getStyle());
+        }
+        return component;
     }
 
     public static MutableComponent literal(String str) {
@@ -88,19 +96,35 @@ public class GriefLogger {
     }
 
     public static MutableComponent themedTranslate(String str) {
-        return themedTranslate(str, TranslatableContents.NO_ARGS);
+        MutableComponent component = themedTranslate(str, TranslatableContents.NO_ARGS);
+        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
+            component = Component.literal(component.getString()).withStyle(component.getStyle());
+        }
+        return component;
     }
 
     public static MutableComponent themedTranslate(String str, Object... args) {
-        return Component.translatable(MOD_ID + "." + str, args).withStyle(getTheme());
+        MutableComponent component = Component.translatable(MOD_ID + "." + str, args).withStyle(getTheme());
+        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
+            component = Component.literal(component.getString()).withStyle(component.getStyle());
+        }
+        return component;
     }
 
     public static MutableComponent themedLiteral(String str) {
-        return Component.literal(str).withStyle(getTheme());
+        MutableComponent component = Component.literal(str).withStyle(getTheme());
+        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
+            component = Component.literal(component.getString()).withStyle(component.getStyle());
+        }
+        return component;
     }
 
     public static Component getName() {
-        return translate("name").withStyle(getTheme());
+        Component component = translate("name").withStyle(getTheme());
+        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
+            component = Component.literal(component.getString()).withStyle(component.getStyle());
+        }
+        return component;
     }
 
     public static Style getTheme() {

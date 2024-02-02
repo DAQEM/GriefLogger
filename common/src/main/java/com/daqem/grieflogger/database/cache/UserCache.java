@@ -22,8 +22,4 @@ public class UserCache implements ICache {
         }
         return usernames;
     }
-
-    public List<Integer> getAllUserIds() {
-        return List.copyOf(getAllUsernames().keySet());
-    }
 }

@@ -2,21 +2,13 @@ package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.command.filter.*;
-import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.database.Database;
-import com.daqem.grieflogger.database.cache.Caches;
-import com.daqem.grieflogger.model.action.IAction;
-import com.daqem.grieflogger.model.action.SessionAction;
 import com.daqem.grieflogger.model.history.SessionHistory;
 import org.jetbrains.annotations.Nullable;
 
-import javax.sql.rowset.serial.SerialArray;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SessionRepository extends Repository {
 

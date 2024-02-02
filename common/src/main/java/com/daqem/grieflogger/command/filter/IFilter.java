@@ -25,12 +25,12 @@ public interface IFilter {
 
             return getOptions().stream()
                     .filter(s -> !Arrays.asList(usedUsernames).contains(s))
-                    .map(s -> getName() + ":" + suffixPrefix + "," + s)
+                    .map(s -> getName() + '.' + suffixPrefix + "," + s)
                     .toArray(String[]::new);
         }
 
         return getOptions().stream()
-                .map(s -> getName() + ":" + s)
+                .map(s -> getName() + '.' + s)
                 .toArray(String[]::new);
     }
 
@@ -38,7 +38,7 @@ public interface IFilter {
 
     default String[] listSuggestions(SuggestionsBuilder builder) {
         String str = builder.getRemaining();
-        String[] split = str.split(":");
+        String[] split = str.split("\\.");
         String prefix = split[0];
         String suffix = split.length > 1 ? split[1] : "";
 

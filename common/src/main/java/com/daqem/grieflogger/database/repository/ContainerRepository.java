@@ -2,11 +2,9 @@ package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.command.filter.FilterList;
-import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.model.action.ItemAction;
-import com.daqem.grieflogger.model.history.BlockHistory;
 import com.daqem.grieflogger.model.history.ContainerHistory;
 import com.daqem.grieflogger.model.history.IHistory;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +15,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 

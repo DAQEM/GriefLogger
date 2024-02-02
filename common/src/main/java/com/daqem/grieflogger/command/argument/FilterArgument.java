@@ -28,7 +28,7 @@ public class FilterArgument implements ArgumentType<IFilter> {
             reader.skip();
         }
 
-        int indexOfColon = reader.getString().indexOf(':', cursor);
+        int indexOfColon = reader.getString().indexOf('.', cursor);
         if (indexOfColon == -1) {
             throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherParseException().createWithContext(reader, "Expected filter");
         }
@@ -53,7 +53,7 @@ public class FilterArgument implements ArgumentType<IFilter> {
     }
 
     private <S> String[] getSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-        String prefix = builder.getRemaining().toLowerCase().split(":")[0];
+        String prefix = builder.getRemaining().toLowerCase().split("\\.")[0];
         String[] empty = new String[0];
         List<IFilter> filters = getFilters(context);
 
@@ -73,8 +73,9 @@ public class FilterArgument implements ArgumentType<IFilter> {
         return filter.listSuggestions(builder);
     }
 
-    public static IFilter getFilter(CommandContext<?> context, String name) {
-        return context.getArgument(name, IFilter.class);
+    public static IFilter getFilter(CommandContext<?> context, String name) throws CommandSyntaxException {
+        var filter = context.getArgument(name, String.class);
+        return new FilterArgument().parse(new StringReader(filter));
     }
 
     private <S> List<IFilter> getFilters(CommandContext<S> context) {

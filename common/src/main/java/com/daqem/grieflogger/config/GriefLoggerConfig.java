@@ -6,7 +6,7 @@ import com.supermartijn642.configlib.api.IConfigBuilder;
 
 import java.util.function.Supplier;
 
-public class GriefLoggerCommonConfig {
+public class GriefLoggerConfig {
 
     public static void init() {
     }
@@ -19,6 +19,8 @@ public class GriefLoggerCommonConfig {
     public static final Supplier<String> mysqlPassword;
 
     public static final Supplier<Integer> maxPageSize;
+
+    public static final Supplier<Boolean> serverSideOnlyMode;
 
     static {
         IConfigBuilder config = ConfigBuilders.newTomlConfig(GriefLogger.MOD_ID, GriefLogger.MOD_ID, true);
@@ -33,6 +35,10 @@ public class GriefLoggerCommonConfig {
 
         config.push("general");
         maxPageSize = config.comment("Maximum page size").define("maxPageSize", 10, 1, 100);
+        config.pop();
+
+        config.push("server");
+        serverSideOnlyMode = config.comment("Whether to run the mod in server side only mode").define("serverSideOnlyMode", true);
         config.pop();
         config.build();
     }

@@ -2,11 +2,10 @@ package com.daqem.grieflogger.database;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.GriefLoggerExpectPlatform;
-import com.daqem.grieflogger.config.GriefLoggerCommonConfig;
+import com.daqem.grieflogger.config.GriefLoggerConfig;
 
 import java.nio.file.Path;
 import java.sql.*;
-import java.util.List;
 
 public class Database {
 
@@ -15,12 +14,12 @@ public class Database {
 
     public Database(String dbPath) {
         try {
-            if (GriefLoggerCommonConfig.useMysql.get()) {
-                String host = GriefLoggerCommonConfig.mysqlHost.get();
-                int port = GriefLoggerCommonConfig.mysqlPort.get();
-                String database = GriefLoggerCommonConfig.mysqlDatabase.get();
-                String user = GriefLoggerCommonConfig.mysqlUsername.get();
-                String password = GriefLoggerCommonConfig.mysqlPassword.get();
+            if (GriefLoggerConfig.useMysql.get()) {
+                String host = GriefLoggerConfig.mysqlHost.get();
+                int port = GriefLoggerConfig.mysqlPort.get();
+                String database = GriefLoggerConfig.mysqlDatabase.get();
+                String user = GriefLoggerConfig.mysqlUsername.get();
+                String password = GriefLoggerConfig.mysqlPassword.get();
                 String url = "jdbc:mysql://" + host + ":" + port + "/" + database;
 
                 Class.forName("com.mysql.cj.jdbc.Driver");
