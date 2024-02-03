@@ -23,7 +23,7 @@ public class GriefLoggerConfig {
     public static final Supplier<Boolean> serverSideOnlyMode;
 
     static {
-        IConfigBuilder config = ConfigBuilders.newTomlConfig(GriefLogger.MOD_ID, GriefLogger.MOD_ID, true);
+        IConfigBuilder config = ConfigBuilders.newTomlConfig(GriefLogger.MOD_ID, GriefLogger.MOD_ID, true).onlyOnServer();
         config.push("database");
         useMysql = config.comment("Whether to use MySQL or SQLite").define("useMysql", false);
         mysqlHost = config.comment("MySQL host").define("mysqlHost", "localhost", 1, 255);
