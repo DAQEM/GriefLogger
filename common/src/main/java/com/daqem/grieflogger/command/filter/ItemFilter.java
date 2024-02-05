@@ -2,7 +2,7 @@ package com.daqem.grieflogger.command.filter;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.world.item.Item;
 
 import java.util.ArrayList;
@@ -24,12 +24,12 @@ public abstract class ItemFilter implements IFilter {
 
     @Override
     public List<String> getOptions() {
-        return new ArrayList<>(BuiltInRegistries.ITEM.stream().map(x -> x.arch$registryName().toString().replace("minecraft:", "")).toList());
+        return new ArrayList<>(Registry.ITEM.stream().map(x -> x.arch$registryName().toString().replace("minecraft:", "")).toList());
     }
 
     protected List<Item> getItemsFromSuffix(StringReader reader, String suffix) throws CommandSyntaxException {
         String[] split = suffix.split(",");
-        List<Item> items = BuiltInRegistries.ITEM.stream()
+        List<Item> items = Registry.ITEM.stream()
                 .filter(item -> Arrays.asList(split).contains(item.arch$registryName().toString().replace("minecraft:", "")))
                 .toList();
         if (split.length != items.size()) {

@@ -19,7 +19,7 @@ public class LeftClickBlockEvent extends AbstractEvent {
             if (hand == InteractionHand.MAIN_HAND) {
                 if (serverPlayer.grieflogger$isInspecting()) {
 
-                    Level level = player.level();
+                    Level level = player.getLevel();
                     BlockState state = level.getBlockState(pos);
                     Block block = state.getBlock();
 

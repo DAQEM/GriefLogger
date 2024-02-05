@@ -16,7 +16,7 @@ public class EntityEvents {
                 if (entityLocation != null) {
                     Services.BLOCK.insertEntityAsync(
                             serverPlayer.getUUID(),
-                            entity.level().dimension().location().toString(),
+                            entity.getLevel().dimension().location().toString(),
                             entity.blockPosition(),
                             entityLocation.toString(),
                             BlockAction.KILL_ENTITY

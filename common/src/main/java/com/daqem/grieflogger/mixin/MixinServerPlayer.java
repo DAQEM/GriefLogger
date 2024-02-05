@@ -16,8 +16,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -29,6 +32,8 @@ import java.util.*;
 @Mixin(ServerPlayer.class)
 public abstract class MixinServerPlayer extends Player implements GriefLoggerServerPlayer {
 
+    @Shadow public abstract Level getLevel();
+
     @Unique
     private boolean grieflogger$inspecting = false;
     @Unique
@@ -38,8 +43,8 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
     @Unique
     private final List<Page> grieflogger$pages = new ArrayList<>();
 
-    public MixinServerPlayer(Level level, BlockPos blockPos, float f, GameProfile gameProfile) {
-        super(level, blockPos, f, gameProfile);
+    public MixinServerPlayer(Level level, BlockPos blockPos, float f, GameProfile gameProfile, @Nullable ProfilePublicKey profilePublicKey) {
+        super(level, blockPos, f, gameProfile, profilePublicKey);
     }
 
     @Unique
@@ -98,7 +103,7 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
     @Inject(at = @At("HEAD"), method = "tick")
     public void grieflogger$tick(CallbackInfo ci) {
         if (!grieflogger$itemQueue.isEmpty()) {
-            Services.ITEM.insertMapAsync(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
+            Services.ITEM.insertMapAsync(getUUID(), getLevel(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
             grieflogger$itemQueue.clear();
         }
     }

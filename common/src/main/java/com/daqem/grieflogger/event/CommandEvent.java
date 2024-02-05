@@ -13,7 +13,7 @@ public class CommandEvent {
             if (player != null) {
                 Services.COMMAND.insertAsync(
                         player.getUUID(),
-                        player.level(),
+                        player.getLevel(),
                         player.getOnPos(),
                         commandPerformEvent.getResults().getReader().getString()
                 );

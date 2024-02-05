@@ -5,7 +5,7 @@ import com.daqem.grieflogger.model.BlockPosition;
 import com.daqem.grieflogger.model.Time;
 import com.daqem.grieflogger.model.User;
 import com.daqem.grieflogger.model.action.BlockAction;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
@@ -45,7 +45,7 @@ public class BlockHistory extends History {
                                 new HoverEvent(
                                         HoverEvent.Action.SHOW_ITEM,
                                         new HoverEvent.ItemStackInfo(
-                                                BuiltInRegistries.BLOCK.get(
+                                                Registry.BLOCK.get(
                                                         new ResourceLocation(material)
                                                 ).asItem()
                                                         .getDefaultInstance()))));
