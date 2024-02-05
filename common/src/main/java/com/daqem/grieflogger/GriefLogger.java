@@ -76,7 +76,7 @@ public class GriefLogger {
     }
 
     public static MutableComponent translate(String str) {
-        MutableComponent component = translate(str, TranslatableContents.NO_ARGS);
+        MutableComponent component = translate(str, new Object[0]);
         if (GriefLoggerConfig.serverSideOnlyMode.get()) {
             component = Component.literal(component.getString()).withStyle(component.getStyle());
         }
@@ -96,7 +96,7 @@ public class GriefLogger {
     }
 
     public static MutableComponent themedTranslate(String str) {
-        MutableComponent component = themedTranslate(str, TranslatableContents.NO_ARGS);
+        MutableComponent component = themedTranslate(str, new Object[0]);
         if (GriefLoggerConfig.serverSideOnlyMode.get()) {
             component = Component.literal(component.getString()).withStyle(component.getStyle());
         }

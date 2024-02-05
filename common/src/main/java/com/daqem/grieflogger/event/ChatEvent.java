@@ -10,7 +10,7 @@ public class ChatEvent {
             if (player != null) {
                 Services.CHAT.insertAsync(
                         player.getUUID(),
-                        player.level(),
+                        player.getLevel(),
                         player.getOnPos(),
                         component.getString()
                 );

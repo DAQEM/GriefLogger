@@ -1,7 +1,7 @@
 package com.daqem.grieflogger.model;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +23,7 @@ public class SimpleItemStack {
     }
 
     public SimpleItemStack(ResourceLocation itemLocation, int count, byte[] tag) {
-        this.item = BuiltInRegistries.ITEM.get(itemLocation);
+        this.item = Registry.ITEM.get(itemLocation);
         this.count = count;
         CompoundTag compoundTag = null;
         if (tag != null) {

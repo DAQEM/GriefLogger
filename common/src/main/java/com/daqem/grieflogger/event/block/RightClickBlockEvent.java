@@ -25,7 +25,7 @@ public class RightClickBlockEvent extends AbstractEvent {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
             if (hand == InteractionHand.MAIN_HAND) {
 
-                Level level = player.level();
+                Level level = player.getLevel();
                 BlockState state = level.getBlockState(pos);
                 Block block = state.getBlock();
 

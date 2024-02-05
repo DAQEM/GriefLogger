@@ -12,7 +12,7 @@ public class PlayerQuitEvent {
         PlayerEvent.PLAYER_QUIT.register(player ->
                 Services.SESSION.insertAsync(
                         player.getUUID(),
-                        player.level(),
+                        player.getLevel(),
                         player.getOnPos(),
                         SessionAction.QUIT));
     }

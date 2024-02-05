@@ -24,7 +24,7 @@ public class PlayerJoinEvent {
 
             Services.SESSION.insertAsync(
                     uuid,
-                    player.level(),
+                    player.getLevel(),
                     player.getOnPos(),
                     SessionAction.JOIN
             );

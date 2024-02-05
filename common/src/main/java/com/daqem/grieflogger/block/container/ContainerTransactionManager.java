@@ -33,7 +33,7 @@ public class ContainerTransactionManager {
 
         Services.CONTAINER.insertMapAsync(
                 serverPlayer.getUUID(),
-                blockEntity.getLevel() != null ? blockEntity.getLevel() : serverPlayer.level(),
+                blockEntity.getLevel() != null ? blockEntity.getLevel() : serverPlayer.getLevel(),
                 blockEntity.getBlockPos(),
                 Map.of(
                         ItemAction.REMOVE_ITEM, removedItems,

@@ -55,7 +55,7 @@ allprojects {
 
     task printVersionName  {
         doLast {
-            println version
+            println minecraft_version + "-" + mod_version
         }
     }
 }
