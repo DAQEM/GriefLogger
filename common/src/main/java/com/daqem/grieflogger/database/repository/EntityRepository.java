@@ -46,9 +46,10 @@ public class EntityRepository extends Repository {
                     """;
         }
 
-        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+        try {
+            PreparedStatement preparedStatement = database.prepareStatement(query);
             preparedStatement.setString(1, name);
-            preparedStatement.executeUpdate();
+            database.queue.add(preparedStatement);
         } catch (SQLException exception) {
             GriefLogger.LOGGER.error("Failed to insert entity into database", exception);
         }

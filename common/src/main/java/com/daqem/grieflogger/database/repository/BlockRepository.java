@@ -96,10 +96,11 @@ public class BlockRepository extends Repository {
                     """;
         }
 
-        try (PreparedStatement materialStatement = database.prepareStatement(materialQuery);
-             PreparedStatement blockStatement = database.prepareStatement(blockQuery)) {
+        try {
+            PreparedStatement materialStatement = database.prepareStatement(materialQuery);
+            PreparedStatement blockStatement = database.prepareStatement(blockQuery);
             materialStatement.setString(1, material);
-            materialStatement.executeUpdate();
+            database.queue.add(materialStatement);
 
             blockStatement.setLong(1, time);
             blockStatement.setString(2, userUuid);
@@ -109,7 +110,7 @@ public class BlockRepository extends Repository {
             blockStatement.setInt(6, z);
             blockStatement.setString(7, material);
             blockStatement.setInt(8, blockAction);
-            blockStatement.executeUpdate();
+            database.queue.add(blockStatement);
         } catch (SQLException exception) {
             GriefLogger.LOGGER.error("Failed to insert block into database", exception);
         }
@@ -152,10 +153,12 @@ public class BlockRepository extends Repository {
                     """;
         }
 
-        try (PreparedStatement materialStatement = database.prepareStatement(materialQuery);
-             PreparedStatement blockStatement = database.prepareStatement(blockQuery)) {
+
+        try {
+            PreparedStatement materialStatement = database.prepareStatement(materialQuery);
+            PreparedStatement blockStatement = database.prepareStatement(blockQuery);
             materialStatement.setString(1, entity);
-            materialStatement.executeUpdate();
+            database.queue.add(materialStatement);
 
             blockStatement.setLong(1, time);
             blockStatement.setString(2, userUuid);
@@ -165,7 +168,7 @@ public class BlockRepository extends Repository {
             blockStatement.setInt(6, z);
             blockStatement.setString(7, entity);
             blockStatement.setInt(8, blockAction);
-            blockStatement.executeUpdate();
+            database.queue.add(blockStatement);
         } catch (SQLException exception) {
             GriefLogger.LOGGER.error("Failed to insert block into database", exception);
         }
@@ -255,12 +258,13 @@ public class BlockRepository extends Repository {
                 ) AND x = ? AND y = ? AND z = ? AND action = 2
                 """;
 
-        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+        try {
+            PreparedStatement preparedStatement = database.prepareStatement(query);
             preparedStatement.setString(1, levelName);
             preparedStatement.setInt(2, x);
             preparedStatement.setInt(3, y);
             preparedStatement.setInt(4, z);
-            preparedStatement.executeUpdate();
+            database.queue.add(preparedStatement);
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to remove interactions for position", e);
         }

@@ -97,11 +97,12 @@ public class ContainerRepository extends Repository {
 
         ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
-            try (PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
-                 PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery)) {
+            try {
+                PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
+                PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
 
                 materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
-                materialStatement.execute();
+                database.queue.add(materialStatement);
 
                 itemStatement.setLong(1, time);
                 itemStatement.setString(2, userUuid);
@@ -113,7 +114,7 @@ public class ContainerRepository extends Repository {
                 itemStatement.setBytes(8, item.getTagBytes());
                 itemStatement.setInt(9, item.getCount());
                 itemStatement.setInt(10, itemAction);
-                itemStatement.execute();
+                database.queue.add(itemStatement);
             } catch (SQLException e) {
                 GriefLogger.LOGGER.error("Failed to insert item", e);
             }
@@ -144,8 +145,10 @@ public class ContainerRepository extends Repository {
                 ), ?, ?, ?);
                 """;
 
-        try (PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
-             PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery)) {
+        try {
+            PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
+            PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
+
             for (SimpleItemStack item : items) {
                 if (item.isEmpty()) {
                     continue;
@@ -168,8 +171,8 @@ public class ContainerRepository extends Repository {
                     itemStatement.addBatch();
                 }
             }
-            materialStatement.executeBatch();
-            itemStatement.executeBatch();
+            database.batchQueue.add(materialStatement);
+            database.batchQueue.add(itemStatement);
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to insert item", e);
         }
@@ -199,8 +202,10 @@ public class ContainerRepository extends Repository {
                 ), ?, ?, ?);
                 """;
 
-        try (PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
-             PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery)) {
+        try {
+            PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
+            PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
+
             for (Map.Entry<ItemAction, List<SimpleItemStack>> entry : itemsMap.entrySet()) {
                 for (SimpleItemStack item : entry.getValue()) {
                     if (item.isEmpty()) {
@@ -225,8 +230,8 @@ public class ContainerRepository extends Repository {
                     }
                 }
             }
-            materialStatement.executeBatch();
-            itemStatement.executeBatch();
+            database.batchQueue.add(materialStatement);
+            database.batchQueue.add(itemStatement);
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to insert item", e);
         }

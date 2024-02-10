@@ -22,6 +22,8 @@ public class GriefLoggerConfig {
 
     public static final Supplier<Boolean> serverSideOnlyMode;
 
+    public static final Supplier<Integer> queueFrequency;
+
     static {
         IConfigBuilder config = ConfigBuilders.newTomlConfig(GriefLogger.MOD_ID, GriefLogger.MOD_ID, true);
         config.push("database");
@@ -39,6 +41,10 @@ public class GriefLoggerConfig {
 
         config.push("server");
         serverSideOnlyMode = config.comment("Whether to run the mod in server side only mode").onlyOnServer().define("serverSideOnlyMode", true);
+        config.pop();
+
+        config.push("queue");
+        queueFrequency = config.comment("The frequency at which the database queue is executed (every 'x' ticks)").onlyOnServer().define("queueFrequency", 20, 1, 100);
         config.pop();
         config.build();
     }
