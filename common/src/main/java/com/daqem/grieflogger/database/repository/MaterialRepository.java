@@ -46,9 +46,10 @@ public class MaterialRepository extends Repository {
                     """;
         }
 
-        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+        try {
+            PreparedStatement preparedStatement = database.prepareStatement(query);
             preparedStatement.setString(1, material);
-            preparedStatement.executeUpdate();
+            database.queue.add(preparedStatement);
         } catch (SQLException exception) {
             GriefLogger.LOGGER.error("Failed to insert material into database", exception);
         }
