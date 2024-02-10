@@ -95,10 +95,12 @@ public class ItemRepository extends Repository {
 
         ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
-            try (PreparedStatement preparedStatement = database.prepareStatement(itemQuery);
-                    PreparedStatement materialStatement = database.prepareStatement(materialQuery)) {
+            try {
+                PreparedStatement preparedStatement = database.prepareStatement(itemQuery);
+                PreparedStatement materialStatement = database.prepareStatement(materialQuery);
+
                 materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
-                materialStatement.executeUpdate();
+                database.queue.add(materialStatement);
 
                 preparedStatement.setLong(1, time);
                 preparedStatement.setString(2, userUuid);
@@ -110,7 +112,7 @@ public class ItemRepository extends Repository {
                 preparedStatement.setBytes(8, item.getTagBytes());
                 preparedStatement.setInt(9, item.getCount());
                 preparedStatement.setInt(10, action);
-                preparedStatement.executeUpdate();
+                database.queue.add(preparedStatement);
             } catch (SQLException exception) {
                 GriefLogger.LOGGER.error("Failed to insert item into database", exception);
             }
@@ -141,8 +143,10 @@ public class ItemRepository extends Repository {
                 ), ?, ?, ?);
                 """;
 
-        try (PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
-             PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery)) {
+        try {
+            PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
+            PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
+
             for (Map.Entry<ItemAction, List<SimpleItemStack>> entry : itemsMap.entrySet()) {
                 for (SimpleItemStack item : entry.getValue()) {
                     if (item.isEmpty()) {
@@ -167,8 +171,8 @@ public class ItemRepository extends Repository {
                     }
                 }
             }
-            materialStatement.executeBatch();
-            itemStatement.executeBatch();
+            database.batchQueue.add(materialStatement);
+            database.batchQueue.add(itemStatement);
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to insert item", e);
         }

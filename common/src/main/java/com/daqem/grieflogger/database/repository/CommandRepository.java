@@ -68,7 +68,8 @@ public class CommandRepository extends Repository {
                     """;
         }
 
-        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+        try {
+            PreparedStatement preparedStatement = database.prepareStatement(query);
             preparedStatement.setLong(1, time);
             preparedStatement.setString(2, userUuid);
             preparedStatement.setString(3, levelName);
@@ -76,7 +77,7 @@ public class CommandRepository extends Repository {
             preparedStatement.setInt(5, y);
             preparedStatement.setInt(6, z);
             preparedStatement.setString(7, command);
-            preparedStatement.executeUpdate();
+            database.queue.add(preparedStatement);
         } catch (SQLException exception) {
             GriefLogger.LOGGER.error("Failed to insert command into database", exception);
         }
