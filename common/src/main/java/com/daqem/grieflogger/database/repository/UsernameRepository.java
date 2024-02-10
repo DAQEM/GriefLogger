@@ -52,11 +52,12 @@ public class UsernameRepository extends Repository {
                     """;
         }
 
-        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+        try {
+            PreparedStatement preparedStatement = database.prepareStatement(query);
             preparedStatement.setLong(1, time);
             preparedStatement.setString(2, uuid);
             preparedStatement.setString(3, name);
-            preparedStatement.executeUpdate();
+            database.queue.add(preparedStatement);
         } catch (SQLException exception) {
             GriefLogger.LOGGER.error("Failed to insert username into database", exception);
         }

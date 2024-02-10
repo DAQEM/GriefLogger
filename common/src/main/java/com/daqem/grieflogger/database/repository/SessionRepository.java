@@ -72,7 +72,8 @@ public class SessionRepository extends Repository {
                     """;
         }
 
-        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+        try {
+            PreparedStatement preparedStatement = database.prepareStatement(query);
             preparedStatement.setLong(1, time);
             preparedStatement.setString(2, userUuid);
             preparedStatement.setString(3, levelName);
@@ -80,7 +81,7 @@ public class SessionRepository extends Repository {
             preparedStatement.setInt(5, y);
             preparedStatement.setInt(6, z);
             preparedStatement.setInt(7, sessionAction);
-            preparedStatement.executeUpdate();
+            database.queue.add(preparedStatement);
         } catch (SQLException exception) {
             GriefLogger.LOGGER.error("Failed to insert session into database", exception);
         }
