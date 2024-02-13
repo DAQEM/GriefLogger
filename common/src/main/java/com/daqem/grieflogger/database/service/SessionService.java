@@ -20,8 +20,12 @@ public class SessionService {
         this.sessionRepository = new SessionRepository(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         sessionRepository.createTable();
+    }
+
+    public void createIndexes() {
+        sessionRepository.createIndexes();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SessionAction sessionAction) {

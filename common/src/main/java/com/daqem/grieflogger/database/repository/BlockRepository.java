@@ -59,6 +59,18 @@ public class BlockRepository extends Repository {
         database.createTable(sql);
     }
 
+    public void createIndexes() {
+        String sql = """
+                CREATE INDEX IF NOT EXISTS coordinates ON blocks (x, y, z);
+                """;
+        if (isMysql()) {
+            sql = """
+                    ALTER TABLE blocks ADD INDEX coordinates (x, y, z);
+                    """;
+        }
+        database.execute(sql, false);
+    }
+
     public void insertMaterial(long time, String userUuid, String levelName, int x, int y, int z, String material, int blockAction) {
         String materialQuery = """
                 INSERT OR IGNORE INTO materials(name)

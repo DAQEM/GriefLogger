@@ -1,11 +1,9 @@
 package com.daqem.grieflogger.database.service;
 
-import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.BlockRepository;
 import com.daqem.grieflogger.model.action.BlockAction;
-import com.daqem.grieflogger.model.history.BlockHistory;
 import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.thread.OnComplete;
 import com.daqem.grieflogger.thread.ThreadManager;
@@ -24,8 +22,12 @@ public class BlockService {
         this.blockRepository = new BlockRepository(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         blockRepository.createTable();
+    }
+
+    public void createIndexes() {
+        blockRepository.createIndexes();
     }
 
     public void insertMaterial(UUID userUuid, String levelName, BlockPos pos, String material, BlockAction blockAction) {

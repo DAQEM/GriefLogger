@@ -63,6 +63,16 @@ public class Database {
         }
     }
 
+    public void execute(String sql, boolean logError) {
+        try {
+            statement.execute(sql);
+        } catch (SQLException e) {
+            if (logError) {
+                GriefLogger.LOGGER.error("Failed to execute statement", e);
+            }
+        }
+    }
+
     public PreparedStatement prepareStatement(String query) throws SQLException {
         return connection.prepareStatement(query);
     }

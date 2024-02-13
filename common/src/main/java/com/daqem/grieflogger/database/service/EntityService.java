@@ -12,7 +12,7 @@ public class EntityService {
         this.entityRepository = new EntityRepository(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         entityRepository.createTable();
     }
 
