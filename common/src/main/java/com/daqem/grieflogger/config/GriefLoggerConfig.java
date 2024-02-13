@@ -17,6 +17,7 @@ public class GriefLoggerConfig {
     public static final Supplier<String> mysqlDatabase;
     public static final Supplier<String> mysqlUsername;
     public static final Supplier<String> mysqlPassword;
+    public static final Supplier<Boolean> useIndexes;
 
     public static final Supplier<Integer> maxPageSize;
 
@@ -33,6 +34,7 @@ public class GriefLoggerConfig {
         mysqlDatabase = config.comment("MySQL database").onlyOnServer().define("mysqlDatabase", "database", 1, 255);
         mysqlUsername = config.comment("MySQL username").onlyOnServer().define("mysqlUsername", "username", 1, 255);
         mysqlPassword = config.comment("MySQL password").onlyOnServer().define("mysqlPassword", "password", 1, 255);
+        useIndexes = config.comment("Whether to use indexes (improves inspect/lookup speed)").onlyOnServer().define("useIndexes", true);
         config.pop();
 
         config.push("general");

@@ -17,7 +17,7 @@ public class UserService {
         this.usernameService = new UsernameService(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         userRepository.createTable();
     }
 

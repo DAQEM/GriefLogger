@@ -12,7 +12,7 @@ public class LevelService {
         this.levelRepository = new LevelRepository(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         levelRepository.createTable();
     }
 
