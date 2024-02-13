@@ -23,8 +23,12 @@ public class ItemService {
         this.itemRepository = new ItemRepository(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         itemRepository.createTable();
+    }
+
+    public void createIndexes() {
+        itemRepository.createIndexes();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {

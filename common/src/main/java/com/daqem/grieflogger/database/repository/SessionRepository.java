@@ -51,6 +51,18 @@ public class SessionRepository extends Repository {
         database.createTable(sql);
     }
 
+    public void createIndexes() {
+        String sql = """
+                CREATE INDEX IF NOT EXISTS coordinates ON sessions (x, y, z);
+                """;
+        if (isMysql()) {
+            sql = """
+                    ALTER TABLE sessions ADD INDEX coordinates (x, y, z);
+                    """;
+        }
+        database.execute(sql, false);
+    }
+
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, int sessionAction) {
         String query = """
                 INSERT OR IGNORE INTO sessions(time, user, level, x, y, z, action)

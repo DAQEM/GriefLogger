@@ -1,7 +1,6 @@
 package com.daqem.grieflogger.database.service;
 
 import com.daqem.grieflogger.database.Database;
-import com.daqem.grieflogger.database.repository.ChatRepository;
 import com.daqem.grieflogger.database.repository.CommandRepository;
 import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
@@ -17,8 +16,12 @@ public class CommandService {
         this.commandRepository = new CommandRepository(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         commandRepository.createTable();
+    }
+
+    public void createIndexes() {
+        commandRepository.createIndexes();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, String command) {

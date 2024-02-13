@@ -26,7 +26,7 @@ public class ChatRepository extends Repository {
                     message text NOT NULL,
                     FOREIGN KEY(user) REFERENCES users(id),
                     FOREIGN KEY(level) REFERENCES levels(id)
-                )
+                );
                 """;
         if (isMysql()) {
             sql = """
@@ -45,6 +45,18 @@ public class ChatRepository extends Repository {
                     """;
         }
         database.createTable(sql);
+    }
+
+    public void createIndexes() {
+        String sql = """
+                CREATE INDEX IF NOT EXISTS coordinates ON chats (x, y, z);
+                """;
+        if (isMysql()) {
+            sql = """
+                    ALTER TABLE chats ADD INDEX coordinates (x, y, z);
+                    """;
+        }
+        database.execute(sql, false);
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, String message) {

@@ -42,7 +42,7 @@ public class ContainerRepository extends Repository {
                 	FOREIGN KEY(user) REFERENCES users(id),
                 	FOREIGN KEY(level) REFERENCES levels(id),
                 	FOREIGN KEY(type) REFERENCES materials(id)
-                )
+                );
                 """;
         if (isMysql()) {
             sql = """
@@ -65,6 +65,18 @@ public class ContainerRepository extends Repository {
                     """;
         }
         database.createTable(sql);
+    }
+
+    public void createIndexes() {
+        String sql = """
+                CREATE INDEX IF NOT EXISTS coordinates ON containers (x, y, z);
+                """;
+        if (isMysql()) {
+            sql = """
+                    ALTER TABLE containers ADD INDEX coordinates (x, y, z);
+                    """;
+        }
+        database.execute(sql, false);
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, SimpleItemStack item, int itemAction) {

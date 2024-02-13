@@ -5,7 +5,6 @@ import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.ContainerRepository;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
-import com.daqem.grieflogger.model.history.ContainerHistory;
 import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.thread.OnComplete;
 import com.daqem.grieflogger.thread.ThreadManager;
@@ -25,8 +24,12 @@ public class ContainerService {
         this.containerRepository = new ContainerRepository(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         containerRepository.createTable();
+    }
+
+    public void createIndexes() {
+        containerRepository.createIndexes();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {

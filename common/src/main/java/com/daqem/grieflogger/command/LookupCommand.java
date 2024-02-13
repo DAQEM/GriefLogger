@@ -7,6 +7,7 @@ import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.history.*;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
+import com.daqem.grieflogger.thread.ThreadManager;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
@@ -44,15 +45,16 @@ public class LookupCommand implements ICommand {
     @SuppressWarnings("SameReturnValue")
     private static int lookup(CommandSourceStack source, FilterList filterList) {
         if (source.getPlayer() instanceof GriefLoggerServerPlayer player) {
-            List<IHistory> filteredHistory = getHistory(source.getLevel(), filterList);
-            if (filteredHistory.isEmpty()) {
-                source.sendFailure(GriefLogger.translate("lookup.no_results", GriefLogger.getName()));
-                return 1;
-            }
-            List<Page> pages = Page.convertToPages(filteredHistory, false);
-            player.grieflogger$setPages(pages);
-            Page pageToDisplay = pages.get(0);
-            pageToDisplay.sendToPlayer((ServerPlayer) player);
+            ThreadManager.submit(() -> getHistory(source.getLevel(), filterList), filteredHistory -> {
+                if (filteredHistory.isEmpty()) {
+                    source.sendFailure(GriefLogger.translate("lookup.no_results", GriefLogger.getName()));
+                    return;
+                }
+                List<Page> pages = Page.convertToPages(filteredHistory, false);
+                player.grieflogger$setPages(pages);
+                Page pageToDisplay = pages.get(0);
+                pageToDisplay.sendToPlayer((ServerPlayer) player);
+            });
         }
         return 1;
     }
