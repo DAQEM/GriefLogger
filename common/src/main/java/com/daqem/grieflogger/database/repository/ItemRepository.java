@@ -66,6 +66,18 @@ public class ItemRepository extends Repository {
         database.createTable(sql);
     }
 
+    public void createIndexes() {
+        String sql = """
+                CREATE INDEX IF NOT EXISTS coordinates ON items (x, y, z);
+                """;
+        if (isMysql()) {
+            sql = """
+                    ALTER TABLE items ADD INDEX coordinates (x, y, z);
+                    """;
+        }
+        database.execute(sql, false);
+    }
+
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, SimpleItemStack item, int action) {
         if (item.isEmpty()) {
             return;

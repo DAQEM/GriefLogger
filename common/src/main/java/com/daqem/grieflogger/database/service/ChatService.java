@@ -16,8 +16,12 @@ public class ChatService {
         this.chatRepository = new ChatRepository(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         chatRepository.createTable();
+    }
+
+    public void createIndexes() {
+        chatRepository.createIndexes();
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, String message) {

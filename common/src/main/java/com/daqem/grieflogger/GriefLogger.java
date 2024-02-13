@@ -58,17 +58,26 @@ public class GriefLogger {
     private static void prepareDatabase() {
         DATABASE = new Database("database.db");
 
-        Services.MATERIAL.createTableAsync();
-        Services.USER.createTableAsync();
-        Services.USERNAME.createTableAsync();
-        Services.LEVEL.createTableAsync();
-        Services.ENTITY.createTableAsync();
-        Services.BLOCK.createTableAsync();
-        Services.CONTAINER.createTableAsync();
-        Services.SESSION.createTableAsync();
-        Services.CHAT.createTableAsync();
-        Services.COMMAND.createTableAsync();
-        Services.ITEM.createTableAsync();
+        Services.MATERIAL.createTable();
+        Services.USER.createTable();
+        Services.USERNAME.createTable();
+        Services.LEVEL.createTable();
+        Services.ENTITY.createTable();
+        Services.BLOCK.createTable();
+        Services.CONTAINER.createTable();
+        Services.SESSION.createTable();
+        Services.CHAT.createTable();
+        Services.COMMAND.createTable();
+        Services.ITEM.createTable();
+
+        if (GriefLoggerConfig.useIndexes.get()) {
+            Services.BLOCK.createIndexes();
+            Services.CHAT.createIndexes();
+            Services.COMMAND.createIndexes();
+            Services.CONTAINER.createIndexes();
+            Services.ITEM.createIndexes();
+            Services.SESSION.createIndexes();
+        }
     }
 
     public static Database getDatabase() {

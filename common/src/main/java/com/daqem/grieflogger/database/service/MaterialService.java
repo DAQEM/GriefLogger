@@ -12,7 +12,7 @@ public class MaterialService {
         this.materialRepository = new MaterialRepository(database);
     }
 
-    public void createTableAsync() {
+    public void createTable() {
         materialRepository.createTable();
     }
 
