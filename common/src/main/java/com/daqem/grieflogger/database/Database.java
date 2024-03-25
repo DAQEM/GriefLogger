@@ -27,7 +27,7 @@ public class Database {
                 String database = GriefLoggerConfig.mysqlDatabase.get();
                 String user = GriefLoggerConfig.mysqlUsername.get();
                 String password = GriefLoggerConfig.mysqlPassword.get();
-                String url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?allowReconnect=true&autoReconnect=true";
+                String url = "jdbc:mysql://" + host + ":" + port + "/" + database;
 
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 connection = DriverManager.getConnection(url, user, password);
