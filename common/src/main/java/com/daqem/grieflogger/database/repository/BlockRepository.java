@@ -307,6 +307,11 @@ public class BlockRepository extends Repository {
                 LIMIT 1000;
                 """.formatted(actions, users, includeMaterials, excludeMaterials);
 
+        if (actions != null && !actions.isEmpty()
+                && actions.contains(Integer.toString(BlockAction.KILL_ENTITY.getId()))) {
+            query = query.replaceAll("materials", "entities");
+        }
+
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setString(1, levelName);
             preparedStatement.setLong(2, filterList.getTime());
