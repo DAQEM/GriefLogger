@@ -37,7 +37,7 @@ public class ContainerService {
         if (itemLocation != null) {
             containerRepository.insert(System.currentTimeMillis(),
                     userUuid.toString(),
-                    level.dimension().location().toString(),
+                    level,
                     pos.getX(),
                     pos.getY(),
                     pos.getZ(),
@@ -53,7 +53,7 @@ public class ContainerService {
     public void insertList(UUID userUuid, Level level, BlockPos pos, List<SimpleItemStack> items, ItemAction itemAction) {
         containerRepository.insertList(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -68,7 +68,7 @@ public class ContainerService {
     public void insertMap(UUID userUuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         containerRepository.insertMap(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -81,7 +81,7 @@ public class ContainerService {
 
     public List<IHistory> getHistory(Level level, BlockPos pos) {
         return containerRepository.getHistory(
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ()
@@ -94,7 +94,7 @@ public class ContainerService {
 
     public List<IHistory> getFilteredContainerHistory(Level level, FilterList filterList) {
         return containerRepository.getFilteredContainerHistory(
-                level.dimension().location().toString(),
+                level,
                 filterList
         );
     }
