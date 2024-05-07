@@ -1,19 +1,11 @@
 package com.daqem.grieflogger.model.history;
 
-import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.model.BlockPosition;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.Time;
 import com.daqem.grieflogger.model.User;
 import com.daqem.grieflogger.model.action.IAction;
-import com.daqem.grieflogger.model.action.ItemAction;
 import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
-
-import java.util.UUID;
 
 public class ContainerHistory extends ItemHistory {
 

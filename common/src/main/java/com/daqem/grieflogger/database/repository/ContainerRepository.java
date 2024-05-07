@@ -275,11 +275,10 @@ public class ContainerRepository extends Repository {
             preparedStatement.setInt(4, z);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
-            RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
-            DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
-
             while (resultSet.next()) {
+                ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
+                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
+                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
                 containerHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
@@ -361,11 +360,10 @@ public class ContainerRepository extends Repository {
 
             List<IHistory> blockHistory = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();
-            ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
-            RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
-            DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
-
             while (resultSet.next()) {
+                ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
+                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
+                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
                 blockHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),

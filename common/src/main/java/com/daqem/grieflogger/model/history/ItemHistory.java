@@ -8,7 +8,6 @@ import com.daqem.grieflogger.model.User;
 import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
 import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
