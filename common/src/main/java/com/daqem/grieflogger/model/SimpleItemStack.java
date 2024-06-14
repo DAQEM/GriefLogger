@@ -84,7 +84,7 @@ public class SimpleItemStack {
 
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), level.registryAccess());
         DataComponentPatch.STREAM_CODEC.encode(buf, tag);
-        byte[] temp = new byte[buf.writableBytes()];
+        byte[] temp = new byte[buf.readableBytes()];
         buf.readBytes(temp);
         return temp;
     }
