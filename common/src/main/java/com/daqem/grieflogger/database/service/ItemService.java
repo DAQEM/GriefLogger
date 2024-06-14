@@ -36,7 +36,7 @@ public class ItemService {
         if (itemLocation != null) {
             itemRepository.insert(System.currentTimeMillis(),
                     userUuid.toString(),
-                    level.dimension().location().toString(),
+                    level,
                     pos.getX(),
                     pos.getY(),
                     pos.getZ(),
@@ -52,7 +52,7 @@ public class ItemService {
     public void insertMap(UUID userUuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         itemRepository.insertMap(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -65,7 +65,7 @@ public class ItemService {
 
     public List<ItemHistory> getFilteredItemHistory(Level level, FilterList filterList) {
         return itemRepository.getFilteredItemHistory(
-                level.dimension().location().toString(),
+                level,
                 filterList
         );
     }

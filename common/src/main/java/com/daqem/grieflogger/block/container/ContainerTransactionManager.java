@@ -79,10 +79,10 @@ public class ContainerTransactionManager {
 
         for (SimpleItemStack simpleItemStack : itemStackList) {
             if (simpleItemStack.getItem() == itemStack.getItem()) {
-                if (simpleItemStack.hasTag() && itemStack.hasTag() && simpleItemStack.getTag().equals(itemStack.getTag())) {
+                if (simpleItemStack.hasTag() && !itemStack.getComponentsPatch().isEmpty() && simpleItemStack.getTag().equals(itemStack.getComponentsPatch())) {
                     simpleItemStack.addCount(itemStack.getCount());
                     return;
-                } else if (simpleItemStack.hasNoTag() && !itemStack.hasTag()) {
+                } else if (simpleItemStack.hasNoTag() && itemStack.getComponentsPatch().isEmpty()) {
                     simpleItemStack.addCount(itemStack.getCount());
                     return;
                 }
