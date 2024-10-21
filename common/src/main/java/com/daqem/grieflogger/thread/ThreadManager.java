@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class ThreadManager {
 
-    private static final ExecutorService executor = Executors.newCachedThreadPool(new GriefLoggerThreadFactory());
+    private static final ExecutorService executor = Executors.newWorkStealingPool();
     private static final Map<Future<?>, OnComplete<?>> onCompleteMap = new HashMap<>();
 
     public static void execute(Runnable runnable) {
