@@ -32,4 +32,14 @@ public class Queue implements IQueue {
         this.statements.clear();
         this.database.executeStatements(statements, isBatch);
     }
+
+    @Override
+    public void hello() {
+        try {
+            PreparedStatement statement = this.database.prepareStatement("SELECT 1");
+            this.database.execute(statement.toString(), false);
+        } catch (Exception e) {
+            GriefLogger.LOGGER.error("Failed to send hello packet", e);
+        }
+    }
 }

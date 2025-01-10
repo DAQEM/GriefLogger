@@ -22,8 +22,11 @@ public class GriefLogger {
 
     public static void init() {
         initConfigs();
+        boolean databaseReady = prepareDatabase();
+        if (!databaseReady) {
+            return;
+        }
         registerEvents();
-        prepareDatabaseAsync();
     }
 
     private static void initConfigs() {
@@ -45,18 +48,20 @@ public class GriefLogger {
         CommandEvent.registerEvent();
     }
 
-    private static void prepareDatabaseAsync() {
-        ThreadManager.execute(() -> {
-            LOGGER.info("Preparing database asynchronously.");
-            long start = System.currentTimeMillis();
-            prepareDatabase();
-            long end = System.currentTimeMillis();
-            LOGGER.info("Database prepared in {}ms.", end - start);
-        });
-    }
-
-    private static void prepareDatabase() {
-        DATABASE = new Database("database.db");
+    private static boolean prepareDatabase() {
+        LOGGER.info("Preparing GriefLogger database...");
+        long start = System.currentTimeMillis();
+        try {
+            DATABASE = new Database();
+            boolean connected = DATABASE.createConnection();
+            if (!connected) {
+                LOGGER.error("Failed to connect to database, disabling GriefLogger...");
+                return false;
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to connect to database, disabling GriefLogger...", e);
+            return false;
+        }
 
         Services.MATERIAL.createTable();
         Services.USER.createTable();
@@ -78,6 +83,10 @@ public class GriefLogger {
             Services.ITEM.createIndexes();
             Services.SESSION.createIndexes();
         }
+
+        long end = System.currentTimeMillis();
+        LOGGER.info("Database prepared in {}ms.", end - start);
+        return true;
     }
 
     public static Database getDatabase() {

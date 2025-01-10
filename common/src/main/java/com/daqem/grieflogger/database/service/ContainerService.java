@@ -46,10 +46,6 @@ public class ContainerService {
         }
     }
 
-    public void insertAsync(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {
-        ThreadManager.execute(() -> insert(userUuid, level, pos, item, itemAction));
-    }
-
     public void insertList(UUID userUuid, Level level, BlockPos pos, List<SimpleItemStack> items, ItemAction itemAction) {
         containerRepository.insertList(System.currentTimeMillis(),
                 userUuid.toString(),
@@ -59,10 +55,6 @@ public class ContainerService {
                 pos.getZ(),
                 items,
                 itemAction.getId());
-    }
-
-    public void insertListAsync(UUID uuid, Level level, BlockPos pos, List<SimpleItemStack> items, ItemAction itemAction) {
-        ThreadManager.execute(() -> insertList(uuid, level, pos, items, itemAction));
     }
 
     public void insertMap(UUID userUuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
@@ -75,10 +67,6 @@ public class ContainerService {
                 itemsMap);
     }
 
-    public void insertMapAsync(UUID uuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
-        ThreadManager.execute(() -> insertMap(uuid, level, pos, itemsMap));
-    }
-
     public List<IHistory> getHistory(Level level, BlockPos pos) {
         return containerRepository.getHistory(
                 level.dimension().location().toString(),
@@ -88,8 +76,16 @@ public class ContainerService {
         );
     }
 
-    public void getHistoryAsync(Level level, BlockPos pos, OnComplete<List<IHistory>> onComplete) {
-        ThreadManager.submit(() -> getHistory(level, pos), onComplete);
+    public List<IHistory> getHistory(Level level, BlockPos pos, BlockPos connectionPos) {
+        return containerRepository.getHistory(
+                level.dimension().location().toString(),
+                pos.getX(),
+                pos.getY(),
+                pos.getZ(),
+                connectionPos.getX(),
+                connectionPos.getY(),
+                connectionPos.getZ()
+        );
     }
 
     public List<IHistory> getFilteredContainerHistory(Level level, FilterList filterList) {

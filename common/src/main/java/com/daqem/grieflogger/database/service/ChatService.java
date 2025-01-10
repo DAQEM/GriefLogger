@@ -33,8 +33,4 @@ public class ChatService {
                 pos.getZ(),
                 message);
     }
-
-    public void insertAsync(UUID userUuid, Level level, BlockPos pos, String message) {
-        ThreadManager.execute(() -> insert(userUuid, level, pos, message));
-    }
 }

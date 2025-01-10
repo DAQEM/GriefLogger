@@ -8,6 +8,6 @@ import net.minecraft.world.level.Level;
 public class RemoveBlockInteractionsEvent extends AbstractEvent {
 
     public static void removeBlockInteractions(Level level, BlockPos pos) {
-        Services.BLOCK.removeInteractionsForPositionAsync(level, pos);
+        Services.BLOCK.removeInteractionsForPosition(level, pos);
     }
 }

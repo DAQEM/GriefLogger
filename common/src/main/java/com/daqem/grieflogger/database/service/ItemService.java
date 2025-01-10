@@ -45,10 +45,6 @@ public class ItemService {
         }
     }
 
-    public void insertAsync(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {
-        ThreadManager.execute(() -> insert(userUuid, level, pos, item, itemAction));
-    }
-
     public void insertMap(UUID userUuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         itemRepository.insertMap(System.currentTimeMillis(),
                 userUuid.toString(),
@@ -57,10 +53,6 @@ public class ItemService {
                 pos.getY(),
                 pos.getZ(),
                 itemsMap);
-    }
-
-    public void insertMapAsync(UUID uuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
-        ThreadManager.execute(() -> insertMap(uuid, level, pos, itemsMap));
     }
 
     public List<ItemHistory> getFilteredItemHistory(Level level, FilterList filterList) {

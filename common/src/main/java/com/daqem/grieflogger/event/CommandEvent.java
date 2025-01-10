@@ -11,7 +11,7 @@ public class CommandEvent {
         CommandPerformEvent.EVENT.register(commandPerformEvent -> {
             ServerPlayer player = commandPerformEvent.getResults().getContext().getSource().getPlayer();
             if (player != null) {
-                Services.COMMAND.insertAsync(
+                Services.COMMAND.insert(
                         player.getUUID(),
                         player.level(),
                         player.getOnPos(),
