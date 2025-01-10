@@ -110,10 +110,10 @@ public class BlockRepository extends Repository {
 
         try {
             PreparedStatement materialStatement = database.prepareStatement(materialQuery);
-            PreparedStatement blockStatement = database.prepareStatement(blockQuery);
             materialStatement.setString(1, material);
             database.queue.add(materialStatement);
 
+            PreparedStatement blockStatement = database.prepareStatement(blockQuery);
             blockStatement.setLong(1, time);
             blockStatement.setString(2, userUuid);
             blockStatement.setString(3, levelName);
@@ -289,21 +289,36 @@ public class BlockRepository extends Repository {
         @Nullable String excludeMaterials = filterList.getExcludeMaterialsString();
 
         String query = """
-                SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z, materials.name, blocks.action
-                FROM blocks
+                SELECT
+                    blocks.time,
+                    users.name,
+                    users.uuid,
+                    blocks.x,
+                    blocks.y,
+                    blocks.z,
+                    CASE
+                        WHEN blocks.action = 3 THEN entities.name
+                        ELSE materials.name
+                    END AS type_name,
+                    blocks.action
+                FROM
+                    blocks
                 INNER JOIN users ON blocks.user = users.id
                 INNER JOIN levels ON blocks.level = levels.id
-                INNER JOIN materials ON blocks.type = materials.id
-                WHERE levels.name = ?
-                AND blocks.time > ?
-                AND (? IS NULL OR blocks.action IN (%s))
-                AND (? IS NULL OR users.id IN (%s))
-                AND (? IS NULL OR materials.name IN ('%s'))
-                AND (? IS NULL OR materials.name NOT IN ('%s'))
-                AND blocks.x BETWEEN ? AND ?
-                AND blocks.y BETWEEN ? AND ?
-                AND blocks.z BETWEEN ? AND ?
-                ORDER BY blocks.time DESC
+                LEFT JOIN materials ON blocks.type = materials.id AND blocks.action != 3
+                LEFT JOIN entities ON blocks.type = entities.id AND blocks.action = 3
+                WHERE
+                    levels.name = ?
+                    AND blocks.time > ?
+                    AND (? IS NULL OR blocks.action IN (%s))
+                    AND (? IS NULL OR users.id IN (%s))
+                    AND (? IS NULL OR materials.name IN ('%s'))
+                    AND (? IS NULL OR materials.name NOT IN ('%s'))
+                    AND blocks.x BETWEEN ? AND ?
+                    AND blocks.y BETWEEN ? AND ?
+                    AND blocks.z BETWEEN ? AND ?
+                ORDER BY
+                    blocks.time DESC
                 LIMIT 1000;
                 """.formatted(actions, users, includeMaterials, excludeMaterials);
 

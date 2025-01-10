@@ -14,7 +14,7 @@ public class EntityEvents {
             if (source.getEntity() instanceof ServerPlayer serverPlayer) {
                 ResourceLocation entityLocation = entity.getType().arch$registryName();
                 if (entityLocation != null) {
-                    Services.BLOCK.insertEntityAsync(
+                    Services.BLOCK.insertEntity(
                             serverPlayer.getUUID(),
                             entity.level().dimension().location().toString(),
                             entity.blockPosition(),

@@ -1,6 +1,7 @@
 package com.daqem.grieflogger.config;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.mojang.text2speech.OperatingSystem;
 import com.supermartijn642.configlib.api.ConfigBuilders;
 import com.supermartijn642.configlib.api.IConfigBuilder;
 
@@ -17,6 +18,7 @@ public class GriefLoggerConfig {
     public static final Supplier<String> mysqlDatabase;
     public static final Supplier<String> mysqlUsername;
     public static final Supplier<String> mysqlPassword;
+    public static final Supplier<Integer> mysqlTimeout;
     public static final Supplier<Boolean> useIndexes;
 
     public static final Supplier<Integer> maxPageSize;
@@ -24,6 +26,7 @@ public class GriefLoggerConfig {
     public static final Supplier<Boolean> serverSideOnlyMode;
 
     public static final Supplier<Integer> queueFrequency;
+    public static final Supplier<Integer> helloFrequency;
 
     static {
         IConfigBuilder config = ConfigBuilders.newTomlConfig(GriefLogger.MOD_ID, GriefLogger.MOD_ID, true);
@@ -34,6 +37,7 @@ public class GriefLoggerConfig {
         mysqlDatabase = config.comment("MySQL database").onlyOnServer().define("mysqlDatabase", "database", 1, 255);
         mysqlUsername = config.comment("MySQL username").onlyOnServer().define("mysqlUsername", "username", 1, 255);
         mysqlPassword = config.comment("MySQL password").onlyOnServer().define("mysqlPassword", "password", 1, 255);
+        mysqlTimeout = config.comment("MySQL timeout").onlyOnServer().define("mysqlTimeout", 5000, 1, 60000);
         useIndexes = config.comment("Whether to use indexes (improves inspect/lookup speed)").onlyOnServer().define("useIndexes", true);
         config.pop();
 
@@ -48,6 +52,11 @@ public class GriefLoggerConfig {
         config.push("queue");
         queueFrequency = config.comment("The frequency at which the database queue is executed (every 'x' ticks)").onlyOnServer().define("queueFrequency", 20, 1, 100);
         config.pop();
+
+        config.push("hello");
+        helloFrequency = config.comment("The frequency at which the hello packet is sent to the server (every 'x' ticks)").onlyOnServer().define("helloFrequency", 600, 1, 1000);
+        config.pop();
+
         config.build();
     }
 }

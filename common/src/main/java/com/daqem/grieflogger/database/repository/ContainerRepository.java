@@ -298,6 +298,50 @@ public class ContainerRepository extends Repository {
         return containerHistory;
     }
 
+    public List<IHistory> getHistory(String levelName, int x, int y, int z, int x2, int y2, int z2) {
+        List<IHistory> containerHistory = new ArrayList<>();
+        String query = """
+                SELECT containers.time, users.name, users.uuid, containers.x, containers.y, containers.z, materials.name, containers.data, containers.amount, containers.action
+                FROM containers
+                INNER JOIN users ON containers.user = users.id
+                INNER JOIN levels ON containers.level = (
+                    SELECT id FROM levels WHERE name = ?
+                )
+                INNER JOIN materials ON containers.type = materials.id
+                WHERE containers.level = levels.id AND containers.x BETWEEN ? AND ? AND containers.y BETWEEN ? AND ? AND containers.z BETWEEN ? AND ? AND (containers.action = 0 OR containers.action = 1)
+                ORDER BY containers.time DESC
+                """;
+
+        try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
+            preparedStatement.setString(1, levelName);
+            preparedStatement.setInt(2, x);
+            preparedStatement.setInt(3, x2);
+            preparedStatement.setInt(4, y);
+            preparedStatement.setInt(5, y2);
+            preparedStatement.setInt(6, z);
+            preparedStatement.setInt(7, z2);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                containerHistory.add(new ContainerHistory(
+                        resultSet.getLong(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getInt(4),
+                        resultSet.getInt(5),
+                        resultSet.getInt(6),
+                        resultSet.getString(7),
+                        resultSet.getBytes(8),
+                        resultSet.getInt(9),
+                        resultSet.getInt(10)
+                ));
+            }
+        } catch (SQLException e) {
+            GriefLogger.LOGGER.error("Failed to get container history", e);
+        }
+        return containerHistory;
+    }
+
     public List<IHistory> getFilteredContainerHistory(Level level, FilterList filterList) {
         @Nullable String actions = filterList.getActionString();
         @Nullable String users = filterList.getUserString();

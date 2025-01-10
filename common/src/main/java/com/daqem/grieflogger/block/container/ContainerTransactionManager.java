@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ContainerTransactionManager {
+public class ContainerTransactionManager implements IContainerTransactionManager {
 
     private final BaseContainerBlockEntity blockEntity;
 
@@ -31,7 +31,7 @@ public class ContainerTransactionManager {
         List<SimpleItemStack> removedItems = getRemovedItems();
         List<SimpleItemStack> addedItems = getAddedItems();
 
-        Services.CONTAINER.insertMapAsync(
+        Services.CONTAINER.insertMap(
                 serverPlayer.getUUID(),
                 blockEntity.getLevel() != null ? blockEntity.getLevel() : serverPlayer.level(),
                 blockEntity.getBlockPos(),

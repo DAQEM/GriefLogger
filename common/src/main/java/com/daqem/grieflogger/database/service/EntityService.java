@@ -19,8 +19,4 @@ public class EntityService {
     public void insert(String name) {
         entityRepository.insert(name);
     }
-
-    public void insertAsync(String name) {
-        ThreadManager.execute(() -> insert(name));
-    }
 }
