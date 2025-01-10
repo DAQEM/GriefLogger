@@ -12,10 +12,12 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.ChestType;
 
 import java.util.Optional;
 
@@ -37,6 +39,36 @@ public class RightClickBlockEvent extends AbstractEvent {
                         BlockEntity blockEntity = level.getBlockEntity(pos);
                         Optional<BaseContainerBlockEntity> container = ContainerHandler.getContainer(blockEntity);
                         if (container.isPresent()) {
+                            if (state.hasProperty(ChestBlock.TYPE)) {
+                                ChestType chestType = state.getValue(ChestBlock.TYPE);
+                                if (chestType != ChestType.SINGLE) {
+                                    Direction connectionDirection = state.getValue(ChestBlock.FACING);
+                                    BlockPos connectionPos = pos;
+                                    if (chestType == ChestType.LEFT) {
+                                        if (connectionDirection == Direction.NORTH) {
+                                            connectionPos = pos.east();
+                                        } else if (connectionDirection == Direction.SOUTH) {
+                                            connectionPos = pos.west();
+                                        } else if (connectionDirection == Direction.WEST) {
+                                            connectionPos = pos.north();
+                                        } else {
+                                            connectionPos = pos.south();
+                                        }
+                                    }
+                                    if (chestType == ChestType.RIGHT) {
+                                        if (connectionDirection == Direction.NORTH) {
+                                            connectionPos = pos.west();
+                                        } else if (connectionDirection == Direction.SOUTH) {
+                                            connectionPos = pos.east();
+                                        } else if (connectionDirection == Direction.WEST) {
+                                            connectionPos = pos.south();
+                                        } else {
+                                            connectionPos = pos.north();
+                                        }
+                                    }
+                                    return InspectContainerEvent.inspectContainers(serverPlayer, level, pos, connectionPos);
+                                }
+                            }
                             return InspectContainerEvent.inspectContainer(serverPlayer, level, pos);
                         }
                     }

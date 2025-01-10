@@ -35,17 +35,9 @@ public class BlockService {
         blockRepository.insertMaterial(System.currentTimeMillis(), userUuid.toString(), levelName, pos.getX(), pos.getY(), pos.getZ(), material, blockAction.getId());
     }
 
-    public void insertMaterialAsync(UUID userUuid, String levelName, BlockPos pos, String material, BlockAction blockAction) {
-        ThreadManager.execute(() -> insertMaterial(userUuid, levelName, pos, material, blockAction));
-    }
-
     public void insertEntity(UUID userUuid, String levelName, BlockPos pos, String entity, BlockAction blockAction) {
         entity = entity.replace("minecraft:", "");
         blockRepository.insertEntity(System.currentTimeMillis(), userUuid.toString(), levelName, pos.getX(), pos.getY(), pos.getZ(), entity, blockAction.getId());
-    }
-
-    public void insertEntityAsync(UUID userUuid, String levelName, BlockPos pos, String entity, BlockAction blockAction) {
-        ThreadManager.execute(() -> insertEntity(userUuid, levelName, pos, entity, blockAction));
     }
 
     public List<IHistory> getBlockHistory(Level level, BlockPos pos) {
@@ -86,10 +78,6 @@ public class BlockService {
         );
     }
 
-    public void getInteractionHistoryAsync(Level level, BlockPos pos, OnComplete<List<IHistory>> onComplete) {
-        ThreadManager.submit(() -> getBlockHistory(level, pos), onComplete);
-    }
-
     public List<IHistory> getInteractionHistory(Level level, List<BlockPos> pos) {
         List<IHistory> blockHistories = new ArrayList<>();
 
@@ -113,10 +101,6 @@ public class BlockService {
                 secondPos.getY(),
                 secondPos.getZ()
         );
-    }
-
-    public void removeInteractionsForPositionAsync(Level level, BlockPos secondPos) {
-        ThreadManager.execute(() -> removeInteractionsForPosition(level, secondPos));
     }
 
     public List<IHistory> getFilteredBlockHistory(Level level, FilterList filterList) {

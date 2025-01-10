@@ -3,21 +3,24 @@ package com.daqem.grieflogger.mixin;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.block.container.ContainerHandler;
 import com.daqem.grieflogger.block.container.ContainerTransactionManager;
+import com.daqem.grieflogger.block.container.ContainersTransactionManager;
+import com.daqem.grieflogger.block.container.IContainerTransactionManager;
 import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
-import com.daqem.grieflogger.model.history.BlockHistory;
-import com.daqem.grieflogger.model.history.ContainerHistory;
 import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -29,10 +32,11 @@ import java.util.*;
 @Mixin(ServerPlayer.class)
 public abstract class MixinServerPlayer extends Player implements GriefLoggerServerPlayer {
 
+    @Shadow public ServerGamePacketListenerImpl connection;
     @Unique
     private boolean grieflogger$inspecting = false;
     @Unique
-    private ContainerTransactionManager grieflogger$containerTransactionManager;
+    private IContainerTransactionManager grieflogger$containerTransactionManager;
     @Unique
     private final Map<ItemAction, List<SimpleItemStack>> grieflogger$itemQueue = new HashMap<>();
     @Unique
@@ -82,9 +86,14 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
 
     @Inject(at = @At("HEAD"), method = "openMenu")
     public void openMenu(MenuProvider menuProvider, CallbackInfoReturnable<OptionalInt> cir) {
-        ContainerHandler.getContainer(menuProvider).ifPresent(container -> {
-            this.grieflogger$containerTransactionManager = new ContainerTransactionManager(container);
-        });
+        Optional<BaseContainerBlockEntity> container = ContainerHandler.getContainer(menuProvider);
+        if (container.isPresent()) {
+            this.grieflogger$containerTransactionManager = new ContainerTransactionManager(container.get());
+        } else {
+            ContainerHandler.getContainers(menuProvider).ifPresent(containers -> {
+                this.grieflogger$containerTransactionManager = new ContainersTransactionManager(containers);
+            });
+        }
     }
 
     @Inject(at = @At("HEAD"), method = "doCloseContainer()V")
@@ -98,7 +107,7 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
     @Inject(at = @At("HEAD"), method = "tick")
     public void grieflogger$tick(CallbackInfo ci) {
         if (!grieflogger$itemQueue.isEmpty()) {
-            Services.ITEM.insertMapAsync(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
+            Services.ITEM.insertMap(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
             grieflogger$itemQueue.clear();
         }
     }

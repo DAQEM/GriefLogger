@@ -33,8 +33,4 @@ public class CommandService {
                 pos.getZ(),
                 command);
     }
-
-    public void insertAsync(UUID userUuid, Level level, BlockPos pos, String command) {
-        ThreadManager.execute(() -> insert(userUuid, level, pos, command));
-    }
 }

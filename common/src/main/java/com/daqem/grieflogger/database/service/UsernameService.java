@@ -19,10 +19,6 @@ public class UsernameService {
     }
 
     public void insert(UUID uuid, String name) {
-        ThreadManager.execute(() -> usernameRepository.insert(System.currentTimeMillis(), uuid.toString(), name));
-    }
-
-    public void insertAsync(UUID uuid, String name) {
-        ThreadManager.execute(() -> insert(uuid, name));
+        usernameRepository.insert(System.currentTimeMillis(), uuid.toString(), name);
     }
 }

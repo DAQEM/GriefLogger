@@ -38,10 +38,6 @@ public class SessionService {
         );
     }
 
-    public void insertAsync(UUID userUuid, Level level, BlockPos pos, SessionAction sessionAction) {
-        ThreadManager.execute(() -> insert(userUuid, level, pos, sessionAction));
-    }
-
     public List<SessionHistory> getFilteredSessionHistory(Level level, FilterList filterList) {
         return sessionRepository.getFilteredSessionHistory(
                 level.dimension().location().toString(),

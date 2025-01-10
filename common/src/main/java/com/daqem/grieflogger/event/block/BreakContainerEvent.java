@@ -15,7 +15,7 @@ public class BreakContainerEvent {
 
     public static void breakContainer(GriefLoggerServerPlayer player, Level level, BlockPos pos, BaseContainerBlockEntity containerBlockEntity) {
         List<SimpleItemStack> itemStacks = ContainerHandler.getContainerItems(containerBlockEntity);
-        Services.CONTAINER.insertListAsync(
+        Services.CONTAINER.insertList(
                 player.grieflogger$asServerPlayer().getUUID(),
                 level,
                 pos,

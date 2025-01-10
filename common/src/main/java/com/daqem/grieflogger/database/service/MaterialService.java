@@ -19,8 +19,4 @@ public class MaterialService {
     public void insert(String material) {
         materialRepository.insert(material);
     }
-
-    public void insertAsync(String material) {
-        ThreadManager.execute(() -> insert(material));
-    }
 }
