@@ -7,6 +7,7 @@ import com.daqem.grieflogger.model.Time;
 import com.daqem.grieflogger.model.User;
 import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
@@ -18,7 +19,7 @@ public class ItemHistory extends History {
 
     protected final SimpleItemStack itemStack;
 
-    public ItemHistory(long time, String name, String uuid, int x, int y, int z, String material, byte[] data, int amount, int action) {
+    public ItemHistory(long time, String name, String uuid, int x, int y, int z, String material, DataComponentPatch data, int amount, int action) {
         this(new Time(time), new User(name, UUID.fromString(uuid)), new BlockPosition(x, y, z), new SimpleItemStack(new ResourceLocation(material), amount, data), ItemAction.fromId(action));
     }
 
