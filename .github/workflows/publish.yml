@@ -2,7 +2,7 @@ name: Publish
 
 on:
   push:
-    branches: [ "1.20.1" ]
+    branches: [ "1.20.6" ]
 
 permissions:
   contents: write
@@ -20,10 +20,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Grant Permissions to gradlew
@@ -58,6 +58,6 @@ jobs:
         with:
           artifacts: |
             fabric/build/libs/*.jar
-            forge/build/libs/*.jar
+            neoforge/build/libs/*.jar
           name: ${{ steps.gradle_version.outputs.VERSION_NAME }}
           tag: ${{ steps.gradle_version.outputs.VERSION_NAME }}
