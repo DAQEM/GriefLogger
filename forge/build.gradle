@@ -6,11 +6,19 @@ plugins {
 
 architectury {
     platformSetupLoomIde()
-    fabric()
+    forge()
 }
 
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
+
+    forge {
+        convertAccessWideners = true
+        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+
+        mixinConfig "grieflogger-common.mixins.json"
+        mixinConfig "grieflogger.mixins.json"
+    }
 }
 
 configurations {
@@ -18,17 +26,16 @@ configurations {
     shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
-    developmentFabric.extendsFrom common
+    developmentForge.extendsFrom common
 }
 
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+    forge "net.minecraftforge:forge:${rootProject.forge_version}"
     // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
+    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     modImplementation "org.xerial:sqlite-jdbc:3.47.2.0"
     shadowCommon "org.xerial:sqlite-jdbc:3.47.2.0"
@@ -36,14 +43,14 @@ dependencies {
     modImplementation "com.mysql:mysql-connector-j:8.4.0"
     shadowCommon "com.mysql:mysql-connector-j:8.4.0"
 
-    modImplementation "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file_fabric}"
+    modImplementation "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file_forge}"
 }
 
 processResources {
     inputs.property "version", project.version
     inputs.property "config_library_version", config_library_version
 
-    filesMatching("fabric.mod.json") {
+    filesMatching("META-INF/mods.toml") {
         expand([
                 "version": project.version,
                 "config_library_version": config_library_version
@@ -52,6 +59,7 @@ processResources {
 }
 
 shadowJar {
+    exclude "fabric.mod.json"
     exclude "architectury.common.json"
     exclude "org/slf4j/**"
 
@@ -60,10 +68,9 @@ shadowJar {
 }
 
 remapJar {
-    injectAccessWidener = true
     input.set shadowJar.archiveFile
     dependsOn shadowJar
-    archiveClassifier = "fabric"
+    archiveClassifier = "forge"
 }
 
 sourcesJar {
@@ -74,7 +81,7 @@ sourcesJar {
 
 remapSourcesJar {
     //noinspection GroovyAccessibility
-    archiveClassifier = "fabric-sources"
+    archiveClassifier = "forge-sources"
 }
 
 components.java {
@@ -85,7 +92,7 @@ components.java {
 
 publishing {
     publications {
-        mavenFabric(MavenPublication) {
+        mavenForge(MavenPublication) {
             artifactId = rootProject.archives_base_name + "-" + project.name
             from components.java
         }
@@ -98,7 +105,7 @@ publishing {
 }
 
 curseforge {
-    apiKey = System.getenv('CURSEFORGE_API_KEY')
+    apiKey = System.getenv("CURSEFORGE_API_KEY")
     project {
         id = project.curse_forge_project_id
         releaseType = project.curse_forge_release_type
@@ -106,7 +113,7 @@ curseforge {
         changelog = rootProject.file('changelog.md')
         addGameVersion project.minecraft_version
         addGameVersion "Java 17"
-        addGameVersion "Fabric"
+        addGameVersion "Forge"
 
         relations {
             requiredDependency("architectury-api")
@@ -114,31 +121,24 @@ curseforge {
         }
 
         mainArtifact(remapJar) {
-            displayName = "GriefLogger Fabric $project.minecraft_version - $project.mod_version"
+            displayName = "GriefLogger Forge $project.minecraft_version - $project.mod_version"
         }
 
-        addArtifact(remapSourcesJar) {
+        addArtifact(sourcesJar) {
         }
     }
-    options {
-        forgeGradleIntegration = false
-    }
-}
-
-afterEvaluate {
-    tasks.curseforge435029.dependsOn remapJar
 }
 
 modrinth {
     token = System.getenv("MODRINTH_API_KEY")
     projectId = "8oGVUFuX"
-    versionName = "GriefLogger Fabric $rootProject.minecraft_version - $rootProject.mod_version"
+    versionName = "GriefLogger Forge $rootProject.minecraft_version - $rootProject.mod_version"
     versionNumber = "$rootProject.mod_version"
     versionType = "$rootProject.curse_forge_release_type"
     uploadFile = remapJar
     additionalFiles = [remapSourcesJar]
     gameVersions = ["$rootProject.minecraft_version"]
-    loaders = ["fabric"]
+    loaders = ["forge"]
     dependencies {
         required.project "architectury-api"
         required.project "supermartijn642s-config-lib"

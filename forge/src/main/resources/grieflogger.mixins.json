@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "com.daqem.grieflogger.neoforge.mixin",
+  "package": "com.daqem.grieflogger.forge.mixin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [

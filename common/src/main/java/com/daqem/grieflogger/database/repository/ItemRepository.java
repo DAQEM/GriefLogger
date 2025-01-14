@@ -6,12 +6,7 @@ import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.ItemHistory;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.PreparedStatement;
@@ -83,7 +78,7 @@ public class ItemRepository extends Repository {
         database.execute(sql, false);
     }
 
-    public void insert(long time, String userUuid, Level level, int x, int y, int z, SimpleItemStack item, int action) {
+    public void insert(long time, String userUuid, String levelName, int x, int y, int z, SimpleItemStack item, int action) {
         if (item.isEmpty()) {
             return;
         }
@@ -121,12 +116,12 @@ public class ItemRepository extends Repository {
 
                 preparedStatement.setLong(1, time);
                 preparedStatement.setString(2, userUuid);
-                preparedStatement.setString(3, level.dimension().location().toString());
+                preparedStatement.setString(3, levelName);
                 preparedStatement.setInt(4, x);
                 preparedStatement.setInt(5, y);
                 preparedStatement.setInt(6, z);
                 preparedStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                preparedStatement.setBytes(8, item.getTagBytes(level));
+                preparedStatement.setBytes(8, item.getTagBytes());
                 preparedStatement.setInt(9, item.getCount());
                 preparedStatement.setInt(10, action);
                 database.queue.add(preparedStatement);
@@ -136,7 +131,7 @@ public class ItemRepository extends Repository {
         }
     }
 
-    public void insertMap(long time, String userUuid, Level level, int x, int y, int z, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
+    public void insertMap(long time, String userUuid, String levelName, int x, int y, int z, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         String insertMaterialQuery = """
                 INSERT OR IGNORE INTO materials(name)
                 VALUES(?);
@@ -176,12 +171,12 @@ public class ItemRepository extends Repository {
 
                         itemStatement.setLong(1, time);
                         itemStatement.setString(2, userUuid);
-                        itemStatement.setString(3, level.dimension().location().toString());
+                        itemStatement.setString(3, levelName);
                         itemStatement.setInt(4, x);
                         itemStatement.setInt(5, y);
                         itemStatement.setInt(6, z);
                         itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                        itemStatement.setBytes(8, item.getTagBytes(level));
+                        itemStatement.setBytes(8, item.getTagBytes());
                         itemStatement.setInt(9, item.getCount());
                         itemStatement.setInt(10, entry.getKey().getId());
                         itemStatement.addBatch();
@@ -195,7 +190,7 @@ public class ItemRepository extends Repository {
         }
     }
 
-    public List<ItemHistory> getFilteredItemHistory(Level level, FilterList filterList) {
+    public List<ItemHistory> getFilteredItemHistory(String levelName, FilterList filterList) {
         @Nullable String actions = filterList.getActionString();
         @Nullable String users = filterList.getUserString();
         @Nullable String includeMaterials = filterList.getIncludeMaterialsString();
@@ -221,7 +216,7 @@ public class ItemRepository extends Repository {
                 """.formatted(actions, users, includeMaterials, excludeMaterials);
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
-            preparedStatement.setString(1, level.dimension().location().toString());
+            preparedStatement.setString(1, levelName);
             preparedStatement.setLong(2, filterList.getTime());
 
             if (actions == null || actions.isEmpty()) {
@@ -258,9 +253,6 @@ public class ItemRepository extends Repository {
             List<ItemHistory> itemHistory = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
-                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
-                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
                 itemHistory.add(new ItemHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
@@ -269,7 +261,7 @@ public class ItemRepository extends Repository {
                         resultSet.getInt(5),
                         resultSet.getInt(6),
                         resultSet.getString(7),
-                        patch,
+                        resultSet.getBytes(8),
                         resultSet.getInt(9),
                         resultSet.getInt(10)));
             }

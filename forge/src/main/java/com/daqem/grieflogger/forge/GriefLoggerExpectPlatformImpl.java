@@ -1,7 +1,7 @@
-package com.daqem.grieflogger.neoforge;
+package com.daqem.grieflogger.forge;
 
 import com.daqem.grieflogger.GriefLoggerExpectPlatform;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.nio.file.Path;
 

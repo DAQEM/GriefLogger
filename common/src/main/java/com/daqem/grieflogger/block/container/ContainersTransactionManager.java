@@ -88,10 +88,10 @@ public class ContainersTransactionManager implements IContainerTransactionManage
 
         for (SimpleItemStack simpleItemStack : itemStackList) {
             if (simpleItemStack.getItem() == itemStack.getItem()) {
-                if (simpleItemStack.hasTag() && !itemStack.getComponentsPatch().isEmpty() && simpleItemStack.getTag().equals(itemStack.getComponentsPatch())) {
+                if (simpleItemStack.hasTag() && itemStack.hasTag() && simpleItemStack.getTag().equals(itemStack.getTag())) {
                     simpleItemStack.addCount(itemStack.getCount());
                     return;
-                } else if (simpleItemStack.hasNoTag() && itemStack.getComponentsPatch().isEmpty()) {
+                } else if (simpleItemStack.hasNoTag() && !itemStack.hasTag()) {
                     simpleItemStack.addCount(itemStack.getCount());
                     return;
                 }

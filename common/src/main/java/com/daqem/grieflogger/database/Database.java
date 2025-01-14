@@ -96,9 +96,7 @@ public class Database {
 
     public void createTable(String sql) {
         try {
-            if (statement != null) {
-                statement.execute(sql);
-            }
+            statement.execute(sql);
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to create table", e);
         }
@@ -106,9 +104,7 @@ public class Database {
 
     public void execute(String sql, boolean logError) {
         try {
-            if (statement != null) {
-                statement.execute(sql);
-            }
+            statement.execute(sql);
         } catch (SQLException e) {
             if (logError) {
                 GriefLogger.LOGGER.error("Failed to execute statement", e);
@@ -117,11 +113,7 @@ public class Database {
     }
 
     public PreparedStatement prepareStatement(String query) throws SQLException {
-        if (connection != null) {
-            return connection.prepareStatement(query);
-        } else {
-            throw new SQLException("Connection is null");
-        }
+        return connection.prepareStatement(query);
     }
 
     public void executeStatements(List<PreparedStatement> statements, boolean isBatch) {
@@ -146,9 +138,8 @@ public class Database {
                 }
             }
             if (!statements.isEmpty()) {
-                if (connection != null) {
-                    connection.commit();
-                }
+                connection.commit();
+                GriefLogger.LOGGER.info("Executed {} statements", statements.size());
             }
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to execute statements", e);
