@@ -7,12 +7,7 @@ import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.ContainerHistory;
 import com.daqem.grieflogger.model.history.IHistory;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.PreparedStatement;
@@ -84,7 +79,7 @@ public class ContainerRepository extends Repository {
         database.execute(sql, false);
     }
 
-    public void insert(long time, String userUuid, Level level, int x, int y, int z, SimpleItemStack item, int itemAction) {
+    public void insert(long time, String userUuid, String levelName, int x, int y, int z, SimpleItemStack item, int itemAction) {
         if (item.isEmpty()) {
             return;
         }
@@ -123,12 +118,12 @@ public class ContainerRepository extends Repository {
 
                 itemStatement.setLong(1, time);
                 itemStatement.setString(2, userUuid);
-                itemStatement.setString(3, level.dimension().location().toString());
+                itemStatement.setString(3, levelName);
                 itemStatement.setInt(4, x);
                 itemStatement.setInt(5, y);
                 itemStatement.setInt(6, z);
                 itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                itemStatement.setBytes(8, item.getTagBytes(level));
+                itemStatement.setBytes(8, item.getTagBytes());
                 itemStatement.setInt(9, item.getCount());
                 itemStatement.setInt(10, itemAction);
                 database.queue.add(itemStatement);
@@ -138,7 +133,7 @@ public class ContainerRepository extends Repository {
         }
     }
 
-    public void insertList(long time, String userUuid, Level level, int x, int y, int z, List<SimpleItemStack> items, int itemAction) {
+    public void insertList(long time, String userUuid, String levelName, int x, int y, int z, List<SimpleItemStack> items, int itemAction) {
         String insertMaterialQuery = """
                 INSERT OR IGNORE INTO materials(name)
                 VALUES(?);
@@ -177,12 +172,12 @@ public class ContainerRepository extends Repository {
 
                     itemStatement.setLong(1, time);
                     itemStatement.setString(2, userUuid);
-                    itemStatement.setString(3, level.dimension().location().toString());
+                    itemStatement.setString(3, levelName);
                     itemStatement.setInt(4, x);
                     itemStatement.setInt(5, y);
                     itemStatement.setInt(6, z);
                     itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                    itemStatement.setBytes(8, item.getTagBytes(level));
+                    itemStatement.setBytes(8, item.getTagBytes());
                     itemStatement.setInt(9, item.getCount());
                     itemStatement.setInt(10, itemAction);
                     itemStatement.addBatch();
@@ -195,7 +190,7 @@ public class ContainerRepository extends Repository {
         }
     }
 
-    public void insertMap(long time, String userUuid, Level level, int x, int y, int z, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
+    public void insertMap(long time, String userUuid, String levelName, int x, int y, int z, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         String insertMaterialQuery = """
                 INSERT OR IGNORE INTO materials(name)
                 VALUES(?);
@@ -235,12 +230,12 @@ public class ContainerRepository extends Repository {
 
                         itemStatement.setLong(1, time);
                         itemStatement.setString(2, userUuid);
-                        itemStatement.setString(3, level.dimension().location().toString());
+                        itemStatement.setString(3, levelName);
                         itemStatement.setInt(4, x);
                         itemStatement.setInt(5, y);
                         itemStatement.setInt(6, z);
                         itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                        itemStatement.setBytes(8, item.getTagBytes(level));
+                        itemStatement.setBytes(8, item.getTagBytes());
                         itemStatement.setInt(9, item.getCount());
                         itemStatement.setInt(10, entry.getKey().getId());
                         itemStatement.addBatch();
@@ -254,7 +249,7 @@ public class ContainerRepository extends Repository {
         }
     }
 
-    public List<IHistory> getHistory(Level level, int x, int y, int z) {
+    public List<IHistory> getHistory(String levelName, int x, int y, int z) {
         List<IHistory> containerHistory = new ArrayList<>();
         String query = """
                 SELECT containers.time, users.name, users.uuid, containers.x, containers.y, containers.z, materials.name, containers.data, containers.amount, containers.action
@@ -269,16 +264,13 @@ public class ContainerRepository extends Repository {
                 """;
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
-            preparedStatement.setString(1, level.dimension().location().toString());
+            preparedStatement.setString(1, levelName);
             preparedStatement.setInt(2, x);
             preparedStatement.setInt(3, y);
             preparedStatement.setInt(4, z);
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
-                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
-                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
                 containerHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
@@ -287,7 +279,7 @@ public class ContainerRepository extends Repository {
                         resultSet.getInt(5),
                         resultSet.getInt(6),
                         resultSet.getString(7),
-                        patch,
+                        resultSet.getBytes(8),
                         resultSet.getInt(9),
                         resultSet.getInt(10)
                 ));
@@ -342,7 +334,7 @@ public class ContainerRepository extends Repository {
         return containerHistory;
     }
 
-    public List<IHistory> getFilteredContainerHistory(Level level, FilterList filterList) {
+    public List<IHistory> getFilteredContainerHistory(String levelName, FilterList filterList) {
         @Nullable String actions = filterList.getActionString();
         @Nullable String users = filterList.getUserString();
         @Nullable String includeMaterials = filterList.getIncludeMaterialsString();
@@ -368,7 +360,7 @@ public class ContainerRepository extends Repository {
                 """.formatted(actions, users, includeMaterials, excludeMaterials);
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
-            preparedStatement.setString(1, level.dimension().location().toString());
+            preparedStatement.setString(1, levelName);
             preparedStatement.setLong(2, filterList.getTime());
 
             if (actions == null || actions.isEmpty()) {
@@ -405,9 +397,6 @@ public class ContainerRepository extends Repository {
             List<IHistory> blockHistory = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
-                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
-                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
                 blockHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
@@ -416,7 +405,7 @@ public class ContainerRepository extends Repository {
                         resultSet.getInt(5),
                         resultSet.getInt(6),
                         resultSet.getString(7),
-                        patch,
+                        resultSet.getBytes(8),
                         resultSet.getInt(9),
                         resultSet.getInt(10)));
             }

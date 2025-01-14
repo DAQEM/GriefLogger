@@ -1,13 +1,12 @@
 package com.daqem.grieflogger.model;
 
-import io.netty.buffer.Unpooled;
-import net.minecraft.core.component.DataComponentPatch;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
@@ -17,19 +16,26 @@ public class SimpleItemStack {
 
     private final Item item;
     private int count;
-    private final DataComponentPatch tag;
+    private final CompoundTag tag;
 
     public SimpleItemStack(ItemStack itemStack) {
-        this(itemStack.getItem(), itemStack.getCount(), itemStack.getComponentsPatch());
+        this(itemStack.getItem(), itemStack.getCount(), itemStack.getTag());
     }
 
-    public SimpleItemStack(ResourceLocation itemLocation, int count, DataComponentPatch tag) {
+    public SimpleItemStack(ResourceLocation itemLocation, int count, byte[] tag) {
         this.item = BuiltInRegistries.ITEM.get(itemLocation);
         this.count = count;
-        this.tag = tag;
+        CompoundTag compoundTag = null;
+        if (tag != null) {
+            try {
+                compoundTag = TagParser.parseTag(new String(tag));
+            } catch (CommandSyntaxException ignored) {
+            }
+        }
+        this.tag = compoundTag;
     }
 
-    public SimpleItemStack(Item item, int count, DataComponentPatch tag) {
+    public SimpleItemStack(Item item, int count, CompoundTag tag) {
         this.item = item;
         this.count = count;
         this.tag = tag;
@@ -57,7 +63,7 @@ public class SimpleItemStack {
         return count;
     }
 
-    public DataComponentPatch getTag() {
+    public CompoundTag getTag() {
         return tag;
     }
 
@@ -77,21 +83,16 @@ public class SimpleItemStack {
         this.count += count;
     }
 
-    public byte @Nullable [] getTagBytes(Level level) {
+    public byte @Nullable [] getTagBytes() {
         if (tag == null) {
             return null;
         }
-
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), level.registryAccess());
-        DataComponentPatch.STREAM_CODEC.encode(buf, tag);
-        byte[] temp = new byte[buf.readableBytes()];
-        buf.readBytes(temp);
-        return temp;
+        return tag.toString().getBytes(StandardCharsets.US_ASCII);
     }
 
     public ItemStack toItemStack() {
         ItemStack itemStack = new ItemStack(item, count);
-        itemStack.applyComponents(tag);
+        itemStack.setTag(tag);
         return itemStack;
     }
 
