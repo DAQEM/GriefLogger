@@ -1,11 +1,7 @@
 package com.daqem.grieflogger.mixin;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.service.ItemService;
 import com.daqem.grieflogger.event.item.ShootItemEvent;
 import com.daqem.grieflogger.event.item.ThrowItemEvent;
-import com.daqem.grieflogger.model.SimpleItemStack;
-import com.daqem.grieflogger.model.action.ItemAction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;

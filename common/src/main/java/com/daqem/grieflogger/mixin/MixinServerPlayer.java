@@ -59,7 +59,8 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
     @Unique
     public void grieflogger$sendInspectMessage(List<IHistory> historyList) {
         if (historyList.isEmpty()) {
-            sendSystemMessage(GriefLogger.translate("lookup.no_history", GriefLogger.getName()));
+            if (((Player) this) instanceof ServerPlayer serverPlayer)
+                serverPlayer.sendSystemMessage(GriefLogger.translate("lookup.no_history", GriefLogger.getName()));
         } else {
             List<Page> pages = Page.convertToPages(historyList, true);
             grieflogger$setPages(pages);

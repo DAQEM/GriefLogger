@@ -73,7 +73,7 @@ remapSourcesJar {
     archiveClassifier = "fabric-sources"
 }
 
-curseforge {
+/*curseforge {
     apiKey = System.getenv('CURSEFORGE_API_KEY')
     project {
         id = project.curse_forge_project_id
@@ -81,7 +81,7 @@ curseforge {
         changelogType = "markdown"
         changelog = rootProject.file('changelog.md')
         addGameVersion project.minecraft_version
-        addGameVersion "Java 17"
+        addGameVersion "Java 21"
         addGameVersion "Fabric"
 
         relations {
@@ -119,4 +119,4 @@ modrinth {
         required.project "architectury-api"
         required.project "supermartijn642s-config-lib"
     }
-}
+}*/

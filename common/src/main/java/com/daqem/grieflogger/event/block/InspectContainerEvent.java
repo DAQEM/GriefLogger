@@ -7,6 +7,7 @@ import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.daqem.grieflogger.thread.ThreadManager;
 import dev.architectury.event.EventResult;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.List;
 
 public class InspectContainerEvent extends AbstractEvent {
 
-    public static EventResult inspectContainer(GriefLoggerServerPlayer serverPlayer, Level level, BlockPos pos) {
+    public static InteractionResult inspectContainer(GriefLoggerServerPlayer serverPlayer, Level level, BlockPos pos) {
         ThreadManager.submit(() -> {
             List<IHistory> history = new ArrayList<>();
             List<IHistory> containerHistory = Services.CONTAINER.getHistory(
@@ -29,10 +30,10 @@ public class InspectContainerEvent extends AbstractEvent {
             history.sort((a, b) -> Long.compare(b.getTime().time(), a.getTime().time()));
             return history;
         }, serverPlayer::grieflogger$sendInspectMessage);
-        return interrupt();
+        return InteractionResult.FAIL;
     }
 
-    public static EventResult inspectContainers(GriefLoggerServerPlayer serverPlayer, Level level, BlockPos pos, BlockPos connectionPos) {
+    public static InteractionResult inspectContainers(GriefLoggerServerPlayer serverPlayer, Level level, BlockPos pos, BlockPos connectionPos) {
         ThreadManager.submit(() -> {
             List<IHistory> history = new ArrayList<>();
             List<IHistory> containerHistory = Services.CONTAINER.getHistory(
@@ -48,6 +49,6 @@ public class InspectContainerEvent extends AbstractEvent {
             history.sort((a, b) -> Long.compare(b.getTime().time(), a.getTime().time()));
             return history;
         }, serverPlayer::grieflogger$sendInspectMessage);
-        return interrupt();
+        return InteractionResult.FAIL;
     }
 }

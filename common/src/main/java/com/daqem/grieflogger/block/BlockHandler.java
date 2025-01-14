@@ -34,6 +34,9 @@ public class BlockHandler {
                 || block instanceof EnchantingTableBlock
                 || block instanceof SmithingTableBlock
                 || block instanceof StonecutterBlock
+                || block instanceof CrafterBlock
+                || block instanceof VaultBlock
+
         ) {
             return true;
         }

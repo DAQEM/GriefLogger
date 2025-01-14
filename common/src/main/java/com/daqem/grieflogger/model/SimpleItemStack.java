@@ -1,11 +1,8 @@
 package com.daqem.grieflogger.model;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TagParser;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -13,7 +10,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public class SimpleItemStack {
@@ -27,7 +23,7 @@ public class SimpleItemStack {
     }
 
     public SimpleItemStack(ResourceLocation itemLocation, int count, DataComponentPatch tag) {
-        this.item = BuiltInRegistries.ITEM.get(itemLocation);
+        this.item = BuiltInRegistries.ITEM.getValue(itemLocation);
         this.count = count;
         this.tag = tag;
     }
