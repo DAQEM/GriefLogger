@@ -31,7 +31,7 @@ public class BlockHandler {
                 || block instanceof LoomBlock
                 || block instanceof CraftingTableBlock
                 || block instanceof CartographyTableBlock
-                || block instanceof EnchantmentTableBlock
+                || block instanceof EnchantingTableBlock
                 || block instanceof SmithingTableBlock
                 || block instanceof StonecutterBlock
         ) {

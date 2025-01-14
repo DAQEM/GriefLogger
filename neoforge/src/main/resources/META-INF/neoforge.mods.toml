@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[47,)"
+loaderVersion = "[3,)"
 #issueTrackerURL = ""
 license = "Apache-2.0"
 
@@ -14,23 +14,23 @@ A mod that logs all player interactions with blocks and entities and stores them
 #logoFile = ""
 
 [[dependencies.grieflogger]]
-modId = "forge"
+modId = "neoforge"
 mandatory = true
-versionRange = "[47,)"
+versionRange = "[3,)"
 ordering = "NONE"
 side = "SERVER"
 
 [[dependencies.grieflogger]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.20.1,)"
+versionRange = "[1.20.6,)"
 ordering = "NONE"
 side = "SERVER"
 
 [[dependencies.grieflogger]]
 modId = "architectury"
 mandatory = true
-versionRange = "[9.1.12,)"
+versionRange = "[12.1.4,)"
 ordering = "AFTER"
 side = "SERVER"
 

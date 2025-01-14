@@ -9,47 +9,56 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ContainerTransactionManager implements IContainerTransactionManager {
+public class ContainersTransactionManager implements IContainerTransactionManager {
 
-    private final BaseContainerBlockEntity blockEntity;
+    private final List<BaseContainerBlockEntity> blockEntities;
 
-    private final List<SimpleItemStack> initialItems = new ArrayList<>();
-    private final List<SimpleItemStack> finalItems = new ArrayList<>();
+    private final Map<BaseContainerBlockEntity, List<SimpleItemStack>> initialItems = new HashMap<>();
+    private final Map<BaseContainerBlockEntity, List<SimpleItemStack>> finalItems = new HashMap<>();
 
-    public ContainerTransactionManager(BaseContainerBlockEntity blockEntity) {
-        this.blockEntity = blockEntity;
-        for (int i = 0; i < blockEntity.getContainerSize(); i++) {
-            addItem(blockEntity.getItem(i), initialItems);
+    public ContainersTransactionManager(List<BaseContainerBlockEntity> blockEntities) {
+        this.blockEntities = blockEntities;
+        for (BaseContainerBlockEntity blockEntity : blockEntities) {
+            initialItems.put(blockEntity, new ArrayList<>());
+            finalItems.put(blockEntity, new ArrayList<>());
+            for (int i = 0; i < blockEntity.getContainerSize(); i++) {
+                addItem(blockEntity.getItem(i), initialItems.get(blockEntity));
+            }
         }
     }
 
     public void finalize(ServerPlayer serverPlayer) {
-        constructFinalItems();
-        List<SimpleItemStack> removedItems = getRemovedItems();
-        List<SimpleItemStack> addedItems = getAddedItems();
+        for (BaseContainerBlockEntity blockEntity : blockEntities) {
+            constructFinalItems(blockEntity);
 
-        Services.CONTAINER.insertMap(
-                serverPlayer.getUUID(),
-                blockEntity.getLevel() != null ? blockEntity.getLevel() : serverPlayer.level(),
-                blockEntity.getBlockPos(),
-                Map.of(
-                        ItemAction.REMOVE_ITEM, removedItems,
-                        ItemAction.ADD_ITEM, addedItems
-                )
-        );
+            List<SimpleItemStack> removedItems = getRemovedItems(blockEntity);
+            List<SimpleItemStack> addedItems = getAddedItems(blockEntity);
+
+            Services.CONTAINER.insertMap(
+                    serverPlayer.getUUID(),
+                    blockEntity.getLevel() != null ? blockEntity.getLevel() : serverPlayer.level(),
+                    blockEntity.getBlockPos(),
+                    Map.of(
+                            ItemAction.REMOVE_ITEM, removedItems,
+                            ItemAction.ADD_ITEM, addedItems
+                    )
+            );
+        }
+
     }
 
-    private void constructFinalItems() {
+    private void constructFinalItems(BaseContainerBlockEntity blockEntity) {
         for (int i = 0; i < blockEntity.getContainerSize(); i++) {
-            addItem(blockEntity.getItem(i), finalItems);
+            addItem(blockEntity.getItem(i), finalItems.get(blockEntity));
         }
     }
 
-    private List<SimpleItemStack> getRemovedItems() {
-        return new ArrayList<>(getDifference(initialItems, finalItems));
+    private List<SimpleItemStack> getRemovedItems(BaseContainerBlockEntity blockEntity) {
+        return new ArrayList<>(getDifference(initialItems.get(blockEntity), finalItems.get(blockEntity)));
     }
 
     private List<SimpleItemStack> getDifference(List<SimpleItemStack> x, List<SimpleItemStack> y) {
@@ -64,8 +73,8 @@ public class ContainerTransactionManager implements IContainerTransactionManager
         return difference;
     }
 
-    private List<SimpleItemStack> getAddedItems() {
-        return new ArrayList<>(getDifference(finalItems, initialItems));
+    private List<SimpleItemStack> getAddedItems(BaseContainerBlockEntity blockEntity) {
+        return new ArrayList<>(getDifference(finalItems.get(blockEntity), initialItems.get(blockEntity)));
     }
 
     private void addItem(ItemStack itemStack, List<SimpleItemStack> itemStackList) {

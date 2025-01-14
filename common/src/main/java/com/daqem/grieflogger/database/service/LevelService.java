@@ -19,8 +19,4 @@ public class LevelService {
     public void insert(String name) {
         levelRepository.insert(name);
     }
-
-    public void insertAsync(String name) {
-        ThreadManager.execute(() -> insert(name));
-    }
 }

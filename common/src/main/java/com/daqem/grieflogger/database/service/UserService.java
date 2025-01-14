@@ -26,10 +26,6 @@ public class UserService {
         usernameService.insert(uuid, name);
     }
 
-    public void insertOrUpdateNameAsync(UUID uuid, String name) {
-        ThreadManager.execute(() -> insertOrUpdateName(uuid, name));
-    }
-
     public Map<Integer, String> getAllUsernames() {
         return userRepository.getAllUsernames();
     }

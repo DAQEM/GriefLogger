@@ -8,7 +8,7 @@ public class ChatEvent {
     public static void registerEvent() {
         dev.architectury.event.events.common.ChatEvent.RECEIVED.register((player, component) -> {
             if (player != null) {
-                Services.CHAT.insertAsync(
+                Services.CHAT.insert(
                         player.getUUID(),
                         player.level(),
                         player.getOnPos(),
