@@ -7,8 +7,8 @@ pluginManagement {
     }
 }
 
-include("common")
-include("fabric")
-include("forge")
+include 'common'
+include 'fabric'
+include 'neoforge'
 
-rootProject.name = "grieflogger"
+rootProject.name = "GriefLogger 1.20.6"
