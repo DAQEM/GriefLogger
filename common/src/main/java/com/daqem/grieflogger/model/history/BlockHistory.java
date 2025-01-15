@@ -45,7 +45,7 @@ public class BlockHistory extends History {
                                 new HoverEvent(
                                         HoverEvent.Action.SHOW_ITEM,
                                         new HoverEvent.ItemStackInfo(
-                                                BuiltInRegistries.BLOCK.getValue(
+                                                BuiltInRegistries.BLOCK.get(
                                                         ResourceLocation.withDefaultNamespace(material)
                                                 ).asItem()
                                                         .getDefaultInstance()))));

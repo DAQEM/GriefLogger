@@ -23,7 +23,7 @@ public class SimpleItemStack {
     }
 
     public SimpleItemStack(ResourceLocation itemLocation, int count, DataComponentPatch tag) {
-        this.item = BuiltInRegistries.ITEM.getValue(itemLocation);
+        this.item = BuiltInRegistries.ITEM.get(itemLocation);
         this.count = count;
         this.tag = tag;
     }

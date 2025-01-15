@@ -1,6 +1,7 @@
 package com.daqem.grieflogger.mixin;
 
 import com.daqem.grieflogger.event.item.BreakItemEvent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,8 +22,8 @@ public class MixinItemStack {
         value = "INVOKE",
         target = "Lnet/minecraft/world/item/ItemStack;shrink(I)V",
         shift = At.Shift.BEFORE
-    ), method = "applyDamage(ILnet/minecraft/server/level/ServerPlayer;Ljava/util/function/Consumer;)V")
-    private void applyDamage(int i, @Nullable ServerPlayer serverPlayer, Consumer<Item> consumer, CallbackInfo ci)
+    ), method = "hurtAndBreak(ILnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerPlayer;Ljava/util/function/Consumer;)V")
+    private void applyDamage(int i, ServerLevel serverLevel, ServerPlayer serverPlayer, Consumer<Item> consumer, CallbackInfo ci)
     {
         BreakItemEvent.breakItem(serverPlayer, (ItemStack) (Object) this);
     }

@@ -23,14 +23,14 @@ side = "SERVER"
 [[dependencies.grieflogger]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.21.4,)"
+versionRange = "[1.21.1,)"
 ordering = "NONE"
 side = "SERVER"
 
 [[dependencies.grieflogger]]
 modId = "architectury"
 mandatory = true
-versionRange = "[15.0.1,)"
+versionRange = "[13.0.8,)"
 ordering = "AFTER"
 side = "SERVER"
 
