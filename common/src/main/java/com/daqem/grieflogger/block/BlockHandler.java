@@ -35,7 +35,10 @@ public class BlockHandler {
                 || block instanceof StonecutterBlock
                 || block instanceof CrafterBlock
                 || block instanceof VaultBlock
-
+                || block instanceof DaylightDetectorBlock
+                || block instanceof SignBlock
+                || block instanceof LecternBlock
+                || block instanceof BeaconBlock
         ) {
             return true;
         }
