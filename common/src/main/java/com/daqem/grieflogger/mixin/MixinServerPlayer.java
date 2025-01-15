@@ -7,6 +7,7 @@ import com.daqem.grieflogger.block.container.ContainersTransactionManager;
 import com.daqem.grieflogger.block.container.IContainerTransactionManager;
 import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.database.service.Services;
+import com.daqem.grieflogger.event.item.DropItemEvent;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.IHistory;
@@ -117,8 +118,8 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
 
     @Inject(method = "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("RETURN"))
     private void drop(ItemStack itemStack, boolean bl, boolean bl2, CallbackInfoReturnable<ItemEntity> cir) {
-        if (!itemStack.isEmpty()) {
-            this.griefLogger$addItemToQueue(ItemAction.DROP_ITEM, new SimpleItemStack(itemStack));
+        if (cir.getReturnValue() != null) {
+            DropItemEvent.onDropItem(this, cir.getReturnValue());
         }
     }
 
