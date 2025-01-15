@@ -81,7 +81,7 @@ curseforge {
         changelogType = "markdown"
         changelog = rootProject.file('changelog.md')
         addGameVersion project.minecraft_version
-        addGameVersion "Java 17"
+        addGameVersion "Java 21"
         addGameVersion "Fabric"
 
         relations {

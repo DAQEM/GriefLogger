@@ -6,7 +6,6 @@ import com.daqem.grieflogger.database.service.*;
 import com.daqem.grieflogger.event.*;
 import com.daqem.grieflogger.event.block.BlockEvents;
 import com.daqem.grieflogger.event.item.ItemEvents;
-import com.daqem.grieflogger.thread.ThreadManager;
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -150,6 +149,6 @@ public class GriefLogger {
     }
 
     public static ResourceLocation getId(String id) {
-        return new ResourceLocation(MOD_ID, id);
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, id);
     }
 }

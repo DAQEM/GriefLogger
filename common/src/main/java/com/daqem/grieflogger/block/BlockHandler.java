@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +33,12 @@ public class BlockHandler {
                 || block instanceof EnchantingTableBlock
                 || block instanceof SmithingTableBlock
                 || block instanceof StonecutterBlock
+                || block instanceof CrafterBlock
+                || block instanceof VaultBlock
+                || block instanceof DaylightDetectorBlock
+                || block instanceof SignBlock
+                || block instanceof LecternBlock
+                || block instanceof BeaconBlock
         ) {
             return true;
         }
