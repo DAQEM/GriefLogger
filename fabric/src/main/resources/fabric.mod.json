@@ -25,8 +25,8 @@
   ],
   "depends": {
     "fabric": "*",
-    "minecraft": ">=1.20.6",
-    "architectury": ">=12.1.4",
+    "minecraft": ">=1.21.4",
+    "architectury": ">=15.0.1",
     "supermartijn642configlib": ">=${config_library_version}"
   }
 }
