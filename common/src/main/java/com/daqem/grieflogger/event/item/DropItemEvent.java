@@ -11,8 +11,6 @@ import net.minecraft.world.entity.player.Player;
 public class DropItemEvent extends AbstractEvent {
 
     public static EventResult onDropItem(Player player, ItemEntity itemEntity) {
-        // TODO: fix drop item and remove this
-        System.out.println("Drop item : " + itemEntity);
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
             serverPlayer.griefLogger$addItemToQueue(ItemAction.DROP_ITEM, new SimpleItemStack(itemEntity.getItem()));
         }

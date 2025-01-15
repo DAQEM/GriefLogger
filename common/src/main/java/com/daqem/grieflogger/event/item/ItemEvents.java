@@ -6,7 +6,6 @@ public class ItemEvents {
 
     public static void registerEvents() {
         PlayerEvent.CRAFT_ITEM.register(CraftItemEvent::onCraftItem);
-        // TODO: drop item event does not work
         PlayerEvent.DROP_ITEM.register(DropItemEvent::onDropItem);
         PlayerEvent.PICKUP_ITEM_POST.register(PickupItemEvent::onPickupItem);
         PlayerEvent.SMELT_ITEM.register(SmeltItemEvent::onSmeltItem);
