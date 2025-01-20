@@ -1,5 +1,6 @@
 package com.daqem.grieflogger.block.container;
 
+import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
@@ -32,15 +33,17 @@ public class ContainerHandler {
     }
 
     public static Optional<List<BaseContainerBlockEntity>> getContainers(MenuProvider menuProvider) {
-        //get all properties of the menu provider that are instances of BaseContainerBlockEntity
+        // Get all properties of the menu provider that are instances of BaseContainerBlockEntity
         List<BaseContainerBlockEntity> containers = new ArrayList<>();
 
         for (Field field : menuProvider.getClass().getDeclaredFields()) {
             if (BaseContainerBlockEntity.class.isAssignableFrom(field.getType())) {
                 try {
+                    // Make the field accessible if it's not already
+                    field.setAccessible(true);
                     containers.add((BaseContainerBlockEntity) field.get(menuProvider));
                 } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                    GriefLogger.LOGGER.error("Failed to access field: {}", field.getName(), e);
                 }
             }
         }
