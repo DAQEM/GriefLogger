@@ -40,3 +40,6 @@ mandatory = true
 versionRange = "[${config_library_version},)"
 ordering = "NONE"
 side = "SERVER"
+
+[[mixins]]
+config = "grieflogger-common.mixins.json"

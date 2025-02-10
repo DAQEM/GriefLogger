@@ -1,13 +1,12 @@
 package com.daqem.grieflogger.mixin;
 
 import com.daqem.grieflogger.event.item.BreakItemEvent;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,13 +17,27 @@ import java.util.function.Consumer;
 @Mixin(ItemStack.class)
 public class MixinItemStack {
 
-    @Inject(at = @At(
-        value = "INVOKE",
-        target = "Lnet/minecraft/world/item/ItemStack;shrink(I)V",
-        shift = At.Shift.BEFORE
-    ), method = "hurtAndBreak(ILnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerPlayer;Ljava/util/function/Consumer;)V")
-    private void applyDamage(int i, ServerLevel serverLevel, ServerPlayer serverPlayer, Consumer<Item> consumer, CallbackInfo ci)
-    {
-        BreakItemEvent.breakItem(serverPlayer, (ItemStack) (Object) this);
+    @Inject(at = @At(value = "HEAD"), method = "hurtAndBreak(ILnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerPlayer;Ljava/util/function/Consumer;)V")
+    private void hurtAndBreak(int i, ServerLevel serverLevel, ServerPlayer serverPlayer, Consumer<Item> consumer, CallbackInfo ci) {
+        ItemStack itemStack = (ItemStack) (Object) this;
+        if (itemStack.isDamageableItem()) {
+            if (serverPlayer == null || !serverPlayer.hasInfiniteMaterials()) {
+                if (i > 0) {
+                    i = EnchantmentHelper.processDurabilityChange(serverLevel, itemStack, i);
+                    if (i <= 0) {
+                        return;
+                    }
+                }
+
+                if (serverPlayer != null && i != 0) {
+                    CriteriaTriggers.ITEM_DURABILITY_CHANGED.trigger(serverPlayer, itemStack, itemStack.getDamageValue() + i);
+                }
+
+                int j = itemStack.getDamageValue() + i;
+                if (j >= itemStack.getMaxDamage()) {
+                    BreakItemEvent.breakItem(serverPlayer, itemStack.copyWithCount(1));
+                }
+            }
+        }
     }
 }
