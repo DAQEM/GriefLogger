@@ -13,6 +13,8 @@ import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.mojang.authlib.GameProfile;
+import dev.architectury.utils.EnvExecutor;
+import net.fabricmc.api.EnvType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -35,7 +37,6 @@ import java.util.*;
 @Mixin(ServerPlayer.class)
 public abstract class MixinServerPlayer extends Player implements GriefLoggerServerPlayer {
 
-    @Shadow public ServerGamePacketListenerImpl connection;
     @Unique
     private boolean grieflogger$inspecting = false;
     @Unique
@@ -67,7 +68,7 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
         } else {
             List<Page> pages = Page.convertToPages(historyList, true);
             grieflogger$setPages(pages);
-            Page pageToDisplay = pages.get(0);
+            Page pageToDisplay = pages.getFirst();
             pageToDisplay.sendToPlayer(grieflogger$asServerPlayer());
         }
     }
@@ -90,37 +91,49 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
 
     @Inject(at = @At("HEAD"), method = "openMenu")
     public void openMenu(MenuProvider menuProvider, CallbackInfoReturnable<OptionalInt> cir) {
-        Optional<BaseContainerBlockEntity> container = ContainerHandler.getContainer(menuProvider);
-        if (container.isPresent()) {
-            this.grieflogger$containerTransactionManager = new ContainerTransactionManager(container.get());
-        } else {
-            ContainerHandler.getContainers(menuProvider).ifPresent(containers -> {
-                this.grieflogger$containerTransactionManager = new ContainersTransactionManager(containers);
-            });
-        }
+        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
+            Optional<BaseContainerBlockEntity> container = ContainerHandler.getContainer(menuProvider);
+            if (container.isPresent()) {
+                this.grieflogger$containerTransactionManager = new ContainerTransactionManager(container.get());
+            } else {
+                ContainerHandler.getContainers(menuProvider).ifPresent(containers -> {
+                    this.grieflogger$containerTransactionManager = new ContainersTransactionManager(containers);
+                });
+            }
+            return null;
+        });
     }
 
     @Inject(at = @At("HEAD"), method = "doCloseContainer()V")
     public void grieflogger$doCloseContainer(CallbackInfo ci) {
-        if (this.grieflogger$containerTransactionManager != null) {
-            this.grieflogger$containerTransactionManager.finalize(grieflogger$asServerPlayer());
-            this.grieflogger$containerTransactionManager = null;
-        }
+        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
+            if (this.grieflogger$containerTransactionManager != null) {
+                this.grieflogger$containerTransactionManager.finalize(grieflogger$asServerPlayer());
+                this.grieflogger$containerTransactionManager = null;
+            }
+            return null;
+        });
     }
 
     @Inject(at = @At("HEAD"), method = "tick")
     public void grieflogger$tick(CallbackInfo ci) {
-        if (!grieflogger$itemQueue.isEmpty()) {
-            Services.ITEM.insertMap(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
-            grieflogger$itemQueue.clear();
-        }
+        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
+            if (!grieflogger$itemQueue.isEmpty()) {
+                Services.ITEM.insertMap(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
+                grieflogger$itemQueue.clear();
+            }
+            return null;
+        });
     }
 
     @Inject(method = "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("RETURN"))
     private void drop(ItemStack itemStack, boolean bl, boolean bl2, CallbackInfoReturnable<ItemEntity> cir) {
-        if (cir.getReturnValue() != null) {
-            DropItemEvent.onDropItem(this, cir.getReturnValue());
-        }
+        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
+            if (cir.getReturnValue() != null) {
+                DropItemEvent.onDropItem(this, cir.getReturnValue());
+            }
+            return null;
+        });
     }
 
     public void griefLogger$addItemToQueue(ItemAction action, SimpleItemStack itemStack) {
