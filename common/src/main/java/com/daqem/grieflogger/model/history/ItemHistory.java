@@ -20,7 +20,7 @@ public class ItemHistory extends History {
     protected final SimpleItemStack itemStack;
 
     public ItemHistory(long time, String name, String uuid, int x, int y, int z, String material, DataComponentPatch data, int amount, int action) {
-        this(new Time(time), new User(name, UUID.fromString(uuid)), new BlockPosition(x, y, z), new SimpleItemStack(ResourceLocation.withDefaultNamespace(material), amount, data), ItemAction.fromId(action));
+        this(new Time(time), new User(name, UUID.fromString(uuid)), new BlockPosition(x, y, z), new SimpleItemStack(ResourceLocation.parse(material), amount, data), ItemAction.fromId(action));
     }
 
     public ItemHistory(Time time, User user, BlockPosition position, SimpleItemStack itemStack, IAction action) {
