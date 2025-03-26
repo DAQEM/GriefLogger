@@ -38,8 +38,7 @@ public record Time(long time) {
         return GriefLogger.translate("lookup.time.ago", String.format("%.2f", timeAgo), GriefLogger.translate("time.divider"), unit)
                 .withStyle(Style.EMPTY
                         .withColor(ChatFormatting.GRAY)
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                GriefLogger.literal(new Date(time).toString())
-                                .withStyle(ChatFormatting.GRAY))));
+                        .withHoverEvent(new HoverEvent.ShowText(GriefLogger.literal(new Date(time).toString())
+                                        .withStyle(ChatFormatting.GRAY))));
     }
 }

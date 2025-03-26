@@ -42,12 +42,10 @@ public class BlockHistory extends History {
                 .withStyle(mutableComponent
                         .getStyle()
                         .withHoverEvent(
-                                new HoverEvent(
-                                        HoverEvent.Action.SHOW_ITEM,
-                                        new HoverEvent.ItemStackInfo(
-                                                BuiltInRegistries.BLOCK.getValue(
-                                                        ResourceLocation.parse(material)
+                                new HoverEvent.ShowItem(
+                                        BuiltInRegistries.BLOCK.getValue(
+                                                ResourceLocation.parse(material)
                                                 ).asItem()
-                                                        .getDefaultInstance()))));
+                                                .getDefaultInstance())));
     }
 }

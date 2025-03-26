@@ -20,13 +20,12 @@
     ]
   },
   "mixins": [
-    "grieflogger.mixins.json",
     "grieflogger-common.mixins.json"
   ],
   "depends": {
     "fabric": "*",
-    "minecraft": ">=1.21.4",
+    "minecraft": ">=1.21.5",
     "architectury": ">=15.0.1",
-    "supermartijn642configlib": ">=${config_library_version}"
+    "yamlconfig": ">=${config_library_version}"
   }
 }

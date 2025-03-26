@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[3,)"
+loaderVersion = "[7,)"
 #issueTrackerURL = ""
 license = "Apache-2.0"
 
@@ -18,28 +18,28 @@ modId = "neoforge"
 mandatory = true
 versionRange = "[3,)"
 ordering = "NONE"
-side = "SERVER"
+side = "BOTH"
 
 [[dependencies.grieflogger]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.21.4,)"
+versionRange = "[1.21.5,)"
 ordering = "NONE"
-side = "SERVER"
+side = "BOTH"
 
 [[dependencies.grieflogger]]
 modId = "architectury"
 mandatory = true
 versionRange = "[15.0.1,)"
 ordering = "AFTER"
-side = "SERVER"
+side = "BOTH"
 
 [[dependencies.grieflogger]]
-modId = "supermartijn642configlib"
+modId = "yamlconfig"
 mandatory = true
 versionRange = "[${config_library_version},)"
 ordering = "NONE"
-side = "SERVER"
+side = "BOTH"
 
 [[mixins]]
 config = "grieflogger-common.mixins.json"

@@ -13,7 +13,7 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 
-    compileOnlyApi "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file_fabric}"
+    compileOnlyApi "curse.maven:yaml-config-1128669:${project.config_library_file_fabric}-sources-${project.config_library_file_fabric_sources}"
 }
 
 publishing {

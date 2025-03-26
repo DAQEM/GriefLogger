@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id "com.github.johnrengelman.shadow"
     id 'com.matthewprenger.cursegradle' version '1.4.0'
@@ -47,7 +49,8 @@ dependencies {
     modImplementation "com.mysql:mysql-connector-j:8.4.0"
     shadowBundle "com.mysql:mysql-connector-j:8.4.0"
 
-    modImplementation "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file_neoforge}"
+    modImplementation "curse.maven:yaml-config-1128669:${project.config_library_file_neoforge}"
+    modRuntimeOnly "curse.maven:ui-933200:${project.ui_library_file_neoforge}"
 }
 
 processResources {
@@ -69,6 +72,39 @@ shadowJar {
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = "neoforge-dev-shadow"
 }
+
+// JAR without SQLite
+tasks.register("shadowJarNoSQLite", ShadowJar) {
+    exclude "architectury.common.json"
+    exclude "org/slf4j/**"
+    exclude "org/sqlite/**" // Exclude SQLite driver
+
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = "neoforge-no-sqlite"
+}
+
+// JAR without MySQL
+tasks.register("shadowJarNoMySQL", ShadowJar) {
+    exclude "architectury.common.json"
+    exclude "org/slf4j/**"
+    exclude "com/mysql/**" // Exclude MySQL driver
+
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = "neoforge-no-mysql"
+}
+
+// JAR without SQLite and MySQL
+tasks.register("shadowJarNoSQLiteMySQL", ShadowJar) {
+    exclude "architectury.common.json"
+    exclude "org/slf4j/**"
+    exclude "org/sqlite/**" // Exclude SQLite driver
+    exclude "com/mysql/**" // Exclude MySQL driver
+
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = "neoforge-no-sqlite-mysql"
+}
+
+tasks.build.dependsOn shadowJarNoSQLite, shadowJarNoMySQL, shadowJarNoSQLiteMySQL
 
 remapJar {
     inputFile.set shadowJar.archiveFile
@@ -92,7 +128,7 @@ curseforge {
 
         relations {
             requiredDependency("architectury-api")
-            requiredDependency("supermartijn642s-config-lib")
+            requiredDependency("yaml-config")
         }
 
         mainArtifact(remapJar) {
@@ -100,6 +136,19 @@ curseforge {
         }
 
         addArtifact(remapSourcesJar) {
+            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version (Sources)"
+        }
+
+        addArtifact(shadowJarNoSQLite) {
+            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version (No SQLite)"
+        }
+
+        addArtifact(shadowJarNoMySQL) {
+            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version (No MySQL)"
+        }
+
+        addArtifact(shadowJarNoSQLiteMySQL) {
+            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version (No SQLite and MySQL)"
         }
     }
 }
@@ -111,11 +160,11 @@ modrinth {
     versionNumber = "$rootProject.mod_version"
     versionType = "$rootProject.curse_forge_release_type"
     uploadFile = remapJar
-    additionalFiles = [remapSourcesJar]
+    additionalFiles = [remapSourcesJar, shadowJarNoSQLite, shadowJarNoMySQL, shadowJarNoSQLiteMySQL]
     gameVersions = ["$rootProject.minecraft_version"]
     loaders = ["neoforge"]
     dependencies {
         required.project "architectury-api"
-        required.project "supermartijn642s-config-lib"
+        required.project "yaml-config"
     }
 }

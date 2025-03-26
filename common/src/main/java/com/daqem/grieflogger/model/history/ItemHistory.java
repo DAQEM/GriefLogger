@@ -48,10 +48,7 @@ public class ItemHistory extends History {
         return mutableComponent
                 .withStyle(mutableComponent
                         .getStyle()
-                        .withHoverEvent(
-                                new HoverEvent(
-                                        HoverEvent.Action.SHOW_ITEM,
-                                        new HoverEvent.ItemStackInfo(itemStack.toItemStack()))));
+                        .withHoverEvent(new HoverEvent.ShowItem(itemStack.toItemStack())));
 
     }
 }

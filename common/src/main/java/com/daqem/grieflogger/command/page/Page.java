@@ -73,7 +73,7 @@ public class Page {
     }
 
     private ClickEvent getClickEvent(int page) {
-        return new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/grieflogger page " + page);
+        return new ClickEvent.RunCommand("/grieflogger page " + page);
     }
 
     private Style getStyle(int page, boolean enabled) {
