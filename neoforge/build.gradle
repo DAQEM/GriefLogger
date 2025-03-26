@@ -160,7 +160,7 @@ modrinth {
     versionNumber = "$rootProject.mod_version"
     versionType = "$rootProject.curse_forge_release_type"
     uploadFile = remapJar
-    additionalFiles = [remapSourcesJar, shadowJarNoSQLite, shadowJarNoMySQL, shadowJarNoSQLiteMySQL]
+    additionalFiles = [remapSourcesJar]
     gameVersions = ["$rootProject.minecraft_version"]
     loaders = ["neoforge"]
     dependencies {
