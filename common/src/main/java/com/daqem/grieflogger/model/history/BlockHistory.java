@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 
 import java.util.UUID;
 
@@ -37,17 +38,29 @@ public class BlockHistory extends History {
     }
 
     public Component getMaterialComponent() {
+
+        var item = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(material)).asItem();
         MutableComponent mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
-        return mutableComponent
-                .withStyle(mutableComponent
-                        .getStyle()
-                        .withHoverEvent(
-                                new HoverEvent(
-                                        HoverEvent.Action.SHOW_ITEM,
-                                        new HoverEvent.ItemStackInfo(
-                                                BuiltInRegistries.BLOCK.get(
-                                                        ResourceLocation.parse(material)
-                                                ).asItem()
-                                                        .getDefaultInstance()))));
+        if (item != Items.AIR) {
+            return mutableComponent
+                    .withStyle(mutableComponent
+                            .getStyle()
+                            .withHoverEvent(
+                                    new HoverEvent(
+                                            HoverEvent.Action.SHOW_ITEM,
+                                            new HoverEvent.ItemStackInfo(
+                                                    BuiltInRegistries.BLOCK.get(
+                                                                    ResourceLocation.parse(material)
+                                                            ).asItem()
+                                                            .getDefaultInstance()))));
+        } else {
+            return mutableComponent
+                    .withStyle(mutableComponent
+                            .getStyle()
+                            .withHoverEvent(new HoverEvent(
+                                    HoverEvent.Action.SHOW_TEXT,
+                                    Component.literal(this.material)
+                            )));
+        }
     }
 }
