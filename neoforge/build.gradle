@@ -54,14 +54,24 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.version
-    inputs.property "config_library_version", config_library_version
+    var replaceProperties = [
+            "version": project.version,
+            "mod_id": project.mod_id,
+            "mod_name": project.mod_name,
+            "mod_description": project.mod_description,
+            "mod_author": project.mod_author,
+            "mod_license": project.mod_license,
+            "mod_repository": project.mod_repository,
 
-    filesMatching("META-INF/neoforge.mods.toml") {
-        expand([
-                "version": project.version,
-                "config_library_version": config_library_version
-        ])
+            "neoforge_loader_version": project.neoforge_loader_version,
+            "minecraft_version": project.minecraft_version,
+            "architectury_version": project.architectury_version,
+            "config_library_version": project.config_library_version,
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
     }
 }
 
@@ -119,52 +129,46 @@ curseforge {
     apiKey = System.getenv("CURSEFORGE_API_KEY")
     project {
         id = project.curse_forge_project_id
-        releaseType = project.curse_forge_release_type
+        releaseType = project.release_type
         changelogType = "markdown"
         changelog = rootProject.file('changelog.md')
-        addGameVersion project.minecraft_version
+
+        project.supported_minecraft_versions.split(',').each { version ->
+            addGameVersion version
+        }
+
         addGameVersion "Java 21"
         addGameVersion "NeoForge"
 
         relations {
-            requiredDependency("architectury-api")
-            requiredDependency("yaml-config")
+            project.curseforge_dependencies.split(',').each { dep ->
+                requiredDependency dep.trim()
+            }
         }
 
         mainArtifact(remapJar) {
-            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version"
+            displayName = "$project.mod_name NeoForge $project.minecraft_version - $project.mod_version"
         }
 
         addArtifact(remapSourcesJar) {
-            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version (Sources)"
-        }
-
-        addArtifact(shadowJarNoSQLite) {
-            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version (No SQLite)"
-        }
-
-        addArtifact(shadowJarNoMySQL) {
-            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version (No MySQL)"
-        }
-
-        addArtifact(shadowJarNoSQLiteMySQL) {
-            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version (No SQLite and MySQL)"
         }
     }
 }
 
 modrinth {
     token = System.getenv("MODRINTH_API_KEY")
-    projectId = "8oGVUFuX"
-    versionName = "GriefLogger NeoForge $rootProject.minecraft_version - $rootProject.mod_version"
-    versionNumber = "$rootProject.mod_version"
-    versionType = "$rootProject.curse_forge_release_type"
+    projectId = project.modrinth_project_id
+    versionName = "$project.mod_name NeoForge $project.minecraft_version - $project.mod_version"
+    versionNumber = "$project.mod_version"
+    versionType = "$project.release_type"
     uploadFile = remapJar
     additionalFiles = [remapSourcesJar]
-    gameVersions = ["$rootProject.minecraft_version"]
+    gameVersions = project.supported_minecraft_versions.split(',').toList()
     loaders = ["neoforge"]
+    changelog = rootProject.file('changelog.md').text
     dependencies {
-        required.project "architectury-api"
-        required.project "yaml-config"
+        project.modrinth_dependencies.split(',').each { dep ->
+            required.project dep
+        }
     }
 }

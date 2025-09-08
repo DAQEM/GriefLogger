@@ -1,6 +1,7 @@
 package com.daqem.grieflogger.config;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.yamlconfig.YamlConfigExpectPlatform;
 import com.daqem.yamlconfig.api.config.ConfigExtension;
 import com.daqem.yamlconfig.api.config.ConfigType;
 import com.daqem.yamlconfig.api.config.entry.IConfigEntry;
@@ -28,7 +29,14 @@ public class GriefLoggerConfig {
     public static final IConfigEntry<Integer> helloFrequency;
 
     static {
-        ConfigBuilder config = new ConfigBuilder(GriefLogger.MOD_ID, "grieflogger-server", ConfigExtension.YAML, ConfigType.SERVER);
+        ConfigBuilder config = new ConfigBuilder(
+                GriefLogger.MOD_ID,
+                "grieflogger-server",
+                ConfigExtension.YAML,
+                ConfigType.SERVER,
+                YamlConfigExpectPlatform.getConfigDirectory().resolve(GriefLogger.MOD_ID)
+        );
+
         config.push("database");
         useMysql = config.defineBoolean("useMysql", false)
                 .withComments("Whether to use MySQL or SQLite");

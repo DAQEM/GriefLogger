@@ -1,45 +1,44 @@
 modLoader = "javafml"
-loaderVersion = "[7,)"
-#issueTrackerURL = ""
-license = "Apache-2.0"
+loaderVersion = "[${neoforge_loader_version},)"
+issueTrackerURL = "${mod_repository}/issues"
+license = "${mod_license}"
 
 [[mods]]
-modId = "grieflogger"
+modId = "${mod_id}"
 version = "${version}"
-displayName = "GriefLogger"
-authors = "DAQEM"
-description = '''
-A mod that logs all player interactions with blocks and entities and stores them in a database.
-'''
-#logoFile = ""
+license = "${mod_license}"
+displayName = "${mod_name}"
+authors = "${mod_author}"
+credits = "${mod_author}"
+description = "${mod_description}"
 
-[[dependencies.grieflogger]]
+[[dependencies."${mod_id}"]]
 modId = "neoforge"
-mandatory = true
-versionRange = "[3,)"
+type = "required"
+versionRange = "[21,)"
 ordering = "NONE"
-side = "BOTH"
+side = "SERVER"
 
-[[dependencies.grieflogger]]
+[[dependencies."${mod_id}"]]
 modId = "minecraft"
-mandatory = true
-versionRange = "[1.21.5,)"
+type = "required"
+versionRange = "[${minecraft_version},)"
 ordering = "NONE"
-side = "BOTH"
+side = "SERVER"
 
-[[dependencies.grieflogger]]
+[[dependencies."${mod_id}"]]
 modId = "architectury"
-mandatory = true
-versionRange = "[15.0.1,)"
+type = "required"
+versionRange = "[${architectury_version},)"
 ordering = "AFTER"
-side = "BOTH"
+side = "SERVER"
 
-[[dependencies.grieflogger]]
+[[dependencies."${mod_id}"]]
 modId = "yamlconfig"
-mandatory = true
+type = "required"
 versionRange = "[${config_library_version},)"
-ordering = "NONE"
-side = "BOTH"
+ordering = "AFTER"
+side = "SERVER"
 
 [[mixins]]
 config = "grieflogger-common.mixins.json"

@@ -86,7 +86,9 @@ public class Database {
             path.toFile().mkdirs();
         }
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:database.db");
+            // Construct the JDBC URL with the full path to database.db
+            String dbPath = path.resolve("database.db").toString();
+            connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to connect to SQLite database", e);
             return false;
