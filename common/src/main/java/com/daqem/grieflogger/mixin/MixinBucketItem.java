@@ -1,0 +1,52 @@
+package com.daqem.grieflogger.mixin;
+
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.event.block.BreakBlockEvent;
+import com.daqem.grieflogger.event.block.PlaceBlockEvent;
+import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+@Mixin(BucketItem.class)
+public class MixinBucketItem {
+
+    @Inject(
+            method = "emptyContents(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/BlockHitResult;)Z",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z",
+                    shift = At.Shift.AFTER
+            )
+    )
+    private void onLiquidPlaced(Player player, Level level, BlockPos blockPos, BlockHitResult blockHitResult, CallbackInfoReturnable<Boolean> cir) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            PlaceBlockEvent.placeBlock(level, blockPos, level.getBlockState(blockPos), serverPlayer);
+        }
+    }
+
+    @Inject(
+            method = "use",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/player/Player;awardStat(Lnet/minecraft/stats/Stat;)V",
+                    ordinal = 0
+            )
+    )
+    private void onBucketFilled(Level level, Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir, @Local(ordinal = 1) ItemStack itemStack2, @Local BlockHitResult blockHitResult) {
+        if (player instanceof ServerPlayer serverPlayer && itemStack2.getItem() instanceof BucketItem bucketItem) {
+            GriefLogger.LOGGER.info("Bucket filled event triggered");
+            BreakBlockEvent.breakBlock(level, blockHitResult.getBlockPos(), bucketItem.arch$getFluid().defaultFluidState().createLegacyBlock(), serverPlayer, null);
+        }
+    }
+}
