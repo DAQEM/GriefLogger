@@ -44,11 +44,14 @@ public class ItemHistory extends History {
 
     @Override
     public Component getMaterialComponent() {
+        int cappedCount = Math.min(itemStack.getCount(), 64); // It appears that the HoverEven.ItemStackInfo does not display the count at all either way.
+        var cappedItemStack = itemStack.toItemStack().copyWithCount(cappedCount);
+
         MutableComponent mutableComponent = GriefLogger.themedLiteral(this.itemStack.getItem().arch$registryName().toString().replace("minecraft:", ""));
         return mutableComponent
                 .withStyle(mutableComponent
                         .getStyle()
-                        .withHoverEvent(new HoverEvent.ShowItem(itemStack.toItemStack())));
+                        .withHoverEvent(new HoverEvent.ShowItem(cappedItemStack)));
 
     }
 }
