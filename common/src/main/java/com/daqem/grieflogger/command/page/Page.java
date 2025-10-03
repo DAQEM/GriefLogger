@@ -57,10 +57,14 @@ public class Page {
     }
 
     private Component getFooter() {
-        return getArrowLeft().append(" ")
-                .append(GriefLogger.themedTranslate("lookup.page")).append(" ")
-                .append(GriefLogger.translate("lookup.pages", page, maxPage).withStyle(ChatFormatting.WHITE)).append(" ")
-                .append(getArrowRight());
+        return Component.empty()
+                .append(getArrowLeft()
+                        .append(" ")
+                        .append(GriefLogger.themedTranslate("lookup.page"))
+                        .append(" "))
+                .append(GriefLogger.translate("lookup.pages", page, maxPage).withStyle(getStyle(page + 1, page < maxPage).withColor(ChatFormatting.WHITE))
+                        .append(" ")
+                        .append(getArrowRight()));
     }
 
     private MutableComponent getArrowLeft() {
