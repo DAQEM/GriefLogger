@@ -20,7 +20,8 @@
     ]
   },
   "mixins": [
-    "grieflogger-common.mixins.json"
+    "grieflogger-common.mixins.json",
+    "grieflogger-fabric.mixins.json"
   ],
   "depends": {
     "fabric": "*",
