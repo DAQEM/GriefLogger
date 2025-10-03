@@ -43,3 +43,6 @@ side = "SERVER"
 
 [[mixins]]
 config = "grieflogger-common.mixins.json"
+
+[[mixins]]
+config = "grieflogger-neoforge.mixins.json"

@@ -5,6 +5,7 @@ import com.daqem.grieflogger.GriefLoggerExpectPlatform;
 import com.daqem.grieflogger.config.GriefLoggerConfig;
 import com.daqem.grieflogger.database.queue.IQueue;
 import com.daqem.grieflogger.database.queue.Queue;
+import com.supermartijn642.configlib.ConfigLib;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -80,7 +81,7 @@ public class Database {
             GriefLogger.LOGGER.error("Failed to load SQLite driver", e);
             return false;
         }
-        Path path = GriefLoggerExpectPlatform.getConfigDirectory().resolve(GriefLogger.MOD_ID);
+        Path path = ConfigLib.getConfigFolder().toPath().resolve(GriefLogger.MOD_ID);
         if (!path.toFile().exists()) {
             //noinspection ResultOfMethodCallIgnored
             path.toFile().mkdirs();
