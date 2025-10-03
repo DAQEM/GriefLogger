@@ -10,10 +10,9 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class PlaceBlockEvent {
 
-    public static EventResult placeBlock(Level level, BlockPos pos, BlockState state, Entity placer) {
+    public static void placeBlock(Level level, BlockPos pos, BlockState state, Entity placer) {
         if (placer instanceof GriefLoggerServerPlayer serverPlayer) {
             LogBlockEvent.logBlock(serverPlayer, level, state, pos, BlockAction.PLACE_BLOCK);
         }
-        return EventResult.pass();
     }
 }

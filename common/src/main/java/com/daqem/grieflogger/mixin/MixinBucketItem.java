@@ -22,20 +22,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinBucketItem {
 
     @Inject(
-            method = "emptyContents(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/BlockHitResult;)Z",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z",
-                    shift = At.Shift.AFTER
-            )
-    )
-    private void onLiquidPlaced(Player player, Level level, BlockPos blockPos, BlockHitResult blockHitResult, CallbackInfoReturnable<Boolean> cir) {
-        if (player instanceof ServerPlayer serverPlayer) {
-            PlaceBlockEvent.placeBlock(level, blockPos, level.getBlockState(blockPos), serverPlayer);
-        }
-    }
-
-    @Inject(
             method = "use",
             at = @At(
                     value = "INVOKE",
