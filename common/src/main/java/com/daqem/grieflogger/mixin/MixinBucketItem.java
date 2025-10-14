@@ -31,7 +31,6 @@ public class MixinBucketItem {
     )
     private void onBucketFilled(Level level, Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir, @Local(ordinal = 1) ItemStack itemStack2, @Local BlockHitResult blockHitResult) {
         if (player instanceof ServerPlayer serverPlayer && itemStack2.getItem() instanceof BucketItem bucketItem) {
-            GriefLogger.LOGGER.info("Bucket filled event triggered");
             BreakBlockEvent.breakBlock(level, blockHitResult.getBlockPos(), bucketItem.arch$getFluid().defaultFluidState().createLegacyBlock(), serverPlayer, null);
         }
     }
