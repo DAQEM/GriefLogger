@@ -8,16 +8,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
 import com.daqem.yamlconfig.YamlConfigExpectPlatform;
 import org.jetbrains.annotations.Nullable;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.config.GriefLoggerConfig;
 import com.daqem.grieflogger.database.dialect.IDatabaseDialect;
-import com.daqem.grieflogger.database.dialect.MySQLDialect;
 import com.daqem.grieflogger.database.dialect.SQLiteDialect;
 import com.daqem.grieflogger.database.queue.IQueue;
 import com.daqem.grieflogger.database.queue.Queue;
+import com.daqem.grieflogger.database.queue.SqlTask;
 
 public class Database {
 
@@ -137,34 +138,31 @@ public class Database {
         }
     }
 
-    public void executeStatements(List<PreparedStatement> statements, boolean isBatch) {
+    public void executeQueue(List<Object> items, boolean isBatch) {
         try {
-            for (PreparedStatement statement : statements) {
-                if (statement == null) {
-                    GriefLogger.LOGGER.error("Statement is null");
-                    continue;
-                }
-
-                if (statement.isClosed()) {
-                    GriefLogger.LOGGER.error("Statement is closed");
-                    continue;
-                }
-
-                try (statement) {
-                    if (isBatch) {
-                        statement.executeBatch(); // Execute as a batch
-                    } else {
-                        statement.executeUpdate(); // Execute individually
+            for (Object item : items) {
+                if (item instanceof PreparedStatement preparedStatement) {
+                    if (preparedStatement.isClosed()) {
+                        continue;
                     }
+                    try (preparedStatement) {
+                        if (isBatch) {
+                            preparedStatement.executeBatch();
+                        } else {
+                            preparedStatement.executeUpdate();
+                        }
+                    }
+                } else if (item instanceof SqlTask task) {
+                    task.execute(connection);
                 }
             }
-            if (!statements.isEmpty()) {
+            if (!items.isEmpty()) {
                 if (connection != null) {
                     connection.commit();
                 }
             }
         } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to execute statements", e);
+            GriefLogger.LOGGER.error("Failed to execute database queue", e);
         }
     }
 

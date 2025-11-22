@@ -6,12 +6,13 @@ import com.daqem.grieflogger.database.Database;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Queue implements IQueue {
 
     private final Database database;
     private final boolean isBatch;
-    private final List<PreparedStatement> statements = new ArrayList<>();
+    private final ConcurrentLinkedQueue<Object> queue = new ConcurrentLinkedQueue<>();
 
     public Queue(Database database, boolean isBatch) {
         this.database = database;
@@ -19,27 +20,31 @@ public class Queue implements IQueue {
     }
 
     @Override
-    public void add(PreparedStatement statement) {
-        this.statements.add(statement);
+    public void add(SqlTask task) {
+        this.queue.add(task);
     }
 
     @Override
     public void execute() {
-        if (this.statements.isEmpty()) {
+        if (this.queue.isEmpty()) {
             return;
         }
-        List<PreparedStatement> statements = new ArrayList<>(this.statements);
-        this.statements.clear();
-        this.database.executeStatements(statements, isBatch);
+        List<Object> items = new ArrayList<>();
+        Object item;
+        while ((item = this.queue.poll()) != null) {
+            items.add(item);
+        }
+        this.database.executeQueue(items, isBatch);
     }
 
     @Override
     public void hello() {
-        try {
-            PreparedStatement statement = this.database.prepareStatement("SELECT 1");
-            this.database.execute(statement.toString(), false);
-        } catch (Exception e) {
-            GriefLogger.LOGGER.error("Failed to send hello packet", e);
-        }
+        this.add(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT 1")) {
+                statement.execute();
+            } catch (Exception e) {
+                GriefLogger.LOGGER.error("Failed to send hello packet", e);
+            }
+        });
     }
 }

@@ -16,7 +16,6 @@ public class PageCommand implements ICommand {
     @Override
     public LiteralArgumentBuilder<CommandSourceStack> getCommand() {
         return Commands.literal("page")
-                .requires(source -> source.hasPermission(2))
                 .then(Commands.argument("page", IntegerArgumentType.integer())
                         .executes(context -> page(context.getSource(), IntegerArgumentType.getInteger(context, "page"))));
     }

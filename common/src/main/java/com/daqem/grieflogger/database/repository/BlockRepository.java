@@ -7,6 +7,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
 import org.jetbrains.annotations.Nullable;
 
 import com.daqem.grieflogger.GriefLogger;
@@ -37,7 +38,7 @@ public class BlockRepository extends Repository {
                 "FOREIGN KEY(level) REFERENCES levels(id)," +
                 "FOREIGN KEY(type) REFERENCES materials(id)" +
                 ")";
-        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+        if (database.getDialect() instanceof MySQLDialect) {
             sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
         } else {
             sql += ";";
@@ -47,7 +48,7 @@ public class BlockRepository extends Repository {
 
     public void createIndexes() {
         String sql;
-        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+        if (database.getDialect() instanceof MySQLDialect) {
             sql = "ALTER TABLE blocks ADD INDEX coordinates (x, y, z);";
         } else {
             sql = "CREATE INDEX IF NOT EXISTS coordinates ON blocks (x, y, z);";
@@ -67,24 +68,23 @@ public class BlockRepository extends Repository {
                 "SELECT id FROM materials WHERE name = ?" +
                 "), ?);";
 
-        try {
-            PreparedStatement materialStatement = database.prepareStatement(materialQuery);
-            materialStatement.setString(1, material);
-            database.queue.add(materialStatement);
-
-            PreparedStatement blockStatement = database.prepareStatement(blockQuery);
-            blockStatement.setLong(1, time);
-            blockStatement.setString(2, userUuid);
-            blockStatement.setString(3, levelName);
-            blockStatement.setInt(4, x);
-            blockStatement.setInt(5, y);
-            blockStatement.setInt(6, z);
-            blockStatement.setString(7, material);
-            blockStatement.setInt(8, blockAction);
-            database.queue.add(blockStatement);
-        } catch (SQLException exception) {
-            GriefLogger.LOGGER.error("Failed to insert block into database", exception);
-        }
+        database.queue.add(connection -> {
+            try (PreparedStatement materialStatement = connection.prepareStatement(materialQuery)) {
+                materialStatement.setString(1, material);
+                materialStatement.executeUpdate();
+            }
+            try (PreparedStatement blockStatement = connection.prepareStatement(blockQuery)) {
+                blockStatement.setLong(1, time);
+                blockStatement.setString(2, userUuid);
+                blockStatement.setString(3, levelName);
+                blockStatement.setInt(4, x);
+                blockStatement.setInt(5, y);
+                blockStatement.setInt(6, z);
+                blockStatement.setString(7, material);
+                blockStatement.setInt(8, blockAction);
+                blockStatement.executeUpdate();
+            }
+        });
     }
 
     public void insertEntity(long time, String userUuid, String levelName, int x, int y, int z, String entity, int blockAction) {
@@ -99,26 +99,26 @@ public class BlockRepository extends Repository {
                 "SELECT id FROM entities WHERE name = ?" +
                 "), ?);";
 
-
-        try {
-            PreparedStatement materialStatement = database.prepareStatement(materialQuery);
-            PreparedStatement blockStatement = database.prepareStatement(blockQuery);
-            materialStatement.setString(1, entity);
-            database.queue.add(materialStatement);
-
-            blockStatement.setLong(1, time);
-            blockStatement.setString(2, userUuid);
-            blockStatement.setString(3, levelName);
-            blockStatement.setInt(4, x);
-            blockStatement.setInt(5, y);
-            blockStatement.setInt(6, z);
-            blockStatement.setString(7, entity);
-            blockStatement.setInt(8, blockAction);
-            database.queue.add(blockStatement);
-        } catch (SQLException exception) {
-            GriefLogger.LOGGER.error("Failed to insert block into database", exception);
-        }
+        database.queue.add(connection -> {
+            try (PreparedStatement materialStatement = connection.prepareStatement(materialQuery)) {
+                materialStatement.setString(1, entity);
+                materialStatement.executeUpdate();
+            }
+            try (PreparedStatement blockStatement = connection.prepareStatement(blockQuery)) {
+                blockStatement.setLong(1, time);
+                blockStatement.setString(2, userUuid);
+                blockStatement.setString(3, levelName);
+                blockStatement.setInt(4, x);
+                blockStatement.setInt(5, y);
+                blockStatement.setInt(6, z);
+                blockStatement.setString(7, entity);
+                blockStatement.setInt(8, blockAction);
+                blockStatement.executeUpdate();
+            }
+        });
     }
+
+    // ... getBlockHistory, getInteractionHistory, etc ...
 
     public List<IHistory> getBlockHistory(String levelName, int x, int y, int z) {
         List<IHistory> blockHistory = new ArrayList<>();
@@ -204,19 +204,20 @@ public class BlockRepository extends Repository {
                 ) AND x = ? AND y = ? AND z = ? AND action = 2
                 """;
 
-        try {
-            PreparedStatement preparedStatement = database.prepareStatement(query);
-            preparedStatement.setString(1, levelName);
-            preparedStatement.setInt(2, x);
-            preparedStatement.setInt(3, y);
-            preparedStatement.setInt(4, z);
-            database.queue.add(preparedStatement);
-        } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to remove interactions for position", e);
-        }
+        database.queue.add(connection -> {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, levelName);
+                preparedStatement.setInt(2, x);
+                preparedStatement.setInt(3, y);
+                preparedStatement.setInt(4, z);
+                preparedStatement.executeUpdate();
+            }
+        });
     }
 
     public List<IHistory> getFilteredBlockHistory(String levelName, FilterList filterList) {
+        // ... implementation matches original but ensuring imports ...
+        // Original implementation omitted for brevity as it only reads
         @Nullable String actions = filterList.getActionString();
         @Nullable String users = filterList.getUserString();
         @Nullable String includeMaterials = filterList.getIncludeMaterialsString();

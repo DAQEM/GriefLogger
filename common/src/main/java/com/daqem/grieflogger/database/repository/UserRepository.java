@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.database.Database;
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
 
 public class UserRepository extends Repository {
 
@@ -19,11 +20,11 @@ public class UserRepository extends Repository {
 
     public void createTable() {
         String sql = "CREATE TABLE IF NOT EXISTS users (" +
-                "id " + database.getDialect().getDataType("integer") + " PRIMARY KEY" + (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect ? " AUTO_INCREMENT" : "") + "," +
+                "id " + database.getDialect().getDataType("integer") + " PRIMARY KEY" + (database.getDialect() instanceof MySQLDialect ? " AUTO_INCREMENT" : "") + "," +
                 "name " + database.getDialect().getDataType("text") + " NOT NULL," +
                 "uuid " + database.getDialect().getDataType("text") + " DEFAULT NULL UNIQUE" +
                 ")";
-        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+        if (database.getDialect() instanceof MySQLDialect) {
             sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
         } else {
             sql += ";";
@@ -35,28 +36,26 @@ public class UserRepository extends Repository {
         String query = "INSERT INTO users(name, uuid) VALUES(?, ?) " +
                 database.getDialect().getOnConflictUpdate("uuid", "name = ?");
 
-        try {
-            PreparedStatement preparedStatement = database.prepareStatement(query);
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, uuid);
-            preparedStatement.setString(3, name);
-            database.queue.add(preparedStatement);
-        } catch (SQLException exception) {
-            GriefLogger.LOGGER.error("Failed to insert username into database", exception);
-        }
+        database.queue.add(connection -> {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, name);
+                preparedStatement.setString(2, uuid);
+                preparedStatement.setString(3, name);
+                preparedStatement.executeUpdate();
+            }
+        });
     }
 
     public void insertNonPlayer(String name) {
         String query = "INSERT INTO users(name) VALUES('%s') " +
                 database.getDialect().getOnConflictDoNothing("name");
 
-        try {
-            PreparedStatement preparedStatement = database.prepareStatement(query);
-            preparedStatement.setString(1, name);
-            database.queue.add(preparedStatement);
-        } catch (SQLException exception) {
-            GriefLogger.LOGGER.error("Failed to insert username into database", exception);
-        }
+        database.queue.add(connection -> {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, name);
+                preparedStatement.executeUpdate();
+            }
+        });
     }
 
     public Map<Integer, String> getAllUsernames() {

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
 import org.jetbrains.annotations.Nullable;
 
 import com.daqem.grieflogger.GriefLogger;
@@ -33,6 +34,7 @@ public class ContainerRepository extends Repository {
         this.database = database;
     }
 
+    // createTable / createIndexes omitted (same as original)
     public void createTable() {
         String sql = "CREATE TABLE IF NOT EXISTS containers (" +
                 "time " + database.getDialect().getDataType("bigint") + " NOT NULL," +
@@ -49,7 +51,7 @@ public class ContainerRepository extends Repository {
                 "FOREIGN KEY(level) REFERENCES levels(id)," +
                 "FOREIGN KEY(type) REFERENCES materials(id)" +
                 ")";
-        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+        if (database.getDialect() instanceof MySQLDialect) {
             sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
         } else {
             sql += ";";
@@ -59,7 +61,7 @@ public class ContainerRepository extends Repository {
 
     public void createIndexes() {
         String sql;
-        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+        if (database.getDialect() instanceof MySQLDialect) {
             sql = "ALTER TABLE containers ADD INDEX coordinates (x, y, z);";
         } else {
             sql = "CREATE INDEX IF NOT EXISTS coordinates ON containers (x, y, z);";
@@ -85,27 +87,25 @@ public class ContainerRepository extends Repository {
 
         ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
-            try {
-                PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
-                PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
-
-                materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
-                database.queue.add(materialStatement);
-
-                itemStatement.setLong(1, time);
-                itemStatement.setString(2, userUuid);
-                itemStatement.setString(3, level.dimension().location().toString());
-                itemStatement.setInt(4, x);
-                itemStatement.setInt(5, y);
-                itemStatement.setInt(6, z);
-                itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                itemStatement.setBytes(8, item.getTagBytes(level));
-                itemStatement.setInt(9, item.getCount());
-                itemStatement.setInt(10, itemAction);
-                database.queue.add(itemStatement);
-            } catch (SQLException e) {
-                GriefLogger.LOGGER.error("Failed to insert item", e);
-            }
+            database.queue.add(connection -> {
+                try (PreparedStatement materialStatement = connection.prepareStatement(insertMaterialQuery)) {
+                    materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                    materialStatement.executeUpdate();
+                }
+                try (PreparedStatement itemStatement = connection.prepareStatement(insertItemQuery)) {
+                    itemStatement.setLong(1, time);
+                    itemStatement.setString(2, userUuid);
+                    itemStatement.setString(3, level.dimension().location().toString());
+                    itemStatement.setInt(4, x);
+                    itemStatement.setInt(5, y);
+                    itemStatement.setInt(6, z);
+                    itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                    itemStatement.setBytes(8, item.getTagBytes(level));
+                    itemStatement.setInt(9, item.getCount());
+                    itemStatement.setInt(10, itemAction);
+                    itemStatement.executeUpdate();
+                }
+            });
         }
     }
 
@@ -121,57 +121,11 @@ public class ContainerRepository extends Repository {
                 "SELECT id FROM materials WHERE name = ?" +
                 "), ?, ?, ?);";
 
-        try {
-            PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
-            PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
+        database.batchQueue.add(connection -> {
+            try (PreparedStatement itemStatement = connection.prepareStatement(insertItemQuery);
+                 PreparedStatement materialStatement = connection.prepareStatement(insertMaterialQuery)) {
 
-            for (SimpleItemStack item : items) {
-                if (item.isEmpty()) {
-                    continue;
-                }
-                ResourceLocation itemLocation = item.getItem().arch$registryName();
-                if (itemLocation != null) {
-                    materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
-                    materialStatement.addBatch();
-
-                    itemStatement.setLong(1, time);
-                    itemStatement.setString(2, userUuid);
-                    itemStatement.setString(3, level.dimension().location().toString());
-                    itemStatement.setInt(4, x);
-                    itemStatement.setInt(5, y);
-                    itemStatement.setInt(6, z);
-                    itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                    itemStatement.setBytes(8, item.getTagBytes(level));
-                    itemStatement.setInt(9, item.getCount());
-                    itemStatement.setInt(10, itemAction);
-                    itemStatement.addBatch();
-                }
-            }
-            database.batchQueue.add(materialStatement);
-            database.batchQueue.add(itemStatement);
-        } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to insert item", e);
-        }
-    }
-
-    public void insertMap(long time, String userUuid, Level level, int x, int y, int z, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
-        String insertMaterialQuery = database.getDialect().getInsertIgnore() + " INTO materials(name) VALUES(?);";
-
-        String insertItemQuery = "INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action) " +
-                "VALUES(?, (" +
-                "SELECT id FROM users WHERE uuid = ?" +
-                "), (" +
-                "SELECT id FROM levels WHERE name = ?" +
-                "), ?, ?, ?, (" +
-                "SELECT id FROM materials WHERE name = ?" +
-                "), ?, ?, ?);";
-
-        try {
-            PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
-            PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
-
-            for (Map.Entry<ItemAction, List<SimpleItemStack>> entry : itemsMap.entrySet()) {
-                for (SimpleItemStack item : entry.getValue()) {
+                for (SimpleItemStack item : items) {
                     if (item.isEmpty()) {
                         continue;
                     }
@@ -189,18 +143,63 @@ public class ContainerRepository extends Repository {
                         itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
                         itemStatement.setBytes(8, item.getTagBytes(level));
                         itemStatement.setInt(9, item.getCount());
-                        itemStatement.setInt(10, entry.getKey().getId());
+                        itemStatement.setInt(10, itemAction);
                         itemStatement.addBatch();
                     }
                 }
+                materialStatement.executeBatch();
+                itemStatement.executeBatch();
             }
-            database.batchQueue.add(materialStatement);
-            database.batchQueue.add(itemStatement);
-        } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to insert item", e);
-        }
+        });
     }
 
+    public void insertMap(long time, String userUuid, Level level, int x, int y, int z, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
+        String insertMaterialQuery = database.getDialect().getInsertIgnore() + " INTO materials(name) VALUES(?);";
+
+        String insertItemQuery = "INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action) " +
+                "VALUES(?, (" +
+                "SELECT id FROM users WHERE uuid = ?" +
+                "), (" +
+                "SELECT id FROM levels WHERE name = ?" +
+                "), ?, ?, ?, (" +
+                "SELECT id FROM materials WHERE name = ?" +
+                "), ?, ?, ?);";
+
+        database.batchQueue.add(connection -> {
+            try (PreparedStatement itemStatement = connection.prepareStatement(insertItemQuery);
+                 PreparedStatement materialStatement = connection.prepareStatement(insertMaterialQuery)) {
+
+                for (Map.Entry<ItemAction, List<SimpleItemStack>> entry : itemsMap.entrySet()) {
+                    for (SimpleItemStack item : entry.getValue()) {
+                        if (item.isEmpty()) {
+                            continue;
+                        }
+                        ResourceLocation itemLocation = item.getItem().arch$registryName();
+                        if (itemLocation != null) {
+                            materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                            materialStatement.addBatch();
+
+                            itemStatement.setLong(1, time);
+                            itemStatement.setString(2, userUuid);
+                            itemStatement.setString(3, level.dimension().location().toString());
+                            itemStatement.setInt(4, x);
+                            itemStatement.setInt(5, y);
+                            itemStatement.setInt(6, z);
+                            itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                            itemStatement.setBytes(8, item.getTagBytes(level));
+                            itemStatement.setInt(9, item.getCount());
+                            itemStatement.setInt(10, entry.getKey().getId());
+                            itemStatement.addBatch();
+                        }
+                    }
+                }
+                materialStatement.executeBatch();
+                itemStatement.executeBatch();
+            }
+        });
+    }
+
+    // ... getHistory, getFilteredContainerHistory (read-only methods, same as original) ...
     public List<IHistory> getHistory(Level level, int x, int y, int z) {
         List<IHistory> containerHistory = new ArrayList<>();
         String query = """

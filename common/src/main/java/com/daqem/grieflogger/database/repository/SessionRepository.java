@@ -7,6 +7,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
 import org.jetbrains.annotations.Nullable;
 
 import com.daqem.grieflogger.GriefLogger;
@@ -34,7 +35,7 @@ public class SessionRepository extends Repository {
                 "FOREIGN KEY(user) REFERENCES users(id)," +
                 "FOREIGN KEY(level) REFERENCES levels(id)" +
                 ")";
-        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+        if (database.getDialect() instanceof MySQLDialect) {
             sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
         } else {
             sql += ";";
@@ -44,7 +45,7 @@ public class SessionRepository extends Repository {
 
     public void createIndexes() {
         String sql;
-        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+        if (database.getDialect() instanceof MySQLDialect) {
             sql = "ALTER TABLE sessions ADD INDEX coordinates (x, y, z);";
         } else {
             sql = "CREATE INDEX IF NOT EXISTS coordinates ON sessions (x, y, z);";
@@ -60,19 +61,18 @@ public class SessionRepository extends Repository {
                 "SELECT id FROM levels WHERE name = ?" +
                 "), ?, ?, ?, ?);";
 
-        try {
-            PreparedStatement preparedStatement = database.prepareStatement(query);
-            preparedStatement.setLong(1, time);
-            preparedStatement.setString(2, userUuid);
-            preparedStatement.setString(3, levelName);
-            preparedStatement.setInt(4, x);
-            preparedStatement.setInt(5, y);
-            preparedStatement.setInt(6, z);
-            preparedStatement.setInt(7, sessionAction);
-            database.queue.add(preparedStatement);
-        } catch (SQLException exception) {
-            GriefLogger.LOGGER.error("Failed to insert session into database", exception);
-        }
+        database.queue.add(connection -> {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setLong(1, time);
+                preparedStatement.setString(2, userUuid);
+                preparedStatement.setString(3, levelName);
+                preparedStatement.setInt(4, x);
+                preparedStatement.setInt(5, y);
+                preparedStatement.setInt(6, z);
+                preparedStatement.setInt(7, sessionAction);
+                preparedStatement.executeUpdate();
+            }
+        });
     }
 
     public List<SessionHistory> getFilteredSessionHistory(String levelName, FilterList filterList) {

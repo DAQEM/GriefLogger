@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
 import org.jetbrains.annotations.Nullable;
 
 import com.daqem.grieflogger.GriefLogger;
@@ -48,7 +49,7 @@ public class ItemRepository extends Repository {
                 "FOREIGN KEY(level) REFERENCES levels(id)," +
                 "FOREIGN KEY(type) REFERENCES materials(id)" +
                 ")";
-        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+        if (database.getDialect() instanceof MySQLDialect) {
             sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
         } else {
             sql += ";";
@@ -58,7 +59,7 @@ public class ItemRepository extends Repository {
 
     public void createIndexes() {
         String sql;
-        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+        if (database.getDialect() instanceof MySQLDialect) {
             sql = "ALTER TABLE items ADD INDEX coordinates (x, y, z);";
         } else {
             sql = "CREATE INDEX IF NOT EXISTS coordinates ON items (x, y, z);";
@@ -83,27 +84,25 @@ public class ItemRepository extends Repository {
 
         ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
-            try {
-                PreparedStatement preparedStatement = database.prepareStatement(itemQuery);
-                PreparedStatement materialStatement = database.prepareStatement(materialQuery);
-
-                materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
-                database.queue.add(materialStatement);
-
-                preparedStatement.setLong(1, time);
-                preparedStatement.setString(2, userUuid);
-                preparedStatement.setString(3, level.dimension().location().toString());
-                preparedStatement.setInt(4, x);
-                preparedStatement.setInt(5, y);
-                preparedStatement.setInt(6, z);
-                preparedStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                preparedStatement.setBytes(8, item.getTagBytes(level));
-                preparedStatement.setInt(9, item.getCount());
-                preparedStatement.setInt(10, action);
-                database.queue.add(preparedStatement);
-            } catch (SQLException exception) {
-                GriefLogger.LOGGER.error("Failed to insert item into database", exception);
-            }
+            database.queue.add(connection -> {
+                try (PreparedStatement materialStatement = connection.prepareStatement(materialQuery)) {
+                    materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                    materialStatement.executeUpdate();
+                }
+                try (PreparedStatement preparedStatement = connection.prepareStatement(itemQuery)) {
+                    preparedStatement.setLong(1, time);
+                    preparedStatement.setString(2, userUuid);
+                    preparedStatement.setString(3, level.dimension().location().toString());
+                    preparedStatement.setInt(4, x);
+                    preparedStatement.setInt(5, y);
+                    preparedStatement.setInt(6, z);
+                    preparedStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                    preparedStatement.setBytes(8, item.getTagBytes(level));
+                    preparedStatement.setInt(9, item.getCount());
+                    preparedStatement.setInt(10, action);
+                    preparedStatement.executeUpdate();
+                }
+            });
         }
     }
 
@@ -119,39 +118,38 @@ public class ItemRepository extends Repository {
                 "SELECT id FROM materials WHERE name = ?" +
                 "), ?, ?, ?);";
 
-        try {
-            PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
-            PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
+        database.batchQueue.add(connection -> {
+            try (PreparedStatement itemStatement = connection.prepareStatement(insertItemQuery);
+                 PreparedStatement materialStatement = connection.prepareStatement(insertMaterialQuery)) {
 
-            for (Map.Entry<ItemAction, List<SimpleItemStack>> entry : itemsMap.entrySet()) {
-                for (SimpleItemStack item : entry.getValue()) {
-                    if (item.isEmpty()) {
-                        continue;
-                    }
-                    ResourceLocation itemLocation = item.getItem().arch$registryName();
-                    if (itemLocation != null) {
-                        materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
-                        materialStatement.addBatch();
+                for (Map.Entry<ItemAction, List<SimpleItemStack>> entry : itemsMap.entrySet()) {
+                    for (SimpleItemStack item : entry.getValue()) {
+                        if (item.isEmpty()) {
+                            continue;
+                        }
+                        ResourceLocation itemLocation = item.getItem().arch$registryName();
+                        if (itemLocation != null) {
+                            materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                            materialStatement.addBatch();
 
-                        itemStatement.setLong(1, time);
-                        itemStatement.setString(2, userUuid);
-                        itemStatement.setString(3, level.dimension().location().toString());
-                        itemStatement.setInt(4, x);
-                        itemStatement.setInt(5, y);
-                        itemStatement.setInt(6, z);
-                        itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                        itemStatement.setBytes(8, item.getTagBytes(level));
-                        itemStatement.setInt(9, item.getCount());
-                        itemStatement.setInt(10, entry.getKey().getId());
-                        itemStatement.addBatch();
+                            itemStatement.setLong(1, time);
+                            itemStatement.setString(2, userUuid);
+                            itemStatement.setString(3, level.dimension().location().toString());
+                            itemStatement.setInt(4, x);
+                            itemStatement.setInt(5, y);
+                            itemStatement.setInt(6, z);
+                            itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                            itemStatement.setBytes(8, item.getTagBytes(level));
+                            itemStatement.setInt(9, item.getCount());
+                            itemStatement.setInt(10, entry.getKey().getId());
+                            itemStatement.addBatch();
+                        }
                     }
                 }
+                materialStatement.executeBatch();
+                itemStatement.executeBatch();
             }
-            database.batchQueue.add(materialStatement);
-            database.batchQueue.add(itemStatement);
-        } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to insert item", e);
-        }
+        });
     }
 
     public List<ItemHistory> getFilteredItemHistory(Level level, FilterList filterList) {

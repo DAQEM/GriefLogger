@@ -11,7 +11,7 @@ public class EntityEvents {
 
     public static void registerEvents() {
         EntityEvent.LIVING_DEATH.register((entity, source) -> {
-            if (source.getEntity() instanceof ServerPlayer serverPlayer) {
+            if (source != null && source.getEntity() instanceof ServerPlayer serverPlayer) {
                 ResourceLocation entityLocation = entity.getType().arch$registryName();
                 if (entityLocation != null) {
                     Services.BLOCK.insertEntity(
