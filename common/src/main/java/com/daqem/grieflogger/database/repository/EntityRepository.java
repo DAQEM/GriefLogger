@@ -1,10 +1,10 @@
 package com.daqem.grieflogger.database.repository;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.Database;
-
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.database.Database;
 
 public class EntityRepository extends Repository {
 
@@ -15,36 +15,20 @@ public class EntityRepository extends Repository {
     }
 
     public void createTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS entities (
-                    id integer PRIMARY KEY,
-                    name text NOT NULL UNIQUE
-                )
-                """;
-        if (isMysql()) {
-            sql = """
-                    CREATE TABLE IF NOT EXISTS entities (
-                        id int PRIMARY KEY AUTO_INCREMENT,
-                        name varchar(256) NOT NULL UNIQUE
-                    )
-                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-                    """;
+        String sql = "CREATE TABLE IF NOT EXISTS entities (" +
+                "id " + database.getDialect().getDataType("integer") + " PRIMARY KEY" + (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect ? " AUTO_INCREMENT" : "") + "," +
+                "name " + database.getDialect().getDataType("text") + " NOT NULL UNIQUE" +
+                ")";
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
+        } else {
+            sql += ";";
         }
         database.createTable(sql);
     }
 
     public void insert(String name) {
-        String query = """
-                INSERT OR IGNORE INTO entities(name)
-                VALUES(?);
-                """;
-
-        if (isMysql()) {
-            query = """
-                    INSERT IGNORE INTO entities(name)
-                    VALUES(?);
-                    """;
-        }
+        String query = database.getDialect().getInsertIgnore() + " INTO entities(name) VALUES(?);";
 
         try {
             PreparedStatement preparedStatement = database.prepareStatement(query);

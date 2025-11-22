@@ -1,18 +1,19 @@
 package com.daqem.grieflogger.database.repository;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.command.filter.FilterList;
-import com.daqem.grieflogger.database.Database;
-import com.daqem.grieflogger.model.history.BlockHistory;
-import com.daqem.grieflogger.model.history.IHistory;
-import org.jetbrains.annotations.Nullable;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.command.filter.FilterList;
+import com.daqem.grieflogger.database.Database;
+import com.daqem.grieflogger.model.history.BlockHistory;
+import com.daqem.grieflogger.model.history.IHistory;
 
 public class BlockRepository extends Repository {
 
@@ -23,90 +24,48 @@ public class BlockRepository extends Repository {
     }
 
     public void createTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS blocks (
-                	time integer NOT NULL,
-                	user integer NOT NULL,
-                	level integer NOT NULL,
-                	x integer NOT NULL,
-                	y integer NOT NULL,
-                	z integer NOT NULL,
-                	type integer NOT NULL,
-                	action integer NOT NULL,
-                	FOREIGN KEY(user) REFERENCES users(id),
-                	FOREIGN KEY(level) REFERENCES levels(id),
-                	FOREIGN KEY(type) REFERENCES materials(id)
-                );
-                """;
-        if (isMysql()) {
-            sql = """
-                    CREATE TABLE IF NOT EXISTS blocks (
-                    	time bigint NOT NULL,
-                    	user int NOT NULL,
-                    	level int NOT NULL,
-                    	x int NOT NULL,
-                    	y int NOT NULL,
-                    	z int NOT NULL,
-                    	type int NOT NULL,
-                    	action int NOT NULL,
-                    	FOREIGN KEY(user) REFERENCES users(id),
-                    	FOREIGN KEY(level) REFERENCES levels(id),
-                    	FOREIGN KEY(type) REFERENCES materials(id)
-                    )
-                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-                    """;
+        String sql = "CREATE TABLE IF NOT EXISTS blocks (" +
+                "time " + database.getDialect().getDataType("bigint") + " NOT NULL," +
+                "user " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "level " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "x " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "y " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "z " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "type " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "action " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "FOREIGN KEY(user) REFERENCES users(id)," +
+                "FOREIGN KEY(level) REFERENCES levels(id)," +
+                "FOREIGN KEY(type) REFERENCES materials(id)" +
+                ")";
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
+        } else {
+            sql += ";";
         }
         database.createTable(sql);
     }
 
     public void createIndexes() {
-        String sql = """
-                CREATE INDEX IF NOT EXISTS coordinates ON blocks (x, y, z);
-                """;
-        if (isMysql()) {
-            sql = """
-                    ALTER TABLE blocks ADD INDEX coordinates (x, y, z);
-                    """;
+        String sql;
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql = "ALTER TABLE blocks ADD INDEX coordinates (x, y, z);";
+        } else {
+            sql = "CREATE INDEX IF NOT EXISTS coordinates ON blocks (x, y, z);";
         }
         database.execute(sql, false);
     }
 
     public void insertMaterial(long time, String userUuid, String levelName, int x, int y, int z, String material, int blockAction) {
-        String materialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
+        String materialQuery = database.getDialect().getInsertIgnore() + " INTO materials(name) VALUES(?);";
 
-        if (isMysql()) {
-            materialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String blockQuery = """
-                INSERT OR IGNORE INTO blocks(time, user, level, x, y, z, type, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?);
-                """;
-
-        if (isMysql()) {
-            blockQuery = """
-                    INSERT IGNORE INTO blocks(time, user, level, x, y, z, type, action)
-                    VALUES(?, (
-                        SELECT id FROM users WHERE uuid = ?
-                    ), (
-                        SELECT id FROM levels WHERE name = ?
-                    ), ?, ?, ?, (
-                        SELECT id FROM materials WHERE name = ?
-                    ), ?);
-                    """;
-        }
+        String blockQuery = database.getDialect().getInsertIgnore() + " INTO blocks(time, user, level, x, y, z, type, action) " +
+                "VALUES(?, (" +
+                "SELECT id FROM users WHERE uuid = ?" +
+                "), (" +
+                "SELECT id FROM levels WHERE name = ?" +
+                "), ?, ?, ?, (" +
+                "SELECT id FROM materials WHERE name = ?" +
+                "), ?);";
 
         try {
             PreparedStatement materialStatement = database.prepareStatement(materialQuery);
@@ -129,41 +88,16 @@ public class BlockRepository extends Repository {
     }
 
     public void insertEntity(long time, String userUuid, String levelName, int x, int y, int z, String entity, int blockAction) {
-        String materialQuery = """
-                INSERT OR IGNORE INTO entities(name)
-                VALUES(?);
-                """;
+        String materialQuery = database.getDialect().getInsertIgnore() + " INTO entities(name) VALUES(?);";
 
-        if (isMysql()) {
-            materialQuery = """
-                    INSERT IGNORE INTO entities(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String blockQuery = """
-                INSERT OR IGNORE INTO blocks(time, user, level, x, y, z, type, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM entities WHERE name = ?
-                ), ?);
-                """;
-
-        if (isMysql()) {
-            blockQuery = """
-                    INSERT IGNORE INTO blocks(time, user, level, x, y, z, type, action)
-                    VALUES(?, (
-                        SELECT id FROM users WHERE uuid = ?
-                    ), (
-                        SELECT id FROM levels WHERE name = ?
-                    ), ?, ?, ?, (
-                        SELECT id FROM entities WHERE name = ?
-                    ), ?);
-                    """;
-        }
+        String blockQuery = database.getDialect().getInsertIgnore() + " INTO blocks(time, user, level, x, y, z, type, action) " +
+                "VALUES(?, (" +
+                "SELECT id FROM users WHERE uuid = ?" +
+                "), (" +
+                "SELECT id FROM levels WHERE name = ?" +
+                "), ?, ?, ?, (" +
+                "SELECT id FROM entities WHERE name = ?" +
+                "), ?);";
 
 
         try {

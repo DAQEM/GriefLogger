@@ -1,14 +1,18 @@
 package com.daqem.grieflogger.database.repository;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.command.filter.*;
-import com.daqem.grieflogger.database.Database;
-import com.daqem.grieflogger.model.history.SessionHistory;
-import org.jetbrains.annotations.Nullable;
-
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.command.filter.FilterList;
+import com.daqem.grieflogger.database.Database;
+import com.daqem.grieflogger.model.history.SessionHistory;
 
 public class SessionRepository extends Repository {
 
@@ -19,70 +23,42 @@ public class SessionRepository extends Repository {
     }
 
     public void createTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS sessions (
-                    time integer NOT NULL,
-                    user integer NOT NULL,
-                    level integer NOT NULL,
-                    x integer NOT NULL,
-                    y integer NOT NULL,
-                    z integer NOT NULL,
-                    action integer NOT NULL,
-                    FOREIGN KEY(user) REFERENCES users(id),
-                    FOREIGN KEY(level) REFERENCES levels(id)
-                );
-                """;
-        if (isMysql()) {
-            sql = """
-                    CREATE TABLE IF NOT EXISTS sessions (
-                        time bigint NOT NULL,
-                        user int NOT NULL,
-                        level int NOT NULL,
-                        x int NOT NULL,
-                        y int NOT NULL,
-                        z int NOT NULL,
-                        action int NOT NULL,
-                        FOREIGN KEY(user) REFERENCES users(id),
-                        FOREIGN KEY(level) REFERENCES levels(id)
-                    )
-                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-                    """;
+        String sql = "CREATE TABLE IF NOT EXISTS sessions (" +
+                "time " + database.getDialect().getDataType("bigint") + " NOT NULL," +
+                "user " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "level " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "x " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "y " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "z " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "action " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "FOREIGN KEY(user) REFERENCES users(id)," +
+                "FOREIGN KEY(level) REFERENCES levels(id)" +
+                ")";
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
+        } else {
+            sql += ";";
         }
         database.createTable(sql);
     }
 
     public void createIndexes() {
-        String sql = """
-                CREATE INDEX IF NOT EXISTS coordinates ON sessions (x, y, z);
-                """;
-        if (isMysql()) {
-            sql = """
-                    ALTER TABLE sessions ADD INDEX coordinates (x, y, z);
-                    """;
+        String sql;
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql = "ALTER TABLE sessions ADD INDEX coordinates (x, y, z);";
+        } else {
+            sql = "CREATE INDEX IF NOT EXISTS coordinates ON sessions (x, y, z);";
         }
         database.execute(sql, false);
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, int sessionAction) {
-        String query = """
-                INSERT OR IGNORE INTO sessions(time, user, level, x, y, z, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, ?);
-                """;
-
-        if (isMysql()) {
-            query = """
-                    INSERT IGNORE INTO sessions(time, user, level, x, y, z, action)
-                    VALUES(?, (
-                        SELECT id FROM users WHERE uuid = ?
-                    ), (
-                        SELECT id FROM levels WHERE name = ?
-                    ), ?, ?, ?, ?);
-                    """;
-        }
+        String query = database.getDialect().getInsertIgnore() + " INTO sessions(time, user, level, x, y, z, action) " +
+                "VALUES(?, (" +
+                "SELECT id FROM users WHERE uuid = ?" +
+                "), (" +
+                "SELECT id FROM levels WHERE name = ?" +
+                "), ?, ?, ?, ?);";
 
         try {
             PreparedStatement preparedStatement = database.prepareStatement(query);

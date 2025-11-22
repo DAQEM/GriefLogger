@@ -1,20 +1,5 @@
 package com.daqem.grieflogger.database.repository;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.command.filter.FilterList;
-import com.daqem.grieflogger.model.SimpleItemStack;
-import com.daqem.grieflogger.database.Database;
-import com.daqem.grieflogger.model.action.ItemAction;
-import com.daqem.grieflogger.model.history.ContainerHistory;
-import com.daqem.grieflogger.model.history.IHistory;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,6 +7,23 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.command.filter.FilterList;
+import com.daqem.grieflogger.database.Database;
+import com.daqem.grieflogger.model.SimpleItemStack;
+import com.daqem.grieflogger.model.action.ItemAction;
+import com.daqem.grieflogger.model.history.ContainerHistory;
+import com.daqem.grieflogger.model.history.IHistory;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 public class ContainerRepository extends Repository {
 
@@ -32,54 +34,35 @@ public class ContainerRepository extends Repository {
     }
 
     public void createTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS containers (
-                    time integer NOT NULL,
-                	user integer NOT NULL,
-                	level integer NOT NULL,
-                	x integer NOT NULL,
-                	y integer NOT NULL,
-                	z integer NOT NULL,
-                	type integer NOT NULL,
-                	data blob DEFAULT NULL,
-                	amount integer NOT NULL,
-                	action integer NOT NULL,
-                	FOREIGN KEY(user) REFERENCES users(id),
-                	FOREIGN KEY(level) REFERENCES levels(id),
-                	FOREIGN KEY(type) REFERENCES materials(id)
-                );
-                """;
-        if (isMysql()) {
-            sql = """
-                    CREATE TABLE IF NOT EXISTS containers (
-                        time bigint NOT NULL,
-                    	user int NOT NULL,
-                    	level int NOT NULL,
-                    	x int NOT NULL,
-                    	y int NOT NULL,
-                    	z int NOT NULL,
-                    	type int NOT NULL,
-                    	data blob DEFAULT NULL,
-                    	amount int NOT NULL,
-                    	action int NOT NULL,
-                    	FOREIGN KEY(user) REFERENCES users(id),
-                    	FOREIGN KEY(level) REFERENCES levels(id),
-                    	FOREIGN KEY(type) REFERENCES materials(id)
-                    )
-                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-                    """;
+        String sql = "CREATE TABLE IF NOT EXISTS containers (" +
+                "time " + database.getDialect().getDataType("bigint") + " NOT NULL," +
+                "user " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "level " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "x " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "y " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "z " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "type " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "data blob DEFAULT NULL," +
+                "amount " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "action " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "FOREIGN KEY(user) REFERENCES users(id)," +
+                "FOREIGN KEY(level) REFERENCES levels(id)," +
+                "FOREIGN KEY(type) REFERENCES materials(id)" +
+                ")";
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
+        } else {
+            sql += ";";
         }
         database.createTable(sql);
     }
 
     public void createIndexes() {
-        String sql = """
-                CREATE INDEX IF NOT EXISTS coordinates ON containers (x, y, z);
-                """;
-        if (isMysql()) {
-            sql = """
-                    ALTER TABLE containers ADD INDEX coordinates (x, y, z);
-                    """;
+        String sql;
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql = "ALTER TABLE containers ADD INDEX coordinates (x, y, z);";
+        } else {
+            sql = "CREATE INDEX IF NOT EXISTS coordinates ON containers (x, y, z);";
         }
         database.execute(sql, false);
     }
@@ -89,28 +72,16 @@ public class ContainerRepository extends Repository {
             return;
         }
 
-        String insertMaterialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
+        String insertMaterialQuery = database.getDialect().getInsertIgnore() + " INTO materials(name) VALUES(?);";
 
-        if (isMysql()) {
-            insertMaterialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String insertItemQuery = """
-                INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?, ?, ?);
-                """;
+        String insertItemQuery = "INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action) " +
+                "VALUES(?, (" +
+                "SELECT id FROM users WHERE uuid = ?" +
+                "), (" +
+                "SELECT id FROM levels WHERE name = ?" +
+                "), ?, ?, ?, (" +
+                "SELECT id FROM materials WHERE name = ?" +
+                "), ?, ?, ?);";
 
         ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
@@ -139,28 +110,16 @@ public class ContainerRepository extends Repository {
     }
 
     public void insertList(long time, String userUuid, Level level, int x, int y, int z, List<SimpleItemStack> items, int itemAction) {
-        String insertMaterialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
+        String insertMaterialQuery = database.getDialect().getInsertIgnore() + " INTO materials(name) VALUES(?);";
 
-        if (isMysql()) {
-            insertMaterialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String insertItemQuery = """
-                INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?, ?, ?);
-                """;
+        String insertItemQuery = "INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action) " +
+                "VALUES(?, (" +
+                "SELECT id FROM users WHERE uuid = ?" +
+                "), (" +
+                "SELECT id FROM levels WHERE name = ?" +
+                "), ?, ?, ?, (" +
+                "SELECT id FROM materials WHERE name = ?" +
+                "), ?, ?, ?);";
 
         try {
             PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
@@ -196,28 +155,16 @@ public class ContainerRepository extends Repository {
     }
 
     public void insertMap(long time, String userUuid, Level level, int x, int y, int z, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
-        String insertMaterialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
+        String insertMaterialQuery = database.getDialect().getInsertIgnore() + " INTO materials(name) VALUES(?);";
 
-        if (isMysql()) {
-            insertMaterialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String insertItemQuery = """
-                INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?, ?, ?);
-                """;
+        String insertItemQuery = "INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action) " +
+                "VALUES(?, (" +
+                "SELECT id FROM users WHERE uuid = ?" +
+                "), (" +
+                "SELECT id FROM levels WHERE name = ?" +
+                "), ?, ?, ?, (" +
+                "SELECT id FROM materials WHERE name = ?" +
+                "), ?, ?, ?);";
 
         try {
             PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);

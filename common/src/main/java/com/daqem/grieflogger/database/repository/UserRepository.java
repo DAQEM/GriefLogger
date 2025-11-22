@@ -1,12 +1,13 @@
 package com.daqem.grieflogger.database.repository;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.Database;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.database.Database;
 
 public class UserRepository extends Repository {
 
@@ -17,41 +18,22 @@ public class UserRepository extends Repository {
     }
 
     public void createTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS users (
-                	id integer PRIMARY KEY,
-                	name text NOT NULL,
-                	uuid text DEFAULT NULL UNIQUE
-                );
-                """;
-        if (isMysql()) {
-            sql = """
-                    CREATE TABLE IF NOT EXISTS users (
-                    	id int PRIMARY KEY AUTO_INCREMENT,
-                    	name varchar(16) NOT NULL,
-                    	uuid varchar(36) DEFAULT NULL UNIQUE
-                    )
-                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-                    """;
+        String sql = "CREATE TABLE IF NOT EXISTS users (" +
+                "id " + database.getDialect().getDataType("integer") + " PRIMARY KEY" + (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect ? " AUTO_INCREMENT" : "") + "," +
+                "name " + database.getDialect().getDataType("text") + " NOT NULL," +
+                "uuid " + database.getDialect().getDataType("text") + " DEFAULT NULL UNIQUE" +
+                ")";
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
+        } else {
+            sql += ";";
         }
         database.createTable(sql);
     }
 
     public void insertOrUpdateName(String name, String uuid) {
-        String query = """
-                INSERT INTO users(name, uuid)
-                VALUES(?, ?)
-                ON CONFLICT(uuid)
-                DO UPDATE SET name = ?
-                """;
-
-        if (isMysql()) {
-            query = """
-                    INSERT INTO users(name, uuid)
-                    VALUES(?, ?)
-                    ON DUPLICATE KEY UPDATE name = ?
-                    """;
-        }
+        String query = "INSERT INTO users(name, uuid) VALUES(?, ?) " +
+                database.getDialect().getOnConflictUpdate("uuid", "name = ?");
 
         try {
             PreparedStatement preparedStatement = database.prepareStatement(query);
@@ -65,20 +47,8 @@ public class UserRepository extends Repository {
     }
 
     public void insertNonPlayer(String name) {
-        String query = """
-                INSERT INTO users(name)
-                VALUES('%s')
-                ON CONFLICT(name)
-                DO NOTHING
-                """;
-
-        if (isMysql()) {
-            query = """
-                    INSERT INTO users(name)
-                    VALUES('%s')
-                    ON DUPLICATE KEY UPDATE name = name
-                    """;
-        }
+        String query = "INSERT INTO users(name) VALUES('%s') " +
+                database.getDialect().getOnConflictDoNothing("name");
 
         try {
             PreparedStatement preparedStatement = database.prepareStatement(query);

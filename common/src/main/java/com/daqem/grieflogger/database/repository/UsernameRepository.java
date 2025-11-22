@@ -1,10 +1,10 @@
 package com.daqem.grieflogger.database.repository;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.Database;
-
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.database.Database;
 
 public class UsernameRepository extends Repository {
 
@@ -15,42 +15,23 @@ public class UsernameRepository extends Repository {
     }
 
     public void createTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS usernames (
-                	id integer PRIMARY KEY,
-                	time integer NOT NULL,
-                	uuid text NOT NULL,
-                	name text NOT NULL,
-                	UNIQUE(uuid, name)
-                );
-                """;
-        if (isMysql()) {
-            sql = """
-                    CREATE TABLE IF NOT EXISTS usernames (
-                    	id int PRIMARY KEY AUTO_INCREMENT,
-                    	time bigint NOT NULL,
-                    	uuid varchar(36) NOT NULL,
-                    	name varchar(16) NOT NULL,
-                    	UNIQUE(uuid, name)
-                    )
-                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-                    """;
+        String sql = "CREATE TABLE IF NOT EXISTS usernames (" +
+                "id " + database.getDialect().getDataType("integer") + " PRIMARY KEY" + (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect ? " AUTO_INCREMENT" : "") + "," +
+                "time " + database.getDialect().getDataType("bigint") + " NOT NULL," +
+                "uuid " + database.getDialect().getDataType("varchar") + "(36) NOT NULL," +
+                "name " + database.getDialect().getDataType("varchar") + "(16) NOT NULL," +
+                "UNIQUE(uuid, name)" +
+                ")";
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
+        } else {
+            sql += ";";
         }
         database.createTable(sql);
     }
 
     public void insert(long time, String uuid, String name) {
-        String query = """
-                INSERT OR IGNORE INTO usernames(time, uuid, name)
-                VALUES(?, ?, ?);
-                """;
-
-        if (isMysql()) {
-            query = """
-                    INSERT IGNORE INTO usernames(time, uuid, name)
-                    VALUES(?, ?, ?);
-                    """;
-        }
+        String query = database.getDialect().getInsertIgnore() + " INTO usernames(time, uuid, name) VALUES(?, ?, ?);";
 
         try {
             PreparedStatement preparedStatement = database.prepareStatement(query);

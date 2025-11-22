@@ -1,15 +1,23 @@
 package com.daqem.grieflogger.database;
 
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+
+import org.jetbrains.annotations.Nullable;
+
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.GriefLoggerExpectPlatform;
 import com.daqem.grieflogger.config.GriefLoggerConfig;
+import com.daqem.grieflogger.database.dialect.IDatabaseDialect;
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
+import com.daqem.grieflogger.database.dialect.SQLiteDialect;
 import com.daqem.grieflogger.database.queue.IQueue;
 import com.daqem.grieflogger.database.queue.Queue;
-import org.jetbrains.annotations.Nullable;
-
-import java.nio.file.Path;
-import java.sql.*;
-import java.util.List;
 
 public class Database {
 
@@ -19,6 +27,7 @@ public class Database {
     private Statement statement;
     public final IQueue queue;
     public final IQueue batchQueue;
+    private IDatabaseDialect dialect;
 
     public Database() {
         queue = new Queue(this, false);
@@ -29,8 +38,10 @@ public class Database {
         boolean connected;
         if (GriefLoggerConfig.useMysql.get()) {
             connected = createMysqlConnection();
+            dialect = new MySQLDialect();
         } else {
             connected = createSqliteConnection();
+            dialect = new SQLiteDialect();
         }
         if (connection != null) {
             GriefLogger.LOGGER.info("Connected to database");
@@ -155,5 +166,9 @@ public class Database {
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to execute statements", e);
         }
+    }
+
+    public IDatabaseDialect getDialect() {
+        return dialect;
     }
 }

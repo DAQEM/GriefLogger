@@ -1,10 +1,10 @@
 package com.daqem.grieflogger.database.repository;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.Database;
-
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.database.Database;
 
 public class CommandRepository extends Repository {
 
@@ -15,70 +15,42 @@ public class CommandRepository extends Repository {
     }
 
     public void createTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS commands (
-                    time integer NOT NULL,
-                    user integer NOT NULL,
-                    level integer NOT NULL,
-                    x integer NOT NULL,
-                    y integer NOT NULL,
-                    z integer NOT NULL,
-                    command text NOT NULL,
-                    FOREIGN KEY(user) REFERENCES users(id),
-                    FOREIGN KEY(level) REFERENCES levels(id)
-                );
-                """;
-        if (isMysql()) {
-            sql = """
-                    CREATE TABLE IF NOT EXISTS commands (
-                        time bigint NOT NULL,
-                        user int NOT NULL,
-                        level int NOT NULL,
-                        x int NOT NULL,
-                        y int NOT NULL,
-                        z int NOT NULL,
-                        command varchar(256) NOT NULL,
-                        FOREIGN KEY(user) REFERENCES users(id),
-                        FOREIGN KEY(level) REFERENCES levels(id)
-                    )
-                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-                    """;
+        String sql = "CREATE TABLE IF NOT EXISTS commands (" +
+                "time " + database.getDialect().getDataType("bigint") + " NOT NULL," +
+                "user " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "level " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "x " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "y " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "z " + database.getDialect().getDataType("integer") + " NOT NULL," +
+                "command " + database.getDialect().getDataType("varchar") + "(256) NOT NULL," +
+                "FOREIGN KEY(user) REFERENCES users(id)," +
+                "FOREIGN KEY(level) REFERENCES levels(id)" +
+                ")";
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
+        } else {
+            sql += ";";
         }
         database.createTable(sql);
     }
 
     public void createIndexes() {
-        String sql = """
-                CREATE INDEX IF NOT EXISTS coordinates ON commands (x, y, z);
-                """;
-        if (isMysql()) {
-            sql = """
-                    ALTER TABLE commands ADD INDEX coordinates (x, y, z);
-                    """;
+        String sql;
+        if (database.getDialect() instanceof com.daqem.grieflogger.database.dialect.MySQLDialect) {
+            sql = "ALTER TABLE commands ADD INDEX coordinates (x, y, z);";
+        } else {
+            sql = "CREATE INDEX IF NOT EXISTS coordinates ON commands (x, y, z);";
         }
         database.execute(sql, false);
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, String command) {
-        String query = """
-                INSERT OR IGNORE INTO commands(time, user, level, x, y, z, command)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, ?);
-                """;
-
-        if (isMysql()) {
-            query = """
-                    INSERT IGNORE INTO commands(time, user, level, x, y, z, command)
-                    VALUES(?, (
-                        SELECT id FROM users WHERE uuid = ?
-                    ), (
-                        SELECT id FROM levels WHERE name = ?
-                    ), ?, ?, ?, ?);
-                    """;
-        }
+        String query = database.getDialect().getInsertIgnore() + " INTO commands(time, user, level, x, y, z, command) " +
+                "VALUES(?, (" +
+                "SELECT id FROM users WHERE uuid = ?" +
+                "), (" +
+                "SELECT id FROM levels WHERE name = ?" +
+                "), ?, ?, ?, ?);";
 
         try {
             PreparedStatement preparedStatement = database.prepareStatement(query);
