@@ -38,6 +38,7 @@
   "grieflogger.lookup.page": "Pagina",
   "grieflogger.lookup.pages": " %s/%s",
   "grieflogger.lookup.invalid_page": "%s - Ongeldig paginanummer.",
+  "grieflogger.lookup.invalid_filter": "%s - Ongeldige filter: %s.",
   "grieflogger.lookup.no_results": "%s - Geen resultaten gevonden.",
   "grieflogger.filter.action": "actie",
   "grieflogger.filter.exclude": "uitsluiten",

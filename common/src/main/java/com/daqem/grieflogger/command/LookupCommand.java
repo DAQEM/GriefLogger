@@ -3,20 +3,28 @@ package com.daqem.grieflogger.command;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.command.argument.FilterArgument;
 import com.daqem.grieflogger.command.filter.FilterList;
+import com.daqem.grieflogger.command.filter.IFilter;
 import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.daqem.grieflogger.thread.ThreadManager;
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class LookupCommand implements ICommand {
@@ -25,22 +33,33 @@ public class LookupCommand implements ICommand {
     public LiteralArgumentBuilder<CommandSourceStack> getCommand() {
         return Commands.literal("lookup")
                 .requires(source -> source.hasPermission(2))
-                .then(Commands.argument("filter1", StringArgumentType.string())
-                        .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
-                        .then(Commands.argument("filter2", StringArgumentType.string())
-                                .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
-                                .then(Commands.argument("filter3", StringArgumentType.string())
-                                        .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
-                                        .then(Commands.argument("filter4", StringArgumentType.string())
-                                                .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
-                                                .then(Commands.argument("filter5", StringArgumentType.string())
-                                                        .suggests((context, builder) -> new FilterArgument().listSuggestions(context, builder))
-                                                        .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2"), FilterArgument.getFilter(context, "filter3"), FilterArgument.getFilter(context, "filter4"), FilterArgument.getFilter(context, "filter5")), context.getSource()))))
-                                                .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2"), FilterArgument.getFilter(context, "filter3"), FilterArgument.getFilter(context, "filter4")), context.getSource()))))
-                                        .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2"), FilterArgument.getFilter(context, "filter3")), context.getSource()))))
-                                .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2")), context.getSource()))))
-                        .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1")), context.getSource()))))
-                .executes(context -> lookup(context.getSource(), new FilterList(new ArrayList<>(), context.getSource())));
+                .then(Commands.argument("filters", StringArgumentType.greedyString())
+                        .suggests(LookupCommand::suggestFilters)
+                        .executes(context -> lookup(context.getSource(), StringArgumentType.getString(context, "filters"))))
+                .executes(context -> lookup(context.getSource(), ""));
+    }
+
+    private static int lookup(CommandSourceStack source, String filtersInput) {
+        List<IFilter> filters = new ArrayList<>();
+
+        if (!filtersInput.isBlank()) {
+            // Split by whitespace to get individual filters
+            String[] parts = filtersInput.split("\\s+");
+            FilterArgument parser = new FilterArgument();
+
+            for (String part : parts) {
+                try {
+                    // Manually parse each part using your existing logic
+                    IFilter filter = parser.parse(new StringReader(part));
+                    filters.add(filter);
+                } catch (CommandSyntaxException e) {
+                    source.sendFailure(GriefLogger.translate("lookup.invalid_filter", GriefLogger.getName(), part));
+                    return 0;
+                }
+            }
+        }
+
+        return lookup(source, new FilterList(filters, source));
     }
 
     @SuppressWarnings("SameReturnValue")
@@ -58,6 +77,19 @@ public class LookupCommand implements ICommand {
             });
         }
         return 1;
+    }
+
+    private static CompletableFuture<Suggestions> suggestFilters(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
+        String remaining = builder.getRemaining();
+        // Find the last word (since greedyString gives us the whole line)
+        int lastSpace = remaining.lastIndexOf(' ');
+
+        // Create a new builder starting at the last word so suggestions replace only that word
+        int start = builder.getStart() + lastSpace + 1;
+        SuggestionsBuilder offsetBuilder = builder.createOffset(start);
+
+        // Reuse your existing FilterArgument suggestion logic
+        return new FilterArgument().listSuggestions(context, offsetBuilder);
     }
 
     private static List<IHistory> getHistory(Level level, FilterList filterList) {

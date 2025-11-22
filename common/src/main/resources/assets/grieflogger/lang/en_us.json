@@ -38,6 +38,7 @@
   "grieflogger.lookup.page": "Page",
   "grieflogger.lookup.pages": " %s/%s",
   "grieflogger.lookup.invalid_page": "%s - Invalid page number.",
+  "grieflogger.lookup.invalid_filter": "%s - Invalid filter: %s.",
   "grieflogger.lookup.no_results": "%s - No results found.",
   "grieflogger.filter.action": "action",
   "grieflogger.filter.exclude": "exclude",

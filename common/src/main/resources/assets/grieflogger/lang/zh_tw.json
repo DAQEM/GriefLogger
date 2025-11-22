@@ -38,6 +38,7 @@
   "grieflogger.lookup.page": "頁數",
   "grieflogger.lookup.pages": " %s/%s",
   "grieflogger.lookup.invalid_page": "%s - 無效的頁碼。",
+  "grieflogger.lookup.invalid_filter": "%s - 無效的篩選器：%s。",
   "grieflogger.lookup.no_results": "%s - 找不到任何結果。",
   "grieflogger.filter.action": "動作",
   "grieflogger.filter.exclude": "排除",
