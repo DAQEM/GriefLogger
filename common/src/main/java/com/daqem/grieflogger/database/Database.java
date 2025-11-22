@@ -8,10 +8,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import com.daqem.yamlconfig.YamlConfigExpectPlatform;
 import org.jetbrains.annotations.Nullable;
 
 import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.GriefLoggerExpectPlatform;
 import com.daqem.grieflogger.config.GriefLoggerConfig;
 import com.daqem.grieflogger.database.dialect.IDatabaseDialect;
 import com.daqem.grieflogger.database.dialect.MySQLDialect;
@@ -91,7 +91,7 @@ public class Database {
             GriefLogger.LOGGER.error("Failed to load SQLite driver", e);
             return false;
         }
-        Path path = GriefLoggerExpectPlatform.getConfigDirectory().resolve(GriefLogger.MOD_ID);
+        Path path = YamlConfigExpectPlatform.getConfigDirectory().resolve(GriefLogger.MOD_ID);
         if (!path.toFile().exists()) {
             //noinspection ResultOfMethodCallIgnored
             path.toFile().mkdirs();
