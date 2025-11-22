@@ -78,8 +78,8 @@ shadowJar {
 
     transform(NativeTransformer.class) {
         rootDir = project.rootDir
-        relocateNative "org/sqlite", "gl/sqlite"
-        relocateNative "org_sqlite", "gl_sqlite"
+        relocateNative "org/sqlite", "gl_sqlite"
+        relocateNative "org_sqlite", "gl_1sqlite"
     }
 
     configurations = [project.configurations.shadowBundle]
