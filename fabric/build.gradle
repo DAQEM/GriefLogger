@@ -41,8 +41,8 @@ dependencies {
     modImplementation "org.xerial:sqlite-jdbc:${project.sqlite_version}"
     shadowBundle "org.xerial:sqlite-jdbc:${project.sqlite_version}"
 
-    modImplementation "com.mysql:mysql-connector-j:8.4.0"
-    shadowBundle "com.mysql:mysql-connector-j:8.4.0"
+    modImplementation "com.mysql:mysql-connector-j:${project.mysql_version}"
+    shadowBundle "com.mysql:mysql-connector-j:${project.mysql_version}"
 
     modImplementation "curse.maven:yaml-config-1128669:${project.config_library_file_fabric}"
     modRuntimeOnly "curse.maven:ui-933200:${project.ui_library_file_fabric}"
@@ -76,48 +76,19 @@ shadowJar {
         exclude "org/sqlite/native/**"
     }
 
+    relocate "jdbc:sqlite", "jdbc:gl_sqlite"
+
     transform(NativeTransformer.class) {
         rootDir = project.rootDir
         relocateNative "org/sqlite", "gl_sqlite"
         relocateNative "org_sqlite", "gl_1sqlite"
     }
 
+    relocate "com.mysql", "gl_mysql"
+
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = "fabric-dev-shadow"
 }
-
-// JAR without SQLite
-tasks.register("shadowJarNoSQLite", ShadowJar) {
-    exclude "architectury.common.json"
-    exclude "org/slf4j/**"
-    exclude "org/sqlite/**" // Exclude SQLite driver
-
-    configurations = [project.configurations.shadowBundle]
-    archiveClassifier = "fabric-no-sqlite"
-}
-
-// JAR without MySQL
-tasks.register("shadowJarNoMySQL", ShadowJar) {
-    exclude "architectury.common.json"
-    exclude "org/slf4j/**"
-    exclude "com/mysql/**" // Exclude MySQL driver
-
-    configurations = [project.configurations.shadowBundle]
-    archiveClassifier = "fabric-no-mysql"
-}
-
-// JAR without SQLite and MySQL
-tasks.register("shadowJarNoSQLiteMySQL", ShadowJar) {
-    exclude "architectury.common.json"
-    exclude "org/slf4j/**"
-    exclude "org/sqlite/**" // Exclude SQLite driver
-    exclude "com/mysql/**" // Exclude MySQL driver
-
-    configurations = [project.configurations.shadowBundle]
-    archiveClassifier = "fabric-no-sqlite-mysql"
-}
-
-tasks.build.dependsOn shadowJarNoSQLite, shadowJarNoMySQL, shadowJarNoSQLiteMySQL
 
 remapJar {
     input.set shadowJar.archiveFile
