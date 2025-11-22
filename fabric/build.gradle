@@ -47,6 +47,7 @@ dependencies {
     modImplementation "curse.maven:yaml-config-1128669:${project.config_library_file_fabric}"
     modRuntimeOnly "curse.maven:ui-933200:${project.ui_library_file_fabric}"
 
+    modCompileOnly "me.lucko:fabric-permissions-api:0.3.1"
 }
 
 processResources {

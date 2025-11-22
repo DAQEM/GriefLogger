@@ -16,6 +16,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+// [ADD THESE IMPORTS]
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+
 public class BreakBlockEvent extends AbstractEvent {
 
     public static EventResult breakBlock(Level level, BlockPos pos, BlockState state, ServerPlayer player, @Nullable IntValue xp) {

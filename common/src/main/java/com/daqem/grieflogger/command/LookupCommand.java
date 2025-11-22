@@ -1,6 +1,7 @@
 package com.daqem.grieflogger.command;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.GriefLoggerPermissions;
 import com.daqem.grieflogger.command.argument.FilterArgument;
 import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.command.filter.IFilter;
@@ -18,7 +19,6 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
@@ -32,23 +32,23 @@ public class LookupCommand implements ICommand {
     @Override
     public LiteralArgumentBuilder<CommandSourceStack> getCommand() {
         return Commands.literal("lookup")
+                .requires(source -> GriefLoggerPermissions.check(source, "grieflogger.command.lookup", 2))
                 .then(Commands.argument("filters", StringArgumentType.greedyString())
                         .suggests(LookupCommand::suggestFilters)
                         .executes(context -> lookup(context.getSource(), StringArgumentType.getString(context, "filters"))))
                 .executes(context -> lookup(context.getSource(), ""));
     }
 
+    // ... rest of the methods (lookup, suggestFilters, getHistory) remain exactly the same as original ...
     private static int lookup(CommandSourceStack source, String filtersInput) {
         List<IFilter> filters = new ArrayList<>();
 
         if (!filtersInput.isBlank()) {
-            // Split by whitespace to get individual filters
             String[] parts = filtersInput.split("\\s+");
             FilterArgument parser = new FilterArgument();
 
             for (String part : parts) {
                 try {
-                    // Manually parse each part using your existing logic
                     IFilter filter = parser.parse(new StringReader(part));
                     filters.add(filter);
                 } catch (CommandSyntaxException e) {
@@ -61,7 +61,6 @@ public class LookupCommand implements ICommand {
         return lookup(source, new FilterList(filters, source));
     }
 
-    @SuppressWarnings("SameReturnValue")
     private static int lookup(CommandSourceStack source, FilterList filterList) {
         if (source.getPlayer() instanceof GriefLoggerServerPlayer player) {
             ThreadManager.submit(() -> getHistory(source.getLevel(), filterList), filteredHistory -> {
@@ -80,25 +79,18 @@ public class LookupCommand implements ICommand {
 
     private static CompletableFuture<Suggestions> suggestFilters(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
         String remaining = builder.getRemaining();
-        // Find the last word (since greedyString gives us the whole line)
         int lastSpace = remaining.lastIndexOf(' ');
-
-        // Create a new builder starting at the last word so suggestions replace only that word
         int start = builder.getStart() + lastSpace + 1;
         SuggestionsBuilder offsetBuilder = builder.createOffset(start);
-
-        // Reuse your existing FilterArgument suggestion logic
         return new FilterArgument().listSuggestions(context, offsetBuilder);
     }
 
     private static List<IHistory> getHistory(Level level, FilterList filterList) {
         List<IHistory> history = new ArrayList<>();
-
         history.addAll(Services.BLOCK.getFilteredBlockHistory(level, filterList));
         history.addAll(Services.SESSION.getFilteredSessionHistory(level, filterList));
         history.addAll(Services.CONTAINER.getFilteredContainerHistory(level, filterList));
         history.addAll(Services.ITEM.getFilteredItemHistory(level, filterList));
-
         return history.stream()
                 .sorted((x, y) -> Long.compare(y.getTime().time(), x.getTime().time()))
                 .collect(Collectors.toList());
