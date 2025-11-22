@@ -5,6 +5,9 @@ import com.daqem.grieflogger.command.argument.FilterArgument;
 import com.daqem.grieflogger.command.filter.*;
 import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.database.service.Services;
+import com.daqem.grieflogger.model.action.BlockAction;
+import com.daqem.grieflogger.model.action.ItemAction;
+import com.daqem.grieflogger.model.action.SessionAction;
 import com.daqem.grieflogger.model.history.*;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.daqem.grieflogger.thread.ThreadManager;
@@ -60,13 +63,25 @@ public class LookupCommand implements ICommand {
     }
 
     private static List<IHistory> getHistory(Level level, FilterList filterList) {
-        List<SessionHistory> filteredSessionHistory = Services.SESSION.getFilteredSessionHistory(level, filterList);
-        List<IHistory> filteredBlockHistory = Services.BLOCK.getFilteredBlockHistory(level, filterList);
-        List<IHistory> filteredContainerHistory = Services.CONTAINER.getFilteredContainerHistory(level, filterList);
-        List<ItemHistory> filteredItemHistory = Services.ITEM.getFilteredItemHistory(level, filterList);
-        return new ArrayList<>(List.of(filteredSessionHistory, filteredBlockHistory, filteredContainerHistory, filteredItemHistory))
-                .stream()
-                .flatMap(List::stream)
+        List<IHistory> history = new ArrayList<>();
+
+        if (filterList.getActionFilter().isPresent()) {
+            ActionFilter actionFilter = filterList.getActionFilter().orElseThrow();
+            if (actionFilter.getActions().stream().anyMatch(action -> action instanceof BlockAction)) {
+                history.addAll(Services.BLOCK.getFilteredBlockHistory(level, filterList));
+            }
+            if (actionFilter.getActions().stream().anyMatch(action -> action instanceof SessionAction)) {
+                history.addAll(Services.SESSION.getFilteredSessionHistory(level, filterList));
+            }
+            if (actionFilter.getActions().stream().anyMatch(action -> action.equals(ItemAction.ADD_ITEM) || action.equals(ItemAction.REMOVE_ITEM))) {
+                history.addAll(Services.CONTAINER.getFilteredContainerHistory(level, filterList));
+            }
+            if (actionFilter.getActions().stream().anyMatch(action -> action instanceof ItemAction && !action.equals(ItemAction.ADD_ITEM) && !action.equals(ItemAction.REMOVE_ITEM))) {
+                history.addAll(Services.ITEM.getFilteredItemHistory(level, filterList));
+            }
+        }
+
+        return history.stream()
                 .sorted((x, y) -> Long.compare(y.getTime().time(), x.getTime().time()))
                 .collect(Collectors.toList());
     }
