@@ -5,6 +5,7 @@ run/
 out/
 *.iml
 .gradle/
+.gradle-cache/
 output/
 bin/
 libs/
@@ -17,4 +18,8 @@ classes/
 .vscode
 .settings
 *.launch
-.architectury-transformer
+
+relocate_natives/.venv/
+relocate_natives/__pycache__/
+relocate_natives/apple-codesign/
+relocate_natives/cache/

@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import NativeTransformer
 
 plugins {
     id "com.github.johnrengelman.shadow"
@@ -43,8 +44,8 @@ dependencies {
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
 
-    modImplementation "org.xerial:sqlite-jdbc:3.47.2.0"
-    shadowBundle "org.xerial:sqlite-jdbc:3.47.2.0"
+    modImplementation "org.xerial:sqlite-jdbc:${project.sqlite_version}"
+    shadowBundle "org.xerial:sqlite-jdbc:${project.sqlite_version}"
 
     modImplementation "com.mysql:mysql-connector-j:8.4.0"
     shadowBundle "com.mysql:mysql-connector-j:8.4.0"
@@ -76,8 +77,15 @@ processResources {
 }
 
 shadowJar {
-    exclude "architectury.common.json"
-    exclude "org/slf4j/**"
+    relocate "org.sqlite", "gl_sqlite", {
+        exclude "org/sqlite/native/**"
+    }
+
+    transform(NativeTransformer.class) {
+        rootDir = project.rootDir
+        relocateNative "org/sqlite", "gl/sqlite"
+        relocateNative "org_sqlite", "gl_sqlite"
+    }
 
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = "neoforge-dev-shadow"
