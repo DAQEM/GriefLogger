@@ -23,7 +23,7 @@ public class TimeFilter implements IFilter {
 
     @Override
     public String getName() {
-        return GriefLogger.translate("filter.time").getString();
+        return "time";
     }
 
     @Override

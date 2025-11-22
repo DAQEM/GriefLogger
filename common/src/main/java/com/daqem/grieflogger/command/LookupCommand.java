@@ -55,7 +55,7 @@ public class LookupCommand implements ICommand {
                 }
                 List<Page> pages = Page.convertToPages(filteredHistory, false);
                 player.grieflogger$setPages(pages);
-                Page pageToDisplay = pages.get(0);
+                Page pageToDisplay = pages.getFirst();
                 pageToDisplay.sendToPlayer((ServerPlayer) player);
             });
         }
@@ -79,6 +79,11 @@ public class LookupCommand implements ICommand {
             if (actionFilter.getActions().stream().anyMatch(action -> action instanceof ItemAction && !action.equals(ItemAction.ADD_ITEM) && !action.equals(ItemAction.REMOVE_ITEM))) {
                 history.addAll(Services.ITEM.getFilteredItemHistory(level, filterList));
             }
+        } else {
+            history.addAll(Services.BLOCK.getFilteredBlockHistory(level, filterList));
+            history.addAll(Services.SESSION.getFilteredSessionHistory(level, filterList));
+            history.addAll(Services.CONTAINER.getFilteredContainerHistory(level, filterList));
+            history.addAll(Services.ITEM.getFilteredItemHistory(level, filterList));
         }
 
         return history.stream()

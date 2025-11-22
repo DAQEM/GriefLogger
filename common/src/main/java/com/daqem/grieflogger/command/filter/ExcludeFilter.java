@@ -21,7 +21,7 @@ public class ExcludeFilter extends ItemFilter {
 
     @Override
     public String getName() {
-        return GriefLogger.translate("filter.exclude").getString();
+        return "exclude";
     }
 
     @Override

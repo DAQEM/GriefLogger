@@ -7,6 +7,8 @@ import com.daqem.yamlconfig.api.config.ConfigType;
 import com.daqem.yamlconfig.api.config.entry.IConfigEntry;
 import com.daqem.yamlconfig.impl.config.ConfigBuilder;
 
+import java.util.List;
+
 public class GriefLoggerConfig {
 
     public static void init() {
@@ -23,7 +25,7 @@ public class GriefLoggerConfig {
 
     public static final IConfigEntry<Integer> maxPageSize;
 
-    public static final IConfigEntry<Boolean> serverSideOnlyMode;
+    public static final IConfigEntry<String> language;
 
     public static final IConfigEntry<Integer> queueFrequency;
     public static final IConfigEntry<Integer> helloFrequency;
@@ -62,8 +64,8 @@ public class GriefLoggerConfig {
         config.pop();
 
         config.push("server");
-        serverSideOnlyMode = config.defineBoolean("serverSideOnlyMode", true)
-                .withComments("Whether to run the mod in server side only mode");
+        language = config.defineString("language", "en_us", 1, 10, List.of("en_us", "nl_nl", "zh_tw"))
+                .withComments("The language to use for translations (en_us, nl_nl, zh_tw)");
         config.pop();
 
         config.push("queue");

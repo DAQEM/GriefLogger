@@ -24,7 +24,7 @@ public class ActionFilter implements IFilter {
 
     @Override
     public String getName() {
-        return GriefLogger.translate("filter.action").getString();
+        return "action";
     }
 
     @Override

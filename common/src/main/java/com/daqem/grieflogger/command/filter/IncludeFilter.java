@@ -24,7 +24,7 @@ public class IncludeFilter extends ItemFilter {
 
     @Override
     public String getName() {
-        return GriefLogger.translate("filter.include").getString();
+        return "include";
     }
 
     @Override

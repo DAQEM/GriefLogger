@@ -26,7 +26,7 @@ public class UserFilter implements IFilter {
 
     @Override
     public String getName() {
-        return GriefLogger.translate("filter.user").getString();
+        return "user";
     }
 
     @Override
