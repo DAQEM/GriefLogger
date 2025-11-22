@@ -7,6 +7,6 @@ import dev.architectury.event.events.common.LifecycleEvent;
 public class ServerStartedEvent {
 
     public static void registerEvent() {
-        LifecycleEvent.SERVER_STARTED.register(server -> LanguageManager.load());
+        LifecycleEvent.SERVER_STARTED.register(LanguageManager::load);
     }
 }

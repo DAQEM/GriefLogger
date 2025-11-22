@@ -1,10 +1,14 @@
 package com.daqem.grieflogger.model.history;
 
+import java.util.UUID;
+
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.i18n.LanguageManager;
 import com.daqem.grieflogger.model.BlockPosition;
 import com.daqem.grieflogger.model.Time;
 import com.daqem.grieflogger.model.User;
 import com.daqem.grieflogger.model.action.BlockAction;
+
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -14,8 +18,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
-
-import java.util.UUID;
 
 public class BlockHistory extends History {
 
@@ -43,7 +45,12 @@ public class BlockHistory extends History {
     public Component getMaterialComponent() {
         Holder.Reference<Block> blockReference = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(material)).orElse(null);
         Item item = blockReference != null ? blockReference.value().asItem() : Items.AIR;
-        MutableComponent mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
+        MutableComponent mutableComponent;
+        if (blockReference != null) {
+            mutableComponent = GriefLogger.themedLiteral(LanguageManager.getString(blockReference.value().getDescriptionId()));
+        } else {
+            mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
+        }
         if (item != Items.AIR) {
             return mutableComponent
                     .withStyle(mutableComponent

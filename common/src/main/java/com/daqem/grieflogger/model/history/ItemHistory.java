@@ -1,19 +1,21 @@
 package com.daqem.grieflogger.model.history;
 
+import java.util.UUID;
+
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.i18n.LanguageManager;
 import com.daqem.grieflogger.model.BlockPosition;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.Time;
 import com.daqem.grieflogger.model.User;
 import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
+
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.UUID;
 
 public class ItemHistory extends History {
 
@@ -44,7 +46,7 @@ public class ItemHistory extends History {
 
     @Override
     public Component getMaterialComponent() {
-        MutableComponent mutableComponent = GriefLogger.themedLiteral(this.itemStack.getItem().arch$registryName().toString().replace("minecraft:", ""));
+        MutableComponent mutableComponent = GriefLogger.themedLiteral(LanguageManager.getString(this.itemStack.getItem().getDescriptionId()));
         return mutableComponent
                 .withStyle(mutableComponent
                         .getStyle()
