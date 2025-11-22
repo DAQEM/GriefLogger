@@ -23,19 +23,24 @@ public class TickEvents {
                         }
                     }
             );
+
             if (lastTick % GriefLoggerConfig.queueFrequency.get() == 0) {
-                ThreadManager.execute(() -> {
-                    Database database = GriefLogger.getDatabase();
-                    database.queue.execute();
-                    database.batchQueue.execute();
-                });
+                Database database = GriefLogger.getDatabase();
+                if (database != null && (!database.queue.isEmpty() || !database.batchQueue.isEmpty())) {
+                    ThreadManager.execute(() -> {
+                        database.queue.execute();
+                        database.batchQueue.execute();
+                    });
+                }
             }
 
             if (lastTick % GriefLoggerConfig.helloFrequency.get() == 0) {
                 ThreadManager.execute(() -> {
-                    //Send hello packet to server to keep connection alive
+                    // Send hello packet to server to keep connection alive
                     Database database = GriefLogger.getDatabase();
-                    database.queue.hello();
+                    if (database != null) {
+                        database.queue.hello();
+                    }
                 });
             }
 

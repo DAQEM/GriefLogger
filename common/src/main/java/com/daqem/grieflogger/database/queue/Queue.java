@@ -47,4 +47,9 @@ public class Queue implements IQueue {
             }
         });
     }
+
+    @Override
+    public boolean isEmpty() {
+        return this.queue.isEmpty();
+    }
 }

@@ -5,4 +5,5 @@ public interface IQueue {
     void add(SqlTask task);
     void execute();
     void hello();
+    boolean isEmpty();
 }
