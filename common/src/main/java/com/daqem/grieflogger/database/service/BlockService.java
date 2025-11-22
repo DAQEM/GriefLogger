@@ -1,5 +1,6 @@
 package com.daqem.grieflogger.database.service;
 
+import com.daqem.grieflogger.command.filter.ActionFilter;
 import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.BlockRepository;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class BlockService {
@@ -104,6 +106,10 @@ public class BlockService {
     }
 
     public List<IHistory> getFilteredBlockHistory(Level level, FilterList filterList) {
+        Optional<ActionFilter> actionFilter = filterList.getActionFilter();
+        if (actionFilter.isPresent() && actionFilter.get().getActions().stream().noneMatch(action -> action instanceof BlockAction)) {
+            return List.of();
+        }
         return blockRepository.getFilteredBlockHistory(
                 level.dimension().location().toString(),
                 filterList

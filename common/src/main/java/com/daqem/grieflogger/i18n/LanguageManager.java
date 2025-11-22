@@ -9,6 +9,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Map;
@@ -21,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import dev.architectury.platform.Platform;
 import net.minecraft.locale.Language;
 import net.minecraft.server.MinecraftServer;
@@ -86,8 +88,7 @@ public class LanguageManager {
 
             // 4. Parse and cache
             String json = Files.readString(cacheFile);
-            Map<String, String> translations = GSON.fromJson(json,
-                    com.google.gson.reflect.TypeToken.getParameterized(Map.class, String.class, String.class).getType());
+            Map<String, String> translations = GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, String.class).getType());
 
             TRANSLATIONS.putAll(translations);
         } catch (Exception e) {
@@ -157,7 +158,7 @@ public class LanguageManager {
         MessageDigest sha1;
         try {
             sha1 = MessageDigest.getInstance("SHA-1");
-        } catch (java.security.NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
         return HexFormat.of().formatHex(sha1.digest(data)).toLowerCase();

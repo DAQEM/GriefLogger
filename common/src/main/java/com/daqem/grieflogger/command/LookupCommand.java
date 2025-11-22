@@ -2,13 +2,10 @@ package com.daqem.grieflogger.command;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.command.argument.FilterArgument;
-import com.daqem.grieflogger.command.filter.*;
+import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.database.service.Services;
-import com.daqem.grieflogger.model.action.BlockAction;
-import com.daqem.grieflogger.model.action.ItemAction;
-import com.daqem.grieflogger.model.action.SessionAction;
-import com.daqem.grieflogger.model.history.*;
+import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.daqem.grieflogger.thread.ThreadManager;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -42,7 +39,8 @@ public class LookupCommand implements ICommand {
                                                 .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2"), FilterArgument.getFilter(context, "filter3"), FilterArgument.getFilter(context, "filter4")), context.getSource()))))
                                         .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2"), FilterArgument.getFilter(context, "filter3")), context.getSource()))))
                                 .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1"), FilterArgument.getFilter(context, "filter2")), context.getSource()))))
-                .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1")), context.getSource()))));
+                        .executes(context -> lookup(context.getSource(), new FilterList(List.of(FilterArgument.getFilter(context, "filter1")), context.getSource()))))
+                .executes(context -> lookup(context.getSource(), new FilterList(new ArrayList<>(), context.getSource())));
     }
 
     @SuppressWarnings("SameReturnValue")
@@ -65,26 +63,10 @@ public class LookupCommand implements ICommand {
     private static List<IHistory> getHistory(Level level, FilterList filterList) {
         List<IHistory> history = new ArrayList<>();
 
-        if (filterList.getActionFilter().isPresent()) {
-            ActionFilter actionFilter = filterList.getActionFilter().orElseThrow();
-            if (actionFilter.getActions().stream().anyMatch(action -> action instanceof BlockAction)) {
-                history.addAll(Services.BLOCK.getFilteredBlockHistory(level, filterList));
-            }
-            if (actionFilter.getActions().stream().anyMatch(action -> action instanceof SessionAction)) {
-                history.addAll(Services.SESSION.getFilteredSessionHistory(level, filterList));
-            }
-            if (actionFilter.getActions().stream().anyMatch(action -> action.equals(ItemAction.ADD_ITEM) || action.equals(ItemAction.REMOVE_ITEM))) {
-                history.addAll(Services.CONTAINER.getFilteredContainerHistory(level, filterList));
-            }
-            if (actionFilter.getActions().stream().anyMatch(action -> action instanceof ItemAction && !action.equals(ItemAction.ADD_ITEM) && !action.equals(ItemAction.REMOVE_ITEM))) {
-                history.addAll(Services.ITEM.getFilteredItemHistory(level, filterList));
-            }
-        } else {
-            history.addAll(Services.BLOCK.getFilteredBlockHistory(level, filterList));
-            history.addAll(Services.SESSION.getFilteredSessionHistory(level, filterList));
-            history.addAll(Services.CONTAINER.getFilteredContainerHistory(level, filterList));
-            history.addAll(Services.ITEM.getFilteredItemHistory(level, filterList));
-        }
+        history.addAll(Services.BLOCK.getFilteredBlockHistory(level, filterList));
+        history.addAll(Services.SESSION.getFilteredSessionHistory(level, filterList));
+        history.addAll(Services.CONTAINER.getFilteredContainerHistory(level, filterList));
+        history.addAll(Services.ITEM.getFilteredItemHistory(level, filterList));
 
         return history.stream()
                 .sorted((x, y) -> Long.compare(y.getTime().time(), x.getTime().time()))

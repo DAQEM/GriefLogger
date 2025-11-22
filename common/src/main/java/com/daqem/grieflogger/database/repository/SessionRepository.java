@@ -88,9 +88,9 @@ public class SessionRepository extends Repository {
                 AND sessions.time > ?
                 AND (? IS NULL OR sessions.action IN (%s))
                 AND (? IS NULL OR users.id IN (%s))
-                AND sessions.x BETWEEN ? AND ?
-                AND sessions.y BETWEEN ? AND ?
-                AND sessions.z BETWEEN ? AND ?
+                AND (? IS NULL OR sessions.x BETWEEN ? AND ?)
+                AND (? IS NULL OR sessions.y BETWEEN ? AND ?)
+                AND (? IS NULL OR sessions.z BETWEEN ? AND ?)
                 ORDER BY sessions.time DESC
                 LIMIT 1000;
                 """.formatted(actions, users);
@@ -111,12 +111,32 @@ public class SessionRepository extends Repository {
                 preparedStatement.setString(4, users);
             }
 
-            preparedStatement.setInt(5, filterList.getRadiusMinX());
-            preparedStatement.setInt(6, filterList.getRadiusMaxX());
-            preparedStatement.setInt(7, filterList.getRadiusMinY());
-            preparedStatement.setInt(8, filterList.getRadiusMaxY());
-            preparedStatement.setInt(9, filterList.getRadiusMinZ());
-            preparedStatement.setInt(10, filterList.getRadiusMaxZ());
+            if (filterList.getRadiusFilter().isEmpty()) {
+                preparedStatement.setNull(5, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(5, "not null");
+            }
+
+            preparedStatement.setInt(6, filterList.getRadiusMinX());
+            preparedStatement.setInt(7, filterList.getRadiusMaxX());
+
+            if (filterList.getRadiusFilter().isEmpty()) {
+                preparedStatement.setNull(8, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(8, "not null");
+            }
+
+            preparedStatement.setInt(9, filterList.getRadiusMinY());
+            preparedStatement.setInt(10, filterList.getRadiusMaxY());
+
+            if (filterList.getRadiusFilter().isEmpty()) {
+                preparedStatement.setNull(11, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(11, "not null");
+            }
+
+            preparedStatement.setInt(12, filterList.getRadiusMinZ());
+            preparedStatement.setInt(13, filterList.getRadiusMaxZ());
 
             List<SessionHistory> sessionHistory = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();

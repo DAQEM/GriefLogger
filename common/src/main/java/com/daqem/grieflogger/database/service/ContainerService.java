@@ -1,9 +1,11 @@
 package com.daqem.grieflogger.database.service;
 
+import com.daqem.grieflogger.command.filter.ActionFilter;
 import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.ContainerRepository;
 import com.daqem.grieflogger.model.SimpleItemStack;
+import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.IHistory;
 import net.minecraft.core.BlockPos;
@@ -12,6 +14,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ContainerService {
@@ -87,9 +90,17 @@ public class ContainerService {
     }
 
     public List<IHistory> getFilteredContainerHistory(Level level, FilterList filterList) {
+        Optional<ActionFilter> actionFilter = filterList.getActionFilter();
+        if ((actionFilter.isPresent() && actionFilter.get().getActions().stream().noneMatch(ContainerService::isValidItemAction))) {
+            return List.of();
+        }
         return containerRepository.getFilteredContainerHistory(
                 level,
                 filterList
         );
+    }
+
+    private static boolean isValidItemAction(IAction action) {
+        return action.equals(ItemAction.ADD_ITEM) || action.equals(ItemAction.REMOVE_ITEM);
     }
 }

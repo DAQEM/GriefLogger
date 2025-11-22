@@ -248,9 +248,9 @@ public class BlockRepository extends Repository {
                     AND (? IS NULL OR users.id IN (%s))
                     AND (? IS NULL OR materials.name IN ('%s'))
                     AND (? IS NULL OR materials.name NOT IN ('%s'))
-                    AND blocks.x BETWEEN ? AND ?
-                    AND blocks.y BETWEEN ? AND ?
-                    AND blocks.z BETWEEN ? AND ?
+                    AND (? IS NULL OR blocks.x BETWEEN ? AND ?)
+                    AND (? IS NULL OR blocks.y BETWEEN ? AND ?)
+                    AND (? IS NULL OR blocks.z BETWEEN ? AND ?)
                 ORDER BY
                     blocks.time DESC
                 LIMIT 1000;
@@ -284,12 +284,32 @@ public class BlockRepository extends Repository {
                 preparedStatement.setString(6, "not null");
             }
 
-            preparedStatement.setInt(7, filterList.getRadiusMinX());
-            preparedStatement.setInt(8, filterList.getRadiusMaxX());
-            preparedStatement.setInt(9, filterList.getRadiusMinY());
-            preparedStatement.setInt(10, filterList.getRadiusMaxY());
-            preparedStatement.setInt(11, filterList.getRadiusMinZ());
-            preparedStatement.setInt(12, filterList.getRadiusMaxZ());
+            if (filterList.getRadiusFilter().isEmpty()) {
+                preparedStatement.setNull(7, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(7, "not null");
+            }
+
+            preparedStatement.setInt(8, filterList.getRadiusMinX());
+            preparedStatement.setInt(9, filterList.getRadiusMaxX());
+
+            if (filterList.getRadiusFilter().isEmpty()) {
+                preparedStatement.setNull(10, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(10, "not null");
+            }
+
+            preparedStatement.setInt(11, filterList.getRadiusMinY());
+            preparedStatement.setInt(12, filterList.getRadiusMaxY());
+
+            if (filterList.getRadiusFilter().isEmpty()) {
+                preparedStatement.setNull(13, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(13, "not null");
+            }
+
+            preparedStatement.setInt(14, filterList.getRadiusMinZ());
+            preparedStatement.setInt(15, filterList.getRadiusMaxZ());
 
             List<IHistory> blockHistory = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();

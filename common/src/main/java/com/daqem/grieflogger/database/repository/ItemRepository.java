@@ -172,9 +172,9 @@ public class ItemRepository extends Repository {
                 AND (? IS NULL OR users.id IN (%s))
                 AND (? IS NULL OR materials.name IN ('%s'))
                 AND (? IS NULL OR materials.name NOT IN ('%s'))
-                AND items.x BETWEEN ? AND ?
-                AND items.y BETWEEN ? AND ?
-                AND items.z BETWEEN ? AND ?
+                AND (? IS NULL OR items.x BETWEEN ? AND ?)
+                AND (? IS NULL OR items.y BETWEEN ? AND ?)
+                AND (? IS NULL OR items.z BETWEEN ? AND ?)
                 ORDER BY items.time DESC
                 LIMIT 1000;
                 """.formatted(actions, users, includeMaterials, excludeMaterials);
@@ -207,12 +207,32 @@ public class ItemRepository extends Repository {
                 preparedStatement.setString(6, "not null");
             }
 
-            preparedStatement.setInt(7, filterList.getRadiusMinX());
-            preparedStatement.setInt(8, filterList.getRadiusMaxX());
-            preparedStatement.setInt(9, filterList.getRadiusMinY());
-            preparedStatement.setInt(10, filterList.getRadiusMaxY());
-            preparedStatement.setInt(11, filterList.getRadiusMinZ());
-            preparedStatement.setInt(12, filterList.getRadiusMaxZ());
+            if (filterList.getRadiusFilter().isEmpty()) {
+                preparedStatement.setNull(7, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(7, "not null");
+            }
+
+            preparedStatement.setInt(8, filterList.getRadiusMinX());
+            preparedStatement.setInt(9, filterList.getRadiusMaxX());
+
+            if (filterList.getRadiusFilter().isEmpty()) {
+                preparedStatement.setNull(10, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(10, "not null");
+            }
+
+            preparedStatement.setInt(11, filterList.getRadiusMinY());
+            preparedStatement.setInt(12, filterList.getRadiusMaxY());
+
+            if (filterList.getRadiusFilter().isEmpty()) {
+                preparedStatement.setNull(13, Types.VARCHAR);
+            } else {
+                preparedStatement.setString(13, "not null");
+            }
+
+            preparedStatement.setInt(14, filterList.getRadiusMinZ());
+            preparedStatement.setInt(15, filterList.getRadiusMaxZ());
 
             List<ItemHistory> itemHistory = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();

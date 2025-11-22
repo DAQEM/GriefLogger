@@ -1,15 +1,16 @@
 package com.daqem.grieflogger.database.service;
 
+import com.daqem.grieflogger.command.filter.ActionFilter;
 import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.SessionRepository;
 import com.daqem.grieflogger.model.action.SessionAction;
 import com.daqem.grieflogger.model.history.SessionHistory;
-import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class SessionService {
@@ -39,6 +40,15 @@ public class SessionService {
     }
 
     public List<SessionHistory> getFilteredSessionHistory(Level level, FilterList filterList) {
+        Optional<ActionFilter> actionFilter = filterList.getActionFilter();
+        if ((actionFilter.isPresent() && actionFilter.get().getActions().stream().noneMatch(action -> action instanceof SessionAction))
+                ||
+                (filterList.getIncludeFilter().isPresent())
+                ||
+                (filterList.getExcludeFilter().isPresent())
+        ) {
+            return List.of();
+        }
         return sessionRepository.getFilteredSessionHistory(
                 level.dimension().location().toString(),
                 filterList
