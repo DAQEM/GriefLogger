@@ -6,7 +6,8 @@ public enum BlockAction implements IAction {
     BREAK_BLOCK(0, Operation.REMOVE),
     PLACE_BLOCK(1, Operation.ADD),
     INTERACT_BLOCK(2, Operation.NEUTRAL),
-    KILL_ENTITY(3, Operation.REMOVE);
+    KILL_ENTITY(3, Operation.REMOVE),
+    INTERACT_ENTITY(4, Operation.NEUTRAL);
 
     private final int id;
     private final Operation operation;

@@ -9,6 +9,7 @@
   "grieflogger.action.place_block.past": "placed",
   "grieflogger.action.interact_block.past": "clicked",
   "grieflogger.action.kill_entity.past": "killed",
+  "grieflogger.action.interact_entity.past": "clicked",
   "grieflogger.action.add_item.past": "added",
   "grieflogger.action.remove_item.past": "removed",
   "grieflogger.action.drop_item.past": "dropped",

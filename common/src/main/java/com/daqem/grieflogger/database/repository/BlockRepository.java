@@ -35,8 +35,7 @@ public class BlockRepository extends Repository {
                 "type " + database.getDialect().getDataType("integer") + " NOT NULL," +
                 "action " + database.getDialect().getDataType("integer") + " NOT NULL," +
                 "FOREIGN KEY(user) REFERENCES users(id)," +
-                "FOREIGN KEY(level) REFERENCES levels(id)," +
-                "FOREIGN KEY(type) REFERENCES materials(id)" +
+                "FOREIGN KEY(level) REFERENCES levels(id)" +
                 ")";
         if (database.getDialect() instanceof MySQLDialect) {
             sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
@@ -118,8 +117,6 @@ public class BlockRepository extends Repository {
         });
     }
 
-    // ... getBlockHistory, getInteractionHistory, etc ...
-
     public List<IHistory> getBlockHistory(String levelName, int x, int y, int z) {
         List<IHistory> blockHistory = new ArrayList<>();
         String query = """
@@ -161,14 +158,17 @@ public class BlockRepository extends Repository {
     public List<IHistory> getInteractionHistory(String levelName, int x, int y, int z) {
         List<IHistory> blockHistory = new ArrayList<>();
         String query = """
-                SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z, materials.name, blocks.action
+                SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z,
+                CASE WHEN blocks.action = 4 THEN entities.name ELSE materials.name END,
+                blocks.action
                 FROM blocks
                 INNER JOIN users ON blocks.user = users.id
                 INNER JOIN levels ON blocks.level = (
                     SELECT id FROM levels WHERE name = ?
                 )
-                INNER JOIN materials ON blocks.type = materials.id
-                WHERE blocks.level = levels.id AND blocks.x = ? AND blocks.y = ? AND blocks.z = ? AND blocks.action = 2
+                LEFT JOIN materials ON blocks.type = materials.id AND blocks.action = 2
+                LEFT JOIN entities ON blocks.type = entities.id AND blocks.action = 4
+                WHERE blocks.level = levels.id AND blocks.x = ? AND blocks.y = ? AND blocks.z = ? AND (blocks.action = 2 OR blocks.action = 4)
                 ORDER BY blocks.time DESC
                 """;
 
@@ -216,8 +216,6 @@ public class BlockRepository extends Repository {
     }
 
     public List<IHistory> getFilteredBlockHistory(String levelName, FilterList filterList) {
-        // ... implementation matches original but ensuring imports ...
-        // Original implementation omitted for brevity as it only reads
         @Nullable String actions = filterList.getActionString();
         @Nullable String users = filterList.getUserString();
         @Nullable String includeMaterials = filterList.getIncludeMaterialsString();
@@ -232,7 +230,7 @@ public class BlockRepository extends Repository {
                     blocks.y,
                     blocks.z,
                     CASE
-                        WHEN blocks.action = 3 THEN entities.name
+                        WHEN blocks.action = 3 OR blocks.action = 4 THEN entities.name
                         ELSE materials.name
                     END AS type_name,
                     blocks.action
@@ -240,8 +238,8 @@ public class BlockRepository extends Repository {
                     blocks
                 INNER JOIN users ON blocks.user = users.id
                 INNER JOIN levels ON blocks.level = levels.id
-                LEFT JOIN materials ON blocks.type = materials.id AND blocks.action != 3
-                LEFT JOIN entities ON blocks.type = entities.id AND blocks.action = 3
+                LEFT JOIN materials ON blocks.type = materials.id AND blocks.action != 3 AND blocks.action != 4
+                LEFT JOIN entities ON blocks.type = entities.id AND (blocks.action = 3 OR blocks.action = 4)
                 WHERE
                     levels.name = ?
                     AND blocks.time > ?
