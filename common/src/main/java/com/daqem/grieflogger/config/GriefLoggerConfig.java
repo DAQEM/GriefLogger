@@ -13,6 +13,7 @@ public class GriefLoggerConfig {
     }
 
     public static final Supplier<Boolean> useMysql;
+    public static final Supplier<String> sqlDriver;
     public static final Supplier<String> mysqlHost;
     public static final Supplier<Integer> mysqlPort;
     public static final Supplier<String> mysqlDatabase;
@@ -31,13 +32,14 @@ public class GriefLoggerConfig {
     static {
         IConfigBuilder config = ConfigBuilders.newTomlConfig(GriefLogger.MOD_ID, GriefLogger.MOD_ID, true);
         config.push("database");
-        useMysql = config.comment("Whether to use MySQL or SQLite").onlyOnServer().define("useMysql", false);
-        mysqlHost = config.comment("MySQL host").onlyOnServer().define("mysqlHost", "localhost", 1, 255);
-        mysqlPort = config.comment("MySQL port").onlyOnServer().define("mysqlPort", 3306, 1, 65535);
-        mysqlDatabase = config.comment("MySQL database").onlyOnServer().define("mysqlDatabase", "database", 1, 255);
-        mysqlUsername = config.comment("MySQL username").onlyOnServer().define("mysqlUsername", "username", 1, 255);
-        mysqlPassword = config.comment("MySQL password").onlyOnServer().define("mysqlPassword", "password", 1, 255);
-        mysqlTimeout = config.comment("MySQL timeout").onlyOnServer().define("mysqlTimeout", 5000, 1, 60000);
+        useMysql = config.comment("Whether to use MySQL/MariaDB or SQLite").onlyOnServer().define("useMysql", false);
+        sqlDriver = config.comment("SQL driver to use when useMysql is true (mysql or mariadb)").onlyOnServer().define("sqlDriver", "mysql", 1, 10);
+        mysqlHost = config.comment("MySQL/MariaDB host").onlyOnServer().define("mysqlHost", "localhost", 1, 255);
+        mysqlPort = config.comment("MySQL/MariaDB port").onlyOnServer().define("mysqlPort", 3306, 1, 65535);
+        mysqlDatabase = config.comment("MySQL/MariaDB database").onlyOnServer().define("mysqlDatabase", "database", 1, 255);
+        mysqlUsername = config.comment("MySQL/MariaDB username").onlyOnServer().define("mysqlUsername", "username", 1, 255);
+        mysqlPassword = config.comment("MySQL/MariaDB password").onlyOnServer().define("mysqlPassword", "password", 1, 255);
+        mysqlTimeout = config.comment("MySQL/MariaDB timeout").onlyOnServer().define("mysqlTimeout", 5000, 1, 60000);
         useIndexes = config.comment("Whether to use indexes (improves inspect/lookup speed)").onlyOnServer().define("useIndexes", true);
         config.pop();
 

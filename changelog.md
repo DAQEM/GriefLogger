@@ -1,3 +1,17 @@
+## Changes
+
+### Added
+- MariaDB database driver support
+- New configuration option `database.sqlDriver` to choose between MySQL and MariaDB drivers
+- MariaDB JDBC driver included in build artifacts
+
+### Changed
+- Updated database configuration comments to reflect MySQL/MariaDB support
+- Improved connection string handling for multiple SQL drivers
+
+### Removed
+- Automatic uploads to CurseForge and Modrinth (can be re-enabled manually)
+
 ## [View changes here](https://github.com/DAQEM/GriefLogger/releases)
 
 [![BisectHosting code DAQEM for 25% off!](https://www.bisecthosting.com/partners/custom-banners/bb6b0cc7-75a1-4002-9257-561d8df48142.webp)](https://bisecthosting.com/DAQEM?r=GriefLogger+Changelog)

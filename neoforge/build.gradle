@@ -47,6 +47,9 @@ dependencies {
     modImplementation "com.mysql:mysql-connector-j:8.4.0"
     shadowBundle "com.mysql:mysql-connector-j:8.4.0"
 
+    modImplementation "org.mariadb.jdbc:mariadb-java-client:3.4.1"
+    shadowBundle "org.mariadb.jdbc:mariadb-java-client:3.4.1"
+
     modImplementation "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file_neoforge}"
 }
 
@@ -77,45 +80,4 @@ remapJar {
 
 remapSourcesJar {
     archiveClassifier = "neoforge-sources"
-}
-
-curseforge {
-    apiKey = System.getenv("CURSEFORGE_API_KEY")
-    project {
-        id = project.curse_forge_project_id
-        releaseType = project.curse_forge_release_type
-        changelogType = "markdown"
-        changelog = rootProject.file('changelog.md')
-        addGameVersion project.minecraft_version
-        addGameVersion "Java 21"
-        addGameVersion "NeoForge"
-
-        relations {
-            requiredDependency("architectury-api")
-            requiredDependency("supermartijn642s-config-lib")
-        }
-
-        mainArtifact(remapJar) {
-            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version"
-        }
-
-        addArtifact(remapSourcesJar) {
-        }
-    }
-}
-
-modrinth {
-    token = System.getenv("MODRINTH_API_KEY")
-    projectId = "8oGVUFuX"
-    versionName = "GriefLogger NeoForge $rootProject.minecraft_version - $rootProject.mod_version"
-    versionNumber = "$rootProject.mod_version"
-    versionType = "$rootProject.curse_forge_release_type"
-    uploadFile = remapJar
-    additionalFiles = [remapSourcesJar]
-    gameVersions = ["$rootProject.minecraft_version"]
-    loaders = ["neoforge"]
-    dependencies {
-        required.project "architectury-api"
-        required.project "supermartijn642s-config-lib"
-    }
 }

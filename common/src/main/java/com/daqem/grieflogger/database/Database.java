@@ -57,18 +57,29 @@ public class Database {
         String database = GriefLoggerConfig.mysqlDatabase.get();
         String user = GriefLoggerConfig.mysqlUsername.get();
         String password = GriefLoggerConfig.mysqlPassword.get();
-        String url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?allowReconnect=true&autoReconnect=true&connectTimeout=" + GriefLoggerConfig.mysqlTimeout.get();
+        String sqlDriver = GriefLoggerConfig.sqlDriver.get().toLowerCase();
+
+        String url;
+        String driverClass;
+
+        if ("mariadb".equals(sqlDriver)) {
+            url = "jdbc:mariadb://" + host + ":" + port + "/" + database + "?allowReconnect=true&autoReconnect=true&connectTimeout=" + GriefLoggerConfig.mysqlTimeout.get();
+            driverClass = "org.mariadb.jdbc.Driver";
+        } else {
+            url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?allowReconnect=true&autoReconnect=true&connectTimeout=" + GriefLoggerConfig.mysqlTimeout.get();
+            driverClass = "com.mysql.cj.jdbc.Driver";
+        }
 
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName(driverClass);
         } catch (ClassNotFoundException e) {
-            GriefLogger.LOGGER.error("Failed to load MySQL driver", e);
+            GriefLogger.LOGGER.error("Failed to load " + sqlDriver + " driver", e);
             return false;
         }
         try {
             connection = DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to connect to MySQL database", e);
+            GriefLogger.LOGGER.error("Failed to connect to " + sqlDriver + " database", e);
             return false;
         }
         return connection != null;
