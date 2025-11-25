@@ -36,8 +36,11 @@ public class Queue implements IQueue {
     @Override
     public void hello() {
         try {
-            PreparedStatement statement = this.database.prepareStatement("SELECT 1");
-            this.database.execute(statement.toString(), false);
+            // Execute a simple test query to verify the connection.
+            // Passing PreparedStatement.toString() caused the driver to receive
+            // a string like "ClientPreparedStatement{sql:'SELECT 1', parameters:[]}"
+            // which is not valid SQL. Use the raw SQL string instead.
+            this.database.execute("SELECT 1", false);
         } catch (Exception e) {
             GriefLogger.LOGGER.error("Failed to send hello packet", e);
         }
