@@ -41,14 +41,36 @@ dependencies {
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
 
-    modImplementation "org.xerial:sqlite-jdbc:3.47.2.0"
-    shadowBundle "org.xerial:sqlite-jdbc:3.47.2.0"
+    modImplementation("org.xerial:sqlite-jdbc:3.47.2.0") {
+        exclude group: "org.checkerframework"
+        exclude group: "com.google.errorprone"
+    }
+    shadowBundle("org.xerial:sqlite-jdbc:3.47.2.0") {
+        exclude group: "org.checkerframework"
+        exclude group: "com.google.errorprone"
+    }
 
-    modImplementation "com.mysql:mysql-connector-j:8.4.0"
-    shadowBundle "com.mysql:mysql-connector-j:8.4.0"
+    modImplementation("com.mysql:mysql-connector-j:8.4.0") {
+        exclude group: "org.checkerframework"
+        exclude group: "com.google.errorprone"
+        exclude group: "com.sun.jna"
+    }
+    shadowBundle("com.mysql:mysql-connector-j:8.4.0") {
+        exclude group: "org.checkerframework"
+        exclude group: "com.google.errorprone"
+        exclude group: "com.sun.jna"
+    }
 
-    modImplementation "org.mariadb.jdbc:mariadb-java-client:3.4.1"
-    shadowBundle "org.mariadb.jdbc:mariadb-java-client:3.4.1"
+    modImplementation("org.mariadb.jdbc:mariadb-java-client:3.4.1") {
+        exclude group: "org.checkerframework"
+        exclude group: "com.google.errorprone"
+        exclude group: "com.sun.jna"
+    }
+    shadowBundle("org.mariadb.jdbc:mariadb-java-client:3.4.1") {
+        exclude group: "org.checkerframework"
+        exclude group: "com.google.errorprone"
+        exclude group: "com.sun.jna"
+    }
 
     modImplementation "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file_neoforge}"
 }
@@ -68,9 +90,17 @@ processResources {
 shadowJar {
     exclude "architectury.common.json"
     exclude "org/slf4j/**"
+    exclude "org/checkerframework/**"
+    exclude "com/sun/jna/**"
+    exclude "com/google/errorprone/**"
+    exclude "javax/annotation/**"
 
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = "neoforge-dev-shadow"
+    
+    relocate 'com.sun.jna', 'grieflogger.hidden.com.sun.jna'
+    relocate 'com.google.errorprone', 'grieflogger.hidden.com.google.errorprone'
+    relocate 'org.checkerframework', 'grieflogger.hidden.org.checkerframework'
 }
 
 remapJar {
