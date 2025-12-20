@@ -46,8 +46,8 @@ dependencies {
     modImplementation "com.mysql:mysql-connector-j:${project.mysql_version}"
     shadowBundle "com.mysql:mysql-connector-j:${project.mysql_version}"
 
-    modRuntimeOnly "com.daqem.uilib:uilib-neoforge:${project.ui_library_version}"
-    modImplementation "com.daqem.yamlconfig:yamlconfig-neoforge:${project.config_library_version}"
+    modRuntimeOnly "com.daqem.uilib:uilib-fabric:${project.ui_library_version}"
+    modImplementation "com.daqem.yamlconfig:yamlconfig-fabric:${project.config_library_version}"
 
     modCompileOnly "me.lucko:fabric-permissions-api:0.3.1"
 }
