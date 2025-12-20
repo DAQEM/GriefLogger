@@ -37,6 +37,10 @@ subprojects {
         }
     }
 
+    repositories {
+        maven { url "https://maven.daqem.com/snapshots/" }
+    }
+
     dependencies {
         minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
         mappings loom.officialMojangMappings()

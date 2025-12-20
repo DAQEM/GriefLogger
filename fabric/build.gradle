@@ -1,6 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import NativeTransformer
-
 plugins {
     id "com.github.johnrengelman.shadow"
     id "com.matthewprenger.cursegradle" version "1.4.0"
@@ -10,6 +7,11 @@ plugins {
 architectury {
     platformSetupLoomIde()
     fabric()
+}
+
+loom {
+    //noinspection GroovyAccessibility
+    accessWidenerPath = project(":common").loom.accessWidenerPath
 }
 
 configurations {
@@ -44,8 +46,8 @@ dependencies {
     modImplementation "com.mysql:mysql-connector-j:${project.mysql_version}"
     shadowBundle "com.mysql:mysql-connector-j:${project.mysql_version}"
 
-    modImplementation "curse.maven:yaml-config-1128669:${project.config_library_file_fabric}"
-    modRuntimeOnly "curse.maven:ui-933200:${project.ui_library_file_fabric}"
+    modRuntimeOnly "com.daqem.uilib:uilib-neoforge:${project.ui_library_version}"
+    modImplementation "com.daqem.yamlconfig:yamlconfig-neoforge:${project.config_library_version}"
 
     modCompileOnly "me.lucko:fabric-permissions-api:0.3.1"
 }
@@ -92,12 +94,57 @@ shadowJar {
 }
 
 remapJar {
+    injectAccessWidener = true
     input.set shadowJar.archiveFile
-    archiveClassifier = "fabric"
+    dependsOn shadowJar
+    archiveClassifier = null
+}
+
+task renameJarForPublication(type: Zip, dependsOn: remapJar) {
+    from remapJar.archiveFile.map { zipTree(it) }
+    archiveExtension = "jar"
+    metadataCharset "UTF-8"
+    destinationDirectory = base.libsDirectory
+    archiveClassifier = project.name
+}
+
+
+assemble.dependsOn renameJarForPublication
+
+sourcesJar {
+    def commonSources = project(":common").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
 }
 
 remapSourcesJar {
     archiveClassifier = "fabric-sources"
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
+
+publishing {
+    publications {
+        mavenFabric(MavenPublication) {
+            groupId = rootProject.maven_group
+            artifactId = rootProject.archives_base_name + "-fabric"
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            url = project.version.contains('-PR') ? 'https://maven.daqem.com/snapshots' : 'https://maven.daqem.com/releases'
+            credentials {
+                username = System.getenv("MAVEN_USER")
+                password = System.getenv("MAVEN_PASS")
+            }
+        }
+    }
 }
 
 curseforge {
