@@ -9,7 +9,7 @@ import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.ItemHistory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class ItemService {
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {
-        ResourceLocation itemLocation = item.getItem().arch$registryName();
+        Identifier itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
             itemRepository.insert(System.currentTimeMillis(),
                     userUuid.toString(),

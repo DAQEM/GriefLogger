@@ -22,7 +22,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 public class ItemRepository extends Repository {
@@ -82,7 +82,7 @@ public class ItemRepository extends Repository {
                 "SELECT id FROM materials WHERE name = ?" +
                 "), ?, ?, ?);";
 
-        ResourceLocation itemLocation = item.getItem().arch$registryName();
+        Identifier itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
             database.queue.add(connection -> {
                 try (PreparedStatement materialStatement = connection.prepareStatement(materialQuery)) {
@@ -92,7 +92,7 @@ public class ItemRepository extends Repository {
                 try (PreparedStatement preparedStatement = connection.prepareStatement(itemQuery)) {
                     preparedStatement.setLong(1, time);
                     preparedStatement.setString(2, userUuid);
-                    preparedStatement.setString(3, level.dimension().location().toString());
+                    preparedStatement.setString(3, level.dimension().identifier().toString());
                     preparedStatement.setInt(4, x);
                     preparedStatement.setInt(5, y);
                     preparedStatement.setInt(6, z);
@@ -127,14 +127,14 @@ public class ItemRepository extends Repository {
                         if (item.isEmpty()) {
                             continue;
                         }
-                        ResourceLocation itemLocation = item.getItem().arch$registryName();
+                        Identifier itemLocation = item.getItem().arch$registryName();
                         if (itemLocation != null) {
                             materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
                             materialStatement.addBatch();
 
                             itemStatement.setLong(1, time);
                             itemStatement.setString(2, userUuid);
-                            itemStatement.setString(3, level.dimension().location().toString());
+                            itemStatement.setString(3, level.dimension().identifier().toString());
                             itemStatement.setInt(4, x);
                             itemStatement.setInt(5, y);
                             itemStatement.setInt(6, z);
@@ -178,7 +178,7 @@ public class ItemRepository extends Repository {
                 """.formatted(actions, users, includeMaterials, excludeMaterials);
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
-            preparedStatement.setString(1, level.dimension().location().toString());
+            preparedStatement.setString(1, level.dimension().identifier().toString());
             preparedStatement.setLong(2, filterList.getTime());
 
             if (actions == null || actions.isEmpty()) {

@@ -1,16 +1,13 @@
 package com.daqem.grieflogger.neoforge;
 
 import com.daqem.grieflogger.GriefLogger;
-import dev.architectury.utils.EnvExecutor;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.Mod;
 
-@Mod(GriefLogger.MOD_ID)
+@Mod(value = GriefLogger.MOD_ID, dist = Dist.DEDICATED_SERVER)
 public class GriefLoggerNeoForge {
 
     public GriefLoggerNeoForge() {
-        EnvExecutor.getEnvSpecific(
-                () -> SideProxyNeoForge.Client::new,
-                () -> SideProxyNeoForge.Server::new
-        );
+        GriefLogger.init();
     }
 }

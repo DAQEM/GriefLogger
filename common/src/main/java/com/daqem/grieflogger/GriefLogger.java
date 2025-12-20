@@ -23,7 +23,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -199,7 +199,7 @@ public class GriefLogger {
         return Style.EMPTY.withColor(0xFCBA03);
     }
 
-    public static ResourceLocation getId(String id) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, id);
+    public static Identifier getId(String id) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, id);
     }
 }

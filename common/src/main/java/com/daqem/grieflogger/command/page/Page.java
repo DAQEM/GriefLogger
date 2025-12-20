@@ -51,7 +51,7 @@ public class Page {
     private Component getHeader() {
         MutableComponent header = GriefLogger.translate("lookup.history_header", GriefLogger.themedTranslate("lookup.history_title"));
         if (singleLocation && !history.isEmpty()) {
-            header.append(" ").append(history.get(0).getPosition().getComponent());
+            header.append(" ").append(history.getFirst().getPosition().getComponent());
         }
         return header;
     }

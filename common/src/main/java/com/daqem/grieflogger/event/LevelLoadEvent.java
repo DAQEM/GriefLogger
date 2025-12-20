@@ -12,10 +12,10 @@ public class LevelLoadEvent {
 
     public static void registerEvent() {
         LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> {
-            String levelName = level.dimension().location().toString();
+            String levelName = level.dimension().identifier().toString();
             if (!registeredLevels.contains(levelName)) {
                 registeredLevels.add(levelName);
-                Services.LEVEL.insert(level.dimension().location().toString());
+                Services.LEVEL.insert(level.dimension().identifier().toString());
             }
         });
     }

@@ -39,7 +39,6 @@ public class LookupCommand implements ICommand {
                 .executes(context -> lookup(context.getSource(), ""));
     }
 
-    // ... rest of the methods (lookup, suggestFilters, getHistory) remain exactly the same as original ...
     private static int lookup(CommandSourceStack source, String filtersInput) {
         List<IFilter> filters = new ArrayList<>();
 

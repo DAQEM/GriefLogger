@@ -14,7 +14,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -43,7 +43,7 @@ public class BlockHistory extends History {
     }
 
     public Component getMaterialComponent() {
-        Holder.Reference<Block> blockReference = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(material)).orElse(null);
+        Holder.Reference<Block> blockReference = BuiltInRegistries.BLOCK.get(Identifier.parse(material)).orElse(null);
         Item item = blockReference != null ? blockReference.value().asItem() : Items.AIR;
         MutableComponent mutableComponent;
         if (blockReference != null) {

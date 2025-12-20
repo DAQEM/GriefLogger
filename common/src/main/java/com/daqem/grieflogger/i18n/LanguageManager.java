@@ -54,7 +54,9 @@ public class LanguageManager {
     }
 
     private static void loadLanguage(String modId, String language) {
-        try (InputStream stream = Language.class.getResourceAsStream("/assets/" + modId + "/lang/" + language + ".json")) {
+        Class<?> contextClassLoader = Thread.currentThread().getContextClassLoader().getClass();
+        if (Platform.isFabric()) contextClassLoader = Language.class;
+        try (InputStream stream = contextClassLoader.getResourceAsStream("/assets/" + modId + "/lang/" + language + ".json")) {
             if (stream == null) {
                 return;
             }

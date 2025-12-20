@@ -6,7 +6,7 @@ import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.InteractionEvent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -18,11 +18,11 @@ public class EntityEvents {
     public static void registerEvents() {
         EntityEvent.LIVING_DEATH.register((entity, source) -> {
             if (source != null && source.getEntity() instanceof ServerPlayer serverPlayer) {
-                ResourceLocation entityLocation = entity.getType().arch$registryName();
+                Identifier entityLocation = entity.getType().arch$registryName();
                 if (entityLocation != null) {
                     Services.BLOCK.insertEntity(
                             serverPlayer.getUUID(),
-                            entity.level().dimension().location().toString(),
+                            entity.level().dimension().identifier().toString(),
                             entity.blockPosition(),
                             entityLocation.toString(),
                             BlockAction.KILL_ENTITY

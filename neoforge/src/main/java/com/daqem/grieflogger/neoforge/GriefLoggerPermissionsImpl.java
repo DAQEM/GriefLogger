@@ -2,6 +2,8 @@ package com.daqem.grieflogger.neoforge;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionLevel;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
@@ -46,11 +48,11 @@ public class GriefLoggerPermissionsImpl {
                 return PermissionAPI.getPermission(player, node);
             } catch (Exception e) {
                 // Fallback to OP if PermissionAPI fails or node is unknown/unregistered context
-                return source.hasPermission(fallbackLevel);
+                return source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(fallbackLevel)));
             }
         }
 
         // Console / Command Blocks
-        return source.hasPermission(fallbackLevel);
+        return source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(fallbackLevel)));
     }
 }

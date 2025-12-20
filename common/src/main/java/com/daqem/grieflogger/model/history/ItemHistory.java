@@ -15,14 +15,14 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class ItemHistory extends History {
 
     protected final SimpleItemStack itemStack;
 
     public ItemHistory(long time, String name, String uuid, int x, int y, int z, String material, DataComponentPatch data, int amount, int action) {
-        this(new Time(time), new User(name, UUID.fromString(uuid)), new BlockPosition(x, y, z), new SimpleItemStack(ResourceLocation.parse(material), amount, data), ItemAction.fromId(action));
+        this(new Time(time), new User(name, UUID.fromString(uuid)), new BlockPosition(x, y, z), new SimpleItemStack(Identifier.parse(material), amount, data), ItemAction.fromId(action));
     }
 
     public ItemHistory(Time time, User user, BlockPosition position, SimpleItemStack itemStack, IAction action) {

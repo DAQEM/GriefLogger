@@ -44,7 +44,7 @@ public class BlockService {
 
     public List<IHistory> getBlockHistory(Level level, BlockPos pos) {
         return blockRepository.getBlockHistory(
-                level.dimension().location().toString(),
+                level.dimension().identifier().toString(),
                 pos.getX(),
                 pos.getY(),
                 pos.getZ()
@@ -73,7 +73,7 @@ public class BlockService {
 
     public List<IHistory> getInteractionHistory(Level level, BlockPos pos) {
         return blockRepository.getInteractionHistory(
-                level.dimension().location().toString(),
+                level.dimension().identifier().toString(),
                 pos.getX(),
                 pos.getY(),
                 pos.getZ()
@@ -98,7 +98,7 @@ public class BlockService {
 
     public void removeInteractionsForPosition(Level level, BlockPos secondPos) {
         blockRepository.removeInteractionsForPosition(
-                level.dimension().location().toString(),
+                level.dimension().identifier().toString(),
                 secondPos.getX(),
                 secondPos.getY(),
                 secondPos.getZ()
@@ -111,7 +111,7 @@ public class BlockService {
             return List.of();
         }
         return blockRepository.getFilteredBlockHistory(
-                level.dimension().location().toString(),
+                level.dimension().identifier().toString(),
                 filterList
         );
     }
