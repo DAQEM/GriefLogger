@@ -28,8 +28,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Grant Permissions to gradlew
-        run: chmod +x gradlew
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Grant Permissions
+        run: |
+          chmod +x gradlew
+          chmod +x relocate_natives/prepare.sh
 
       - name: Build Jars
         run: ./gradlew build
@@ -39,10 +46,10 @@ jobs:
         run: |
           echo "::set-output name=VERSION_NAME::$(./gradlew -q :common:printVersionName)"
 
-      - name: Check if tag exists 
+      - name: Check if tag exists
         uses: mukunku/tag-exists-action@v1.5.0
         id: checkTag
-        with: 
+        with:
           tag: ${{ steps.gradle_version.outputs.VERSION_NAME }}
 
       - name: Fail if tag exists
