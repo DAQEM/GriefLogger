@@ -91,6 +91,8 @@ shadowJar {
 
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = "fabric-dev-shadow"
+
+    mergeServiceFiles()
 }
 
 remapJar {

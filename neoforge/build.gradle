@@ -94,6 +94,8 @@ shadowJar {
 
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = "neoforge-dev-shadow"
+
+    mergeServiceFiles()
 }
 
 remapJar {
