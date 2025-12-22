@@ -54,9 +54,8 @@ public class LanguageManager {
     }
 
     private static void loadLanguage(String modId, String language) {
-        Class<?> contextClassLoader = Thread.currentThread().getContextClassLoader().getClass();
-        if (Platform.isFabric()) contextClassLoader = Language.class;
-        try (InputStream stream = contextClassLoader.getResourceAsStream("/assets/" + modId + "/lang/" + language + ".json")) {
+        String location = "/assets/" + modId + "/lang/" + language + ".json";
+        try (InputStream stream = getInputStream(location)) {
             if (stream == null) {
                 return;
             }
@@ -64,6 +63,13 @@ public class LanguageManager {
         } catch (Exception e) {
             GriefLogger.LOGGER.error("Failed to load language file for mod: {}, language: {}", modId, language, e);
         }
+    }
+
+    private static InputStream getInputStream(String location) {
+        if (Platform.isFabric()) {
+            return Language.class.getResourceAsStream(location);
+        }
+        return Thread.currentThread().getContextClassLoader().getResourceAsStream(location);
     }
 
     private static void loadLanguage(MinecraftServer server, String languageCode) {
