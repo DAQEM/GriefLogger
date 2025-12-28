@@ -6,8 +6,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 
 public class ThreadManager {
 
@@ -36,5 +36,16 @@ public class ThreadManager {
                 ));
         completedFutures.forEach(onCompleteMap::remove);
         return completedFutures;
+    }
+
+    public static void shutdown() {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+        }
     }
 }
