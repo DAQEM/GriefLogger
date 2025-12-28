@@ -1,19 +1,11 @@
 package com.daqem.grieflogger;
 
+import com.daqem.grieflogger.event.*;
 import org.slf4j.Logger;
 
 import com.daqem.grieflogger.config.GriefLoggerConfig;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.service.Services;
-import com.daqem.grieflogger.event.ChatEvent;
-import com.daqem.grieflogger.event.CommandEvent;
-import com.daqem.grieflogger.event.EntityEvents;
-import com.daqem.grieflogger.event.LevelLoadEvent;
-import com.daqem.grieflogger.event.PlayerJoinEvent;
-import com.daqem.grieflogger.event.PlayerQuitEvent;
-import com.daqem.grieflogger.event.RegisterCommandEvent;
-import com.daqem.grieflogger.event.ServerStartedEvent;
-import com.daqem.grieflogger.event.TickEvents;
 import com.daqem.grieflogger.event.block.BlockEvents;
 import com.daqem.grieflogger.event.item.ItemEvents;
 import com.daqem.grieflogger.i18n.LanguageManager;
@@ -62,6 +54,7 @@ public class GriefLogger {
         ChatEvent.registerEvent();
         CommandEvent.registerEvent();
         ServerStartedEvent.registerEvent();
+        ServerStoppedEvent.registerEvent();
     }
 
     private static boolean prepareDatabase() {
