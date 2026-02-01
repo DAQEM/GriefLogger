@@ -1,5 +1,6 @@
 package com.daqem.grieflogger.database.repository;
 
+import java.io.ByteArrayInputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.daqem.grieflogger.database.dialect.MySQLDialect;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
 import org.jetbrains.annotations.Nullable;
 
 import com.daqem.grieflogger.GriefLogger;
@@ -19,10 +24,7 @@ import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.ContainerHistory;
 import com.daqem.grieflogger.model.history.IHistory;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
@@ -34,7 +36,6 @@ public class ContainerRepository extends Repository {
         this.database = database;
     }
 
-    // createTable / createIndexes omitted (same as original)
     public void createTable() {
         String sql = "CREATE TABLE IF NOT EXISTS containers (" +
                 "time " + database.getDialect().getDataType("bigint") + " NOT NULL," +
@@ -199,7 +200,20 @@ public class ContainerRepository extends Repository {
         });
     }
 
-    // ... getHistory, getFilteredContainerHistory (read-only methods, same as original) ...
+    private DataComponentPatch readPatch(byte[] bytes, Level level) {
+        if (bytes == null || bytes.length == 0) {
+            return DataComponentPatch.EMPTY;
+        }
+        try {
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            CompoundTag compoundTag = NbtIo.readCompressed(inputStream, NbtAccounter.unlimitedHeap());
+            return DataComponentPatch.CODEC.parse(level.registryAccess().createSerializationContext(NbtOps.INSTANCE), compoundTag)
+                    .getOrThrow(IllegalStateException::new);
+        } catch (Exception e) {
+            return DataComponentPatch.EMPTY;
+        }
+    }
+
     public List<IHistory> getHistory(Level level, int x, int y, int z) {
         List<IHistory> containerHistory = new ArrayList<>();
         String query = """
@@ -222,9 +236,7 @@ public class ContainerRepository extends Repository {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
-                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
-                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
+                DataComponentPatch patch = readPatch(resultSet.getBytes(8), level);
                 containerHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
@@ -269,9 +281,7 @@ public class ContainerRepository extends Repository {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
-                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
-                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
+                DataComponentPatch patch = readPatch(resultSet.getBytes(8), level);
                 containerHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
@@ -374,9 +384,7 @@ public class ContainerRepository extends Repository {
             List<IHistory> blockHistory = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
-                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
-                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
+                DataComponentPatch patch = readPatch(resultSet.getBytes(8), level);
                 blockHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),

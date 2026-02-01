@@ -1,15 +1,19 @@
 package com.daqem.grieflogger.model;
 
-import io.netty.buffer.Unpooled;
+import com.daqem.grieflogger.GriefLogger;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Objects;
 
 public class SimpleItemStack {
@@ -77,14 +81,20 @@ public class SimpleItemStack {
     }
 
     public byte @Nullable [] getTagBytes(Level level) {
-        if (tag == null) {
+        if (tag == null || tag.isEmpty()) {
             return null;
         }
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), level.registryAccess());
-        DataComponentPatch.STREAM_CODEC.encode(buf, tag);
-        byte[] temp = new byte[buf.readableBytes()];
-        buf.readBytes(temp);
-        return temp;
+        try {
+            Tag nbtTag = DataComponentPatch.CODEC.encodeStart(level.registryAccess().createSerializationContext(NbtOps.INSTANCE), tag)
+                    .getOrThrow(IllegalStateException::new);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            NbtIo.writeCompressed((CompoundTag) nbtTag, outputStream);
+            return outputStream.toByteArray();
+        } catch (Exception e) {
+            GriefLogger.LOGGER.error("Failed to serialize item components", e);
+            return null;
+        }
     }
 
     public ItemStack toItemStack() {

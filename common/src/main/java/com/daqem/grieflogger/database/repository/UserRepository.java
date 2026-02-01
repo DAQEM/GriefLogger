@@ -47,7 +47,7 @@ public class UserRepository extends Repository {
     }
 
     public void insertNonPlayer(String name) {
-        String query = "INSERT INTO users(name) VALUES('%s') " +
+        String query = "INSERT INTO users(name) VALUES(?) " +
                 database.getDialect().getOnConflictDoNothing("name");
 
         database.queue.add(connection -> {

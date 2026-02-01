@@ -1,5 +1,6 @@
 package com.daqem.grieflogger.database.repository;
 
+import java.io.ByteArrayInputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.daqem.grieflogger.database.dialect.MySQLDialect;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
 import org.jetbrains.annotations.Nullable;
 
 import com.daqem.grieflogger.GriefLogger;
@@ -18,10 +23,7 @@ import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.ItemHistory;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
@@ -152,6 +154,20 @@ public class ItemRepository extends Repository {
         });
     }
 
+    private DataComponentPatch readPatch(byte[] bytes, Level level) {
+        if (bytes == null || bytes.length == 0) {
+            return DataComponentPatch.EMPTY;
+        }
+        try {
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            CompoundTag compoundTag = NbtIo.readCompressed(inputStream, NbtAccounter.unlimitedHeap());
+            return DataComponentPatch.CODEC.parse(level.registryAccess().createSerializationContext(NbtOps.INSTANCE), compoundTag)
+                    .getOrThrow(IllegalStateException::new);
+        } catch (Exception e) {
+            return DataComponentPatch.EMPTY;
+        }
+    }
+
     public List<ItemHistory> getFilteredItemHistory(Level level, FilterList filterList) {
         @Nullable String actions = filterList.getActionString();
         @Nullable String users = filterList.getUserString();
@@ -235,9 +251,7 @@ public class ItemRepository extends Repository {
             List<ItemHistory> itemHistory = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                ByteBuf buf1 = Unpooled.wrappedBuffer(resultSet.getBytes(8));
-                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(buf1, level.registryAccess());
-                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
+                DataComponentPatch patch = readPatch(resultSet.getBytes(8), level);
                 itemHistory.add(new ItemHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
