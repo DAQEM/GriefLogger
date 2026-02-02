@@ -1,6 +1,7 @@
 package com.daqem.grieflogger;
 
 import com.daqem.grieflogger.event.*;
+import com.daqem.grieflogger.thread.ThreadManager;
 import org.slf4j.Logger;
 
 import com.daqem.grieflogger.config.GriefLoggerConfig;
@@ -19,6 +20,7 @@ import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,6 +36,7 @@ public class GriefLogger {
             return;
         }
         registerEvents();
+        startHeartbeat();
     }
 
     private static void initConfigs() {
@@ -100,6 +103,21 @@ public class GriefLogger {
 
     public static Database getDatabase() {
         return DATABASE;
+    }
+
+    private static void startHeartbeat() {
+        int frequencyTicks = GriefLoggerConfig.helloFrequency.get();
+        long seconds = frequencyTicks / 20;
+        if (seconds < 1) seconds = 1;
+
+        ThreadManager.scheduleAtFixedRate(() -> {
+            Database database = getDatabase();
+            if (database != null) {
+                database.queue.hello();
+                database.queue.execute();
+                database.batchQueue.execute();
+            }
+        }, seconds, seconds, TimeUnit.SECONDS);
     }
 
     public static MutableComponent translate(String str) {
