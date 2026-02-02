@@ -34,16 +34,6 @@ public class TickEvents {
                 }
             }
 
-            if (lastTick % GriefLoggerConfig.helloFrequency.get() == 0) {
-                ThreadManager.execute(() -> {
-                    // Send hello packet to server to keep connection alive
-                    Database database = GriefLogger.getDatabase();
-                    if (database != null) {
-                        database.queue.hello();
-                    }
-                });
-            }
-
             lastTick++;
         });
     }
