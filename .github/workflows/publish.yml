@@ -15,6 +15,8 @@ jobs:
     env:
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
       MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
+      MAVEN_USER: ${{ secrets.MAVEN_USER }}
+      MAVEN_PASS: ${{ secrets.MAVEN_PASS }}
 
     steps:
       - name: Checkout
@@ -26,8 +28,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Grant Permissions to gradlew
-        run: chmod +x gradlew
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Grant Permissions
+        run: |
+          chmod +x gradlew
+          chmod +x relocate_natives/prepare.sh
 
       - name: Build Jars
         run: ./gradlew build
@@ -37,15 +46,18 @@ jobs:
         run: |
           echo "::set-output name=VERSION_NAME::$(./gradlew -q :common:printVersionName)"
 
-      - name: Check if tag exists 
+      - name: Check if tag exists
         uses: mukunku/tag-exists-action@v1.5.0
         id: checkTag
-        with: 
+        with:
           tag: ${{ steps.gradle_version.outputs.VERSION_NAME }}
 
       - name: Fail if tag exists
         if: steps.checkTag.outputs.exists == 'true'
         run: exit 1
+
+      - name: Publish to DAQEM Maven
+        run: ./gradlew publish
 
       - name: Publish to Modrinth
         run: ./gradlew modrinth

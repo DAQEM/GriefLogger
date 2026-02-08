@@ -1,13 +1,18 @@
 {
   "required": true,
   "package": "com.daqem.grieflogger.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
   "client": [
   ],
   "mixins": [
     "ItemMixin",
+    "MixinArmorStand",
+    "MixinBucketItem",
+    "MixinEnderManLeaveBlockGoal",
+    "MixinEnderManTakeBlockGoal",
     "MixinItemStack",
+    "MixinServerExplosion",
     "MixinServerPlayer",
     "ProjectileMixin"
   ],

@@ -1,11 +1,17 @@
 {
   "required": true,
+<<<<<<<< HEAD:forge/src/main/resources/grieflogger.mixins.json
   "package": "com.daqem.grieflogger.forge.mixin",
   "compatibilityLevel": "JAVA_17",
+========
+  "package": "com.daqem.grieflogger.neoforge.mixin",
+  "compatibilityLevel": "JAVA_21",
+>>>>>>>> 19.0.5:forge/src/main/resources/grieflogger-neoforge.mixins.json
   "minVersion": "0.8",
   "client": [
   ],
   "mixins": [
+    "MixinBucketItem"
   ],
   "injectors": {
     "defaultRequire": 1

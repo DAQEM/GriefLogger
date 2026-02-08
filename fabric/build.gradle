@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.github.johnrengelman.shadow"
     id "com.matthewprenger.cursegradle" version "1.4.0"
     id "com.modrinth.minotaur" version "2.+"
 }
@@ -14,11 +14,20 @@ loom {
 }
 
 configurations {
-    common
-    shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
+    common {
+        canBeResolved = true
+        canBeConsumed = false
+    }
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
     developmentFabric.extendsFrom common
+
+    // Files in this configuration will be bundled into your mod using the Shadow plugin.
+    // Don't use the `shadow` configuration from the plugin itself as it's meant for excluding files.
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
 }
 
 dependencies {
@@ -28,43 +37,78 @@ dependencies {
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+    shadowBundle project(path: ":common", configuration: "transformProductionFabric")
 
-    modImplementation "org.xerial:sqlite-jdbc:3.47.2.0"
-    shadowCommon "org.xerial:sqlite-jdbc:3.47.2.0"
+    modImplementation "org.xerial:sqlite-jdbc:${project.sqlite_version}"
+    shadowBundle "org.xerial:sqlite-jdbc:${project.sqlite_version}"
 
-    modImplementation "com.mysql:mysql-connector-j:8.4.0"
-    shadowCommon "com.mysql:mysql-connector-j:8.4.0"
+    modImplementation "com.mysql:mysql-connector-j:${project.mysql_version}"
+    shadowBundle "com.mysql:mysql-connector-j:${project.mysql_version}"
 
     modImplementation "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file_fabric}"
 }
 
 processResources {
-    inputs.property "version", project.version
-    inputs.property "config_library_version", config_library_version
+    var replaceProperties = [
+            "version": project.version,
+            "mod_id": project.mod_id,
+            "mod_name": project.mod_name,
+            "mod_description": project.mod_description,
+            "mod_author": project.mod_author,
+            "mod_license": project.mod_license,
+            "mod_website": project.mod_website,
+            "mod_repository": project.mod_repository,
 
-    filesMatching("fabric.mod.json") {
-        expand([
-                "version": project.version,
-                "config_library_version": config_library_version
-        ])
+            "minecraft_version": project.minecraft_version,
+            "architectury_version": project.architectury_version,
+            "config_library_version": project.config_library_version
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['fabric.mod.json']) {
+        expand replaceProperties
     }
 }
 
 shadowJar {
-    exclude "architectury.common.json"
-    exclude "org/slf4j/**"
+    relocate "org.sqlite", "gl_sqlite", {
+        exclude "org/sqlite/native/**"
+        exclude "og/sqlite/util/ProcessRunner.class"
+    }
 
-    configurations = [project.configurations.shadowCommon]
-    archiveClassifier = "dev-shadow"
+    relocate "jdbc:sqlite", "jdbc:gl_sqlite"
+
+    transform(NativeTransformer.class) {
+        rootDir = project.rootDir
+        relocateNative "org/sqlite", "gl_sqlite"
+        relocateNative "org_sqlite", "gl_1sqlite"
+    }
+
+    relocate "com.mysql", "gl_mysql"
+
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = "fabric-dev-shadow"
+
+    mergeServiceFiles()
 }
 
 remapJar {
     injectAccessWidener = true
     input.set shadowJar.archiveFile
     dependsOn shadowJar
-    archiveClassifier = "fabric"
+    archiveClassifier = null
 }
+
+task renameJarForPublication(type: Zip, dependsOn: remapJar) {
+    from remapJar.archiveFile.map { zipTree(it) }
+    archiveExtension = "jar"
+    metadataCharset "UTF-8"
+    destinationDirectory = base.libsDirectory
+    archiveClassifier = project.name
+}
+
+
+assemble.dependsOn renameJarForPublication
 
 sourcesJar {
     def commonSources = project(":common").sourcesJar
@@ -73,7 +117,6 @@ sourcesJar {
 }
 
 remapSourcesJar {
-    //noinspection GroovyAccessibility
     archiveClassifier = "fabric-sources"
 }
 
@@ -86,61 +129,67 @@ components.java {
 publishing {
     publications {
         mavenFabric(MavenPublication) {
-            artifactId = rootProject.archives_base_name + "-" + project.name
+            groupId = rootProject.maven_group
+            artifactId = rootProject.archives_base_name + "-fabric"
             from components.java
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        // Add repositories to publish to here.
+        maven {
+            url = project.version.contains('-PR') ? 'https://maven.daqem.com/snapshots' : 'https://maven.daqem.com/releases'
+            credentials {
+                username = System.getenv("MAVEN_USER")
+                password = System.getenv("MAVEN_PASS")
+            }
+        }
     }
 }
 
 curseforge {
-    apiKey = System.getenv('CURSEFORGE_API_KEY')
+    apiKey = System.getenv("CURSEFORGE_API_KEY")
     project {
         id = project.curse_forge_project_id
-        releaseType = project.curse_forge_release_type
+        releaseType = project.release_type
         changelogType = "markdown"
         changelog = rootProject.file('changelog.md')
-        addGameVersion project.minecraft_version
+
+        project.supported_minecraft_versions.split(',').each { version ->
+            addGameVersion version
+        }
+
         addGameVersion "Java 17"
         addGameVersion "Fabric"
 
         relations {
-            requiredDependency("architectury-api")
-            requiredDependency("supermartijn642s-config-lib")
+            project.curseforge_dependencies.split(',').each { dep ->
+                requiredDependency dep.trim()
+            }
         }
 
         mainArtifact(remapJar) {
-            displayName = "GriefLogger Fabric $project.minecraft_version - $project.mod_version"
+            displayName = "$project.mod_name Fabric $project.minecraft_version - $project.mod_version"
         }
 
         addArtifact(remapSourcesJar) {
         }
     }
-    options {
-        forgeGradleIntegration = false
-    }
-}
-
-afterEvaluate {
-    tasks.curseforge435029.dependsOn remapJar
 }
 
 modrinth {
     token = System.getenv("MODRINTH_API_KEY")
-    projectId = "8oGVUFuX"
-    versionName = "GriefLogger Fabric $rootProject.minecraft_version - $rootProject.mod_version"
-    versionNumber = "$rootProject.mod_version"
-    versionType = "$rootProject.curse_forge_release_type"
+    projectId = project.modrinth_project_id
+    versionName = "$project.mod_name Fabric $project.minecraft_version - $project.mod_version"
+    versionNumber = "$project.mod_version"
+    versionType = "$project.release_type"
     uploadFile = remapJar
     additionalFiles = [remapSourcesJar]
-    gameVersions = ["$rootProject.minecraft_version"]
+    gameVersions = project.supported_minecraft_versions.split(',').toList()
     loaders = ["fabric"]
+    changelog = rootProject.file('changelog.md').text
     dependencies {
-        required.project "architectury-api"
-        required.project "supermartijn642s-config-lib"
+        project.modrinth_dependencies.split(',').each { dep ->
+            required.project dep
+        }
     }
 }

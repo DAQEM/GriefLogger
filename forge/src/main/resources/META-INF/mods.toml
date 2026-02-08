@@ -1,17 +1,16 @@
 modLoader = "javafml"
-loaderVersion = "[47,)"
-#issueTrackerURL = ""
-license = "Apache-2.0"
+loaderVersion = "[${supported_forge_loader_version},)"
+issueTrackerURL = "${mod_repository}/issues"
+license = "${mod_license}"
 
 [[mods]]
-modId = "grieflogger"
+modId = "${mod_id}"
 version = "${version}"
-displayName = "GriefLogger"
-authors = "DAQEM"
-description = '''
-A mod that logs all player interactions with blocks and entities and stores them in a database.
-'''
-#logoFile = ""
+license = "${mod_license}"
+displayName = "${mod_name}"
+authors = "${mod_author}"
+credits = "${mod_author}"
+description = "${mod_description}"
 
 [[dependencies.grieflogger]]
 modId = "forge"
@@ -20,21 +19,21 @@ versionRange = "[47,)"
 ordering = "NONE"
 side = "SERVER"
 
-[[dependencies.grieflogger]]
+[[dependencies."${mod_id}"]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.20.1,)"
+versionRange = "[${minecraft_version},)"
 ordering = "NONE"
 side = "SERVER"
 
-[[dependencies.grieflogger]]
+[[dependencies."${mod_id}"]]
 modId = "architectury"
 mandatory = true
-versionRange = "[9.1.12,)"
+versionRange = "[${architectury_version},)"
 ordering = "AFTER"
 side = "SERVER"
 
-[[dependencies.grieflogger]]
+[[dependencies."${mod_id}"]]
 modId = "supermartijn642configlib"
 mandatory = true
 versionRange = "[${config_library_version},)"

@@ -12,7 +12,7 @@ public record BlockPosition(int x, int y, int z) {
     public Component getComponent() {
         return GriefLogger.translate("lookup.position", x, y, z)
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, GriefLogger.literal("Click to teleport to this position.")))
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp " + x + " " + y + " " + z)));
+                        .withHoverEvent(new HoverEvent.ShowText(GriefLogger.literal("Click to teleport to this position.")))
+                        .withClickEvent(new ClickEvent.RunCommand("/tp " + x + " " + y + " " + z)));
     }
 }

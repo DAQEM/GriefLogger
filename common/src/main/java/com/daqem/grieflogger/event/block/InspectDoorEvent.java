@@ -1,8 +1,6 @@
 package com.daqem.grieflogger.event.block;
 
-import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.block.BlockHandler;
-import com.daqem.grieflogger.database.service.BlockService;
 import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.event.AbstractEvent;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;

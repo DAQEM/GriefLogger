@@ -3,6 +3,7 @@ package com.daqem.grieflogger.command.filter;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.model.TimeUnit;
 import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ public class TimeFilter implements IFilter {
 
     @Override
     public String getName() {
-        return GriefLogger.translate("filter.time").getString();
+        return "time";
     }
 
     @Override
@@ -60,10 +61,14 @@ public class TimeFilter implements IFilter {
     }
 
     @Override
-    public IFilter parse(StringReader reader, String suffix) {
-        TimeUnit timeUnit = TimeUnit.values()[TimeUnit.getAbbreviations().indexOf(suffix.substring(suffix.length() - 1))];
-        int time = Integer.parseInt(suffix.substring(0, suffix.length() - timeUnit.getComponent().getString().length()));
-        return new TimeFilter(time, timeUnit);
+    public IFilter parse(StringReader reader, String suffix) throws CommandSyntaxException {
+        try {
+            TimeUnit timeUnit = TimeUnit.values()[TimeUnit.getAbbreviations().indexOf(suffix.substring(suffix.length() - 1))];
+            int time = Integer.parseInt(suffix.substring(0, suffix.length() - timeUnit.getComponent().getString().length()));
+            return new TimeFilter(time, timeUnit);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new CommandSyntaxException(null, GriefLogger.literal(""));
+        }
     }
 
     @Override

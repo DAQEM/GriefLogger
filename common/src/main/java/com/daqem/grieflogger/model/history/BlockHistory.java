@@ -1,17 +1,23 @@
 package com.daqem.grieflogger.model.history;
 
+import java.util.UUID;
+
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.i18n.LanguageManager;
 import com.daqem.grieflogger.model.BlockPosition;
 import com.daqem.grieflogger.model.Time;
 import com.daqem.grieflogger.model.User;
 import com.daqem.grieflogger.model.action.BlockAction;
+
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
-
-import java.util.UUID;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
 
 public class BlockHistory extends History {
 
@@ -37,17 +43,29 @@ public class BlockHistory extends History {
     }
 
     public Component getMaterialComponent() {
-        MutableComponent mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
-        return mutableComponent
-                .withStyle(mutableComponent
-                        .getStyle()
-                        .withHoverEvent(
-                                new HoverEvent(
-                                        HoverEvent.Action.SHOW_ITEM,
-                                        new HoverEvent.ItemStackInfo(
-                                                BuiltInRegistries.BLOCK.get(
-                                                        new ResourceLocation(material)
-                                                ).asItem()
-                                                        .getDefaultInstance()))));
+        Holder.Reference<Block> blockReference = BuiltInRegistries.BLOCK.get(Identifier.parse(material)).orElse(null);
+        Item item = blockReference != null ? blockReference.value().asItem() : Items.AIR;
+        MutableComponent mutableComponent;
+        if (blockReference != null) {
+            mutableComponent = GriefLogger.themedLiteral(LanguageManager.getString(blockReference.value().getDescriptionId()));
+        } else {
+            mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
+        }
+        if (item != Items.AIR) {
+            return mutableComponent
+                    .withStyle(mutableComponent
+                            .getStyle()
+                            .withHoverEvent(
+                                    new HoverEvent.ShowItem(
+                                            item.getDefaultInstance()
+                                    )));
+        } else {
+            return mutableComponent
+                    .withStyle(mutableComponent
+                            .getStyle()
+                            .withHoverEvent(new HoverEvent.ShowText(
+                                    Component.literal(this.material)
+                            )));
+        }
     }
 }

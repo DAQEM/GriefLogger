@@ -25,7 +25,7 @@ public class RadiusFilter implements IFilter {
 
     @Override
     public String getName() {
-        return GriefLogger.translate("filter.radius").getString();
+        return "radius";
     }
 
     @Override

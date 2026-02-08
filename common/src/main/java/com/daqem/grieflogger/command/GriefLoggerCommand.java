@@ -1,5 +1,6 @@
 package com.daqem.grieflogger.command;
 
+import com.daqem.grieflogger.GriefLoggerPermissions;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
@@ -18,6 +19,7 @@ public class GriefLoggerCommand {
 
     private static LiteralArgumentBuilder<CommandSourceStack> commandWithPrefix(String prefix) {
         return Commands.literal(prefix)
+                .requires(source -> GriefLoggerPermissions.check(source, "grieflogger.command", 2))
                 .then(INSPECT.getCommand())
                 .then(LOOKUP.getCommand())
                 .then(PAGE.getCommand());

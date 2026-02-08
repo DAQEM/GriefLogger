@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "id": "grieflogger",
+  "id": "${mod_id}",
   "version": "${version}",
-  "name": "GriefLogger",
-  "description": "A mod that logs all player interactions with blocks and entities and stores them in a database.",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
   "authors": [
-    "DAQEM"
+    "${mod_author}"
   ],
   "contact": {
-    "homepage": "https://daqem.com/",
-    "sources": "https://github.com/DAQEM/GriefLogger"
+    "homepage": "${mod_website}",
+    "sources": "${mod_repository}"
   },
-  "license": "Apache-2.0",
+  "license": "${mod_license}",
   "icon": "assets/grieflogger/icon.png",
   "environment": "*",
   "entrypoints": {
@@ -20,13 +20,13 @@
     ]
   },
   "mixins": [
-    "grieflogger.mixins.json",
-    "grieflogger-common.mixins.json"
+    "grieflogger-common.mixins.json",
+    "grieflogger-fabric.mixins.json"
   ],
   "depends": {
     "fabric": "*",
-    "minecraft": ">=1.20.1",
-    "architectury": ">=9.1.12",
-    "supermartijn642configlib": ">=${config_library_version}"
+    "minecraft": ">=${minecraft_version}",
+    "architectury": ">=${architectury_version}",
+    "yamlconfig": ">=${config_library_version}"
   }
 }
