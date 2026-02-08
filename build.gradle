@@ -29,10 +29,26 @@ subprojects {
     }
 
     repositories {
-        maven {
-            url "https://cursemaven.com"
-            content {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "Curseforge"
+                    url = "https://cursemaven.com"
+                }
+            }
+            filter {
                 includeGroup "curse.maven"
+            }
+        }
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "Modrinth"
+                    url = "https://api.modrinth.com/maven"
+                }
+            }
+            filter {
+                includeGroup "maven.modrinth"
             }
         }
     }

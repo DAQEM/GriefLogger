@@ -45,7 +45,7 @@ dependencies {
     modImplementation "com.mysql:mysql-connector-j:${project.mysql_version}"
     shadowBundle "com.mysql:mysql-connector-j:${project.mysql_version}"
 
-    modImplementation "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file_fabric}"
+    modImplementation "maven.modrinth:supermartijn642s-config-lib:${rootProject.config_library_version_fabric}-fabric-mc${project.minecraft_version}"
 }
 
 processResources {
@@ -61,7 +61,7 @@ processResources {
 
             "minecraft_version": project.minecraft_version,
             "architectury_version": project.architectury_version,
-            "config_library_version": project.config_library_version
+            "config_library_version": project.config_library_version_fabric
     ]
     inputs.properties replaceProperties
 

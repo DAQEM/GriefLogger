@@ -15,7 +15,7 @@ description = "${mod_description}"
 [[dependencies.grieflogger]]
 modId = "forge"
 mandatory = true
-versionRange = "[47,)"
+versionRange = "[${supported_forge_loader_version},)"
 ordering = "NONE"
 side = "SERVER"
 
