@@ -27,7 +27,7 @@ public class ChatService {
     public void insert(UUID userUuid, Level level, BlockPos pos, String message) {
         chatRepository.insert(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().identifier().toString(),
+                level.dimension().location().toString(),
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),

@@ -1,7 +1,6 @@
 plugins {
     id "com.github.johnrengelman.shadow"
-    id "com.matthewprenger.cursegradle" version "1.4.0"
-    id "com.modrinth.minotaur" version "2.+"
+    id "com.hypherionmc.modutils.modpublisher" version "2.1.8"
 }
 
 architectury {
@@ -39,13 +38,17 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowBundle project(path: ":common", configuration: "transformProductionFabric")
 
+    include annotationProcessor(implementation("io.github.llamalad7:mixinextras-fabric:${rootProject.mixin_extras_version}"))
+
     modImplementation "org.xerial:sqlite-jdbc:${project.sqlite_version}"
     shadowBundle "org.xerial:sqlite-jdbc:${project.sqlite_version}"
 
     modImplementation "com.mysql:mysql-connector-j:${project.mysql_version}"
     shadowBundle "com.mysql:mysql-connector-j:${project.mysql_version}"
 
-    modImplementation "maven.modrinth:supermartijn642s-config-lib:${rootProject.config_library_version_fabric}-fabric-mc${project.minecraft_version}"
+    modImplementation "maven.modrinth:supermartijn642s-config-lib:${rootProject.config_library_version_fabric}"
+
+    modCompileOnly "me.lucko:fabric-permissions-api:${rootProject.permissions_api_version_fabric}"
 }
 
 processResources {
@@ -61,7 +64,7 @@ processResources {
 
             "minecraft_version": project.minecraft_version,
             "architectury_version": project.architectury_version,
-            "config_library_version": project.config_library_version_fabric
+            "config_library_version": project.config_library_version_fabric.split('-')[0].replaceAll(/(\d)([a-zA-Z])$/, '$1+$2')
     ]
     inputs.properties replaceProperties
 
@@ -146,50 +149,35 @@ publishing {
     }
 }
 
-curseforge {
-    apiKey = System.getenv("CURSEFORGE_API_KEY")
-    project {
-        id = project.curse_forge_project_id
-        releaseType = project.release_type
-        changelogType = "markdown"
-        changelog = rootProject.file('changelog.md')
+publisher {
+    apiKeys {
+        modrinth System.getenv("MODRINTH_TOKEN")
+        curseforge System.getenv("CURSE_TOKEN")
+        github System.getenv("GITHUB_TOKEN")
+    }
 
-        project.supported_minecraft_versions.split(',').each { version ->
-            addGameVersion version
-        }
+    setCurseID(project.curse_forge_project_id)
+    setModrinthID(project.modrinth_project_id)
+    setChangelog(rootProject.file("changelog.md"))
+    setVersionType(project.release_type)
 
-        addGameVersion "Java 17"
-        addGameVersion "Fabric"
+    setGameVersions(project.supported_minecraft_versions.split(",").collect { it.trim() })
+    setJavaVersions(["Java 17"])
 
-        relations {
-            project.curseforge_dependencies.split(',').each { dep ->
-                requiredDependency dep.trim()
-            }
-        }
+    setVersion(project.mod_version)
+    setDisplayName("${project.mod_name} Fabric ${project.minecraft_version} - ${project.mod_version}")
 
-        mainArtifact(remapJar) {
-            displayName = "$project.mod_name Fabric $project.minecraft_version - $project.mod_version"
-        }
-
-        addArtifact(remapSourcesJar) {
+    modrinthDepends {
+        project.modrinth_dependencies.split(",").each {
+            required(it.trim())
         }
     }
-}
-
-modrinth {
-    token = System.getenv("MODRINTH_API_KEY")
-    projectId = project.modrinth_project_id
-    versionName = "$project.mod_name Fabric $project.minecraft_version - $project.mod_version"
-    versionNumber = "$project.mod_version"
-    versionType = "$project.release_type"
-    uploadFile = remapJar
-    additionalFiles = [remapSourcesJar]
-    gameVersions = project.supported_minecraft_versions.split(',').toList()
-    loaders = ["fabric"]
-    changelog = rootProject.file('changelog.md').text
-    dependencies {
-        project.modrinth_dependencies.split(',').each { dep ->
-            required.project dep
+    curseDepends {
+        project.curseforge_dependencies.split(",").each {
+            required(it.trim())
         }
     }
+
+    setArtifact(tasks.remapJar)
+    addAdditionalFile(tasks.remapSourcesJar)
 }

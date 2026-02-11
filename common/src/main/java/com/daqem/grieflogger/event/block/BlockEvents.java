@@ -12,7 +12,7 @@ public class BlockEvents {
             PlaceBlockEvent.placeBlock(level, blockPos, blockState, entity);
             return EventResult.pass();
         }));
-        InteractionEvent.LEFT_CLICK_BLOCK.register((player, hand, pos, direction) -> LeftClickBlockEvent.leftClickBlock(player, hand, pos, direction).asMinecraft());
-        InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, pos, direction) -> RightClickBlockEvent.rightClickBlock(player, hand, pos, direction).asMinecraft());
+        InteractionEvent.LEFT_CLICK_BLOCK.register(LeftClickBlockEvent::leftClickBlock);
+        InteractionEvent.RIGHT_CLICK_BLOCK.register(RightClickBlockEvent::rightClickBlock);
     }
 }

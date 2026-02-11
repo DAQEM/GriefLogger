@@ -2,15 +2,12 @@ package com.daqem.grieflogger.database.repository;
 
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.command.filter.FilterList;
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.ContainerHistory;
 import com.daqem.grieflogger.model.history.IHistory;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -81,7 +78,7 @@ public class ContainerRepository extends Repository {
                 "SELECT id FROM materials WHERE name = ?" +
                 "), ?, ?, ?);";
 
-        Identifier itemLocation = item.getItem().arch$registryName();
+        ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
             database.queue.add(connection -> {
                 try (PreparedStatement materialStatement = connection.prepareStatement(insertMaterialQuery)) {
@@ -91,12 +88,12 @@ public class ContainerRepository extends Repository {
                 try (PreparedStatement itemStatement = connection.prepareStatement(insertItemQuery)) {
                     itemStatement.setLong(1, time);
                     itemStatement.setString(2, userUuid);
-                    itemStatement.setString(3, level.dimension().identifier().toString());
+                    itemStatement.setString(3, level.dimension().location().toString());
                     itemStatement.setInt(4, x);
                     itemStatement.setInt(5, y);
                     itemStatement.setInt(6, z);
                     itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                    itemStatement.setBytes(8, item.getTagBytes(level));
+                    itemStatement.setBytes(8, item.getTagBytes());
                     itemStatement.setInt(9, item.getCount());
                     itemStatement.setInt(10, itemAction);
                     itemStatement.executeUpdate();
@@ -125,19 +122,19 @@ public class ContainerRepository extends Repository {
                     if (item.isEmpty()) {
                         continue;
                     }
-                    Identifier itemLocation = item.getItem().arch$registryName();
+                    ResourceLocation itemLocation = item.getItem().arch$registryName();
                     if (itemLocation != null) {
                         materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
                         materialStatement.addBatch();
 
                         itemStatement.setLong(1, time);
                         itemStatement.setString(2, userUuid);
-                        itemStatement.setString(3, level.dimension().identifier().toString());
+                        itemStatement.setString(3, level.dimension().location().toString());
                         itemStatement.setInt(4, x);
                         itemStatement.setInt(5, y);
                         itemStatement.setInt(6, z);
                         itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                        itemStatement.setBytes(8, item.getTagBytes(level));
+                        itemStatement.setBytes(8, item.getTagBytes());
                         itemStatement.setInt(9, item.getCount());
                         itemStatement.setInt(10, itemAction);
                         itemStatement.addBatch();
@@ -170,19 +167,19 @@ public class ContainerRepository extends Repository {
                         if (item.isEmpty()) {
                             continue;
                         }
-                        Identifier itemLocation = item.getItem().arch$registryName();
+                        ResourceLocation itemLocation = item.getItem().arch$registryName();
                         if (itemLocation != null) {
                             materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
                             materialStatement.addBatch();
 
                             itemStatement.setLong(1, time);
                             itemStatement.setString(2, userUuid);
-                            itemStatement.setString(3, level.dimension().identifier().toString());
+                            itemStatement.setString(3, level.dimension().location().toString());
                             itemStatement.setInt(4, x);
                             itemStatement.setInt(5, y);
                             itemStatement.setInt(6, z);
                             itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                            itemStatement.setBytes(8, item.getTagBytes(level));
+                            itemStatement.setBytes(8, item.getTagBytes());
                             itemStatement.setInt(9, item.getCount());
                             itemStatement.setInt(10, entry.getKey().getId());
                             itemStatement.addBatch();
@@ -193,20 +190,6 @@ public class ContainerRepository extends Repository {
                 itemStatement.executeBatch();
             }
         });
-    }
-
-    private DataComponentPatch readPatch(byte[] bytes, Level level) {
-        if (bytes == null || bytes.length == 0) {
-            return DataComponentPatch.EMPTY;
-        }
-        try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-            CompoundTag compoundTag = NbtIo.readCompressed(inputStream, NbtAccounter.unlimitedHeap());
-            return DataComponentPatch.CODEC.parse(level.registryAccess().createSerializationContext(NbtOps.INSTANCE), compoundTag)
-                    .getOrThrow(IllegalStateException::new);
-        } catch (Exception e) {
-            return DataComponentPatch.EMPTY;
-        }
     }
 
     public List<IHistory> getHistory(Level level, int x, int y, int z) {
@@ -224,14 +207,13 @@ public class ContainerRepository extends Repository {
                 """;
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
-            preparedStatement.setString(1, level.dimension().identifier().toString());
+            preparedStatement.setString(1, level.dimension().location().toString());
             preparedStatement.setInt(2, x);
             preparedStatement.setInt(3, y);
             preparedStatement.setInt(4, z);
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                DataComponentPatch patch = readPatch(resultSet.getBytes(8), level);
                 containerHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
@@ -240,7 +222,7 @@ public class ContainerRepository extends Repository {
                         resultSet.getInt(5),
                         resultSet.getInt(6),
                         resultSet.getString(7),
-                        patch,
+                        resultSet.getBytes(8),
                         resultSet.getInt(9),
                         resultSet.getInt(10)
                 ));
@@ -266,7 +248,7 @@ public class ContainerRepository extends Repository {
                 """;
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
-            preparedStatement.setString(1, level.dimension().identifier().toString());
+            preparedStatement.setString(1, level.dimension().location().toString());
             preparedStatement.setInt(2, x);
             preparedStatement.setInt(3, x2);
             preparedStatement.setInt(4, y);
@@ -276,7 +258,6 @@ public class ContainerRepository extends Repository {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                DataComponentPatch patch = readPatch(resultSet.getBytes(8), level);
                 containerHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
@@ -285,7 +266,7 @@ public class ContainerRepository extends Repository {
                         resultSet.getInt(5),
                         resultSet.getInt(6),
                         resultSet.getString(7),
-                        patch,
+                        resultSet.getBytes(8),
                         resultSet.getInt(9),
                         resultSet.getInt(10)
                 ));
@@ -322,7 +303,7 @@ public class ContainerRepository extends Repository {
                 """.formatted(actions, users, includeMaterials, excludeMaterials);
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
-            preparedStatement.setString(1, level.dimension().identifier().toString());
+            preparedStatement.setString(1, level.dimension().location().toString());
             preparedStatement.setLong(2, filterList.getTime());
 
             if (actions == null || actions.isEmpty()) {
@@ -379,7 +360,6 @@ public class ContainerRepository extends Repository {
             List<IHistory> blockHistory = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                DataComponentPatch patch = readPatch(resultSet.getBytes(8), level);
                 blockHistory.add(new ContainerHistory(
                         resultSet.getLong(1),
                         resultSet.getString(2),
@@ -388,7 +368,7 @@ public class ContainerRepository extends Repository {
                         resultSet.getInt(5),
                         resultSet.getInt(6),
                         resultSet.getString(7),
-                        patch,
+                        resultSet.getBytes(8),
                         resultSet.getInt(9),
                         resultSet.getInt(10)));
             }

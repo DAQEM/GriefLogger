@@ -1,23 +1,22 @@
 package com.daqem.grieflogger.model.history;
 
-import java.util.UUID;
-
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.i18n.LanguageManager;
 import com.daqem.grieflogger.model.BlockPosition;
 import com.daqem.grieflogger.model.Time;
 import com.daqem.grieflogger.model.User;
 import com.daqem.grieflogger.model.action.BlockAction;
-
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+
+import java.util.UUID;
 
 public class BlockHistory extends History {
 
@@ -43,11 +42,12 @@ public class BlockHistory extends History {
     }
 
     public Component getMaterialComponent() {
-        Holder.Reference<Block> blockReference = BuiltInRegistries.BLOCK.get(Identifier.parse(material)).orElse(null);
-        Item item = blockReference != null ? blockReference.value().asItem() : Items.AIR;
+        ResourceLocation id = ResourceLocation.tryParse(material);
+        Block block = id != null ? BuiltInRegistries.BLOCK.get(id) : Blocks.AIR;
+        Item item = block.asItem();
         MutableComponent mutableComponent;
-        if (blockReference != null) {
-            mutableComponent = GriefLogger.themedLiteral(LanguageManager.getString(blockReference.value().getDescriptionId()));
+        if (block != Blocks.AIR) {
+            mutableComponent = GriefLogger.themedLiteral(LanguageManager.getString(block.getDescriptionId()));
         } else {
             mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
         }
@@ -56,16 +56,20 @@ public class BlockHistory extends History {
                     .withStyle(mutableComponent
                             .getStyle()
                             .withHoverEvent(
-                                    new HoverEvent.ShowItem(
+                                    new HoverEvent(
+                                        HoverEvent.Action.SHOW_ITEM,
+                                        new HoverEvent.ItemStackInfo(
                                             item.getDefaultInstance()
-                                    )));
+                                        ))));
         } else {
             return mutableComponent
                     .withStyle(mutableComponent
                             .getStyle()
-                            .withHoverEvent(new HoverEvent.ShowText(
-                                    Component.literal(this.material)
-                            )));
+                            .withHoverEvent(
+                                    new HoverEvent(
+                                        HoverEvent.Action.SHOW_TEXT,
+                                        Component.literal(this.material)
+                                    )));
         }
     }
 }

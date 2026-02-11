@@ -3,7 +3,7 @@ package com.daqem.grieflogger.mixin;
 import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.action.BlockAction;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
@@ -26,12 +26,12 @@ public abstract class MixinArmorStand extends LivingEntity {
 
     @Inject(method = "interactAt", at = @At("RETURN"))
     private void onInteractAt(Player player, Vec3 vec3, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResult> cir) {
-        if ((cir.getReturnValue() == InteractionResult.SUCCESS || cir.getReturnValue() == InteractionResult.SUCCESS_SERVER) && player instanceof GriefLoggerServerPlayer glPlayer) {
-            Identifier entityLocation = this.getType().arch$registryName();
+        if ((cir.getReturnValue() == InteractionResult.SUCCESS) && player instanceof GriefLoggerServerPlayer glPlayer) {
+            ResourceLocation entityLocation = this.getType().arch$registryName();
             if (entityLocation != null) {
                 Services.BLOCK.insertEntity(
                         glPlayer.grieflogger$asServerPlayer().getUUID(),
-                        this.level().dimension().identifier().toString(),
+                        this.level().dimension().location().toString(),
                         this.blockPosition(),
                         entityLocation.toString(),
                         BlockAction.INTERACT_ENTITY

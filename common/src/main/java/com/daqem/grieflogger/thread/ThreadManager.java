@@ -1,6 +1,5 @@
 package com.daqem.grieflogger.thread;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;

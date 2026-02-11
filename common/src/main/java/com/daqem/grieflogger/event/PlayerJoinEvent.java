@@ -12,11 +12,11 @@ public class PlayerJoinEvent {
     public static void registerEvent() {
         PlayerEvent.PLAYER_JOIN.register(player -> {
             GameProfile gameProfile = player.getGameProfile();
-            UUID uuid = gameProfile.id();
+            UUID uuid = gameProfile.getId();
 
             Services.USER.insertOrUpdateName(
                     uuid,
-                    gameProfile.name()
+                    gameProfile.getName()
             );
 
             Services.SESSION.insert(

@@ -69,7 +69,7 @@ public class LookupCommand implements ICommand {
                 }
                 List<Page> pages = Page.convertToPages(filteredHistory, false);
                 player.grieflogger$setPages(pages);
-                Page pageToDisplay = pages.getFirst();
+                Page pageToDisplay = pages.get(0);
                 pageToDisplay.sendToPlayer((ServerPlayer) player);
             });
         }

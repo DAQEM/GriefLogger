@@ -1,81 +1,61 @@
 package com.daqem.grieflogger.config;
 
 import com.daqem.grieflogger.GriefLogger;
-import com.daqem.yamlconfig.YamlConfigExpectPlatform;
-import com.daqem.yamlconfig.api.config.ConfigExtension;
-import com.daqem.yamlconfig.api.config.ConfigType;
-import com.daqem.yamlconfig.api.config.entry.IConfigEntry;
-import com.daqem.yamlconfig.impl.config.ConfigBuilder;
+import com.mojang.text2speech.OperatingSystem;
+import com.supermartijn642.configlib.api.ConfigBuilders;
+import com.supermartijn642.configlib.api.IConfigBuilder;
 
-import java.util.List;
+import java.util.function.Supplier;
 
 public class GriefLoggerConfig {
 
     public static void init() {
     }
 
-    public static final IConfigEntry<Boolean> useMysql;
-    public static final IConfigEntry<String> mysqlHost;
-    public static final IConfigEntry<Integer> mysqlPort;
-    public static final IConfigEntry<String> mysqlDatabase;
-    public static final IConfigEntry<String> mysqlUsername;
-    public static final IConfigEntry<String> mysqlPassword;
-    public static final IConfigEntry<Integer> mysqlTimeout;
-    public static final IConfigEntry<Boolean> useIndexes;
+    public static final Supplier<Boolean> useMysql;
+    public static final Supplier<String> mysqlHost;
+    public static final Supplier<Integer> mysqlPort;
+    public static final Supplier<String> mysqlDatabase;
+    public static final Supplier<String> mysqlUsername;
+    public static final Supplier<String> mysqlPassword;
+    public static final Supplier<Integer> mysqlTimeout;
+    public static final Supplier<Boolean> useIndexes;
 
-    public static final IConfigEntry<Integer> maxPageSize;
+    public static final Supplier<Integer> maxPageSize;
 
-    public static final IConfigEntry<String> language;
+    public enum Language { en_us, nl_nl, zh_tw }
+    public static final Supplier<Language> language;
 
-    public static final IConfigEntry<Integer> queueFrequency;
-    public static final IConfigEntry<Integer> helloFrequency;
+    public static final Supplier<Integer> queueFrequency;
+    public static final Supplier<Integer> helloFrequency;
 
     static {
-        ConfigBuilder config = new ConfigBuilder(
-                GriefLogger.MOD_ID,
-                "grieflogger-server",
-                ConfigExtension.YAML,
-                ConfigType.SERVER,
-                YamlConfigExpectPlatform.getConfigDirectory().resolve(GriefLogger.MOD_ID)
-        );
-
+        IConfigBuilder config = ConfigBuilders.newTomlConfig(GriefLogger.MOD_ID, GriefLogger.MOD_ID, true);
         config.push("database");
-        useMysql = config.defineBoolean("useMysql", false)
-                .withComments("Whether to use MySQL or SQLite");
-        mysqlHost = config.defineString("mysqlHost", "localhost", 1, 255)
-                .withComments("MySQL host");
-        mysqlPort = config.defineInteger("mysqlPort", 3306, 1, 65535)
-                .withComments("MySQL port");
-        mysqlDatabase = config.defineString("mysqlDatabase", "database", 1, 255)
-                .withComments("MySQL database");
-        mysqlUsername = config.defineString("mysqlUsername", "username", 1, 255)
-                .withComments("MySQL username");
-        mysqlPassword = config.defineString("mysqlPassword", "password", 1, 255)
-                .withComments("MySQL password");
-        mysqlTimeout = config.defineInteger("mysqlTimeout", 5000, 1, 60000)
-                .withComments("MySQL timeout");
-        useIndexes = config.defineBoolean("useIndexes", true)
-                .withComments("Whether to use indexes (improves inspect/lookup speed)");
+        useMysql = config.comment("Whether to use MySQL or SQLite").onlyOnServer().define("useMysql", false);
+        mysqlHost = config.comment("MySQL host").onlyOnServer().define("mysqlHost", "localhost", 1, 255);
+        mysqlPort = config.comment("MySQL port").onlyOnServer().define("mysqlPort", 3306, 1, 65535);
+        mysqlDatabase = config.comment("MySQL database").onlyOnServer().define("mysqlDatabase", "database", 1, 255);
+        mysqlUsername = config.comment("MySQL username").onlyOnServer().define("mysqlUsername", "username", 1, 255);
+        mysqlPassword = config.comment("MySQL password").onlyOnServer().define("mysqlPassword", "password", 1, 255);
+        mysqlTimeout = config.comment("MySQL timeout").onlyOnServer().define("mysqlTimeout", 5000, 1, 60000);
+        useIndexes = config.comment("Whether to use indexes (improves inspect/lookup speed)").onlyOnServer().define("useIndexes", true);
         config.pop();
 
         config.push("general");
-        maxPageSize = config.defineInteger("maxPageSize", 10, 1, 100)
-                .withComments("Maximum page size");
+        maxPageSize = config.comment("Maximum page size").onlyOnServer().define("maxPageSize", 10, 1, 100);
         config.pop();
 
         config.push("server");
-        language = config.defineString("language", "en_us", 1, 10, List.of("en_us", "nl_nl", "zh_tw"))
-                .withComments("The language to use for translations (en_us, nl_nl, zh_tw)");
+        language = config.comment("The language to use for translations (en_us, nl_nl, zh_tw)").onlyOnServer().define("language", Language.en_us);
         config.pop();
 
         config.push("queue");
-        queueFrequency = config.defineInteger("queueFrequency", 20, 1, 100)
-                .withComments("The frequency at which the database queue is executed (every 'x' ticks)");
+        queueFrequency = config.comment("The frequency at which the database queue is executed (every 'x' ticks)").onlyOnServer().define("queueFrequency", 20, 1, 100);
         config.pop();
 
         config.push("hello");
-        helloFrequency = config.defineInteger("helloFrequency", 600, 1, 1000)
-                .withComments("The frequency at which the hello packet is sent to the server (every 'x' ticks)");
+        helloFrequency = config.comment("The frequency at which the hello packet is sent to the server (every 'x' ticks)").onlyOnServer().define("helloFrequency", 600, 1, 1000);
         config.pop();
 
         config.build();

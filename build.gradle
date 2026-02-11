@@ -1,6 +1,6 @@
 plugins {
-    id "dev.architectury.loom" version "1.10-SNAPSHOT" apply false
-    id "architectury-plugin" version "3.4-SNAPSHOT"
+    id 'dev.architectury.loom' version '1.10-SNAPSHOT' apply false
+    id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.github.johnrengelman.shadow' apply false
 }
 
@@ -51,9 +51,6 @@ subprojects {
                 includeGroup "maven.modrinth"
             }
         }
-    }
-
-    repositories {
         maven { url "https://maven.daqem.com/snapshots/" }
         maven { url "https://maven.daqem.com/releases" }
     }
@@ -69,11 +66,11 @@ subprojects {
         // If you remove this line, sources will not be generated.
         withSourcesJar()
 
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     tasks.withType(JavaCompile).configureEach {
-        it.options.release = 21
+        it.options.release = 17
     }
 }

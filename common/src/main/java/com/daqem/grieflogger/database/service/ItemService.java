@@ -9,7 +9,7 @@ import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.ItemHistory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -34,11 +34,11 @@ public class ItemService {
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {
-        Identifier itemLocation = item.getItem().arch$registryName();
+        ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
             itemRepository.insert(System.currentTimeMillis(),
                     userUuid.toString(),
-                    level.dimension().location().toString(),
+                    level,
                     pos.getX(),
                     pos.getY(),
                     pos.getZ(),
@@ -50,7 +50,7 @@ public class ItemService {
     public void insertMap(UUID userUuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         itemRepository.insertMap(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -63,7 +63,7 @@ public class ItemService {
             return List.of();
         }
         return itemRepository.getFilteredItemHistory(
-                level.dimension().location().toString(),
+                level,
                 filterList
         );
     }

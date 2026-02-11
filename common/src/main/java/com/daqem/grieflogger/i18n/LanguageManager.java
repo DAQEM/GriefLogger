@@ -17,12 +17,13 @@ import java.util.Map;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.config.GriefLoggerConfig;
 
-import com.daqem.yamlconfig.YamlConfigExpectPlatform;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.supermartijn642.configlib.ConfigBuilder;
+import com.supermartijn642.configlib.ConfigLib;
 import dev.architectury.platform.Platform;
 import net.minecraft.locale.Language;
 import net.minecraft.server.MinecraftServer;
@@ -37,14 +38,14 @@ public class LanguageManager {
 
     public static void load(MinecraftServer server) {
         TRANSLATIONS.clear();
-        String language = GriefLoggerConfig.language.get();
+        GriefLoggerConfig.Language language = GriefLoggerConfig.language.get();
 
         for (String modId : Platform.getModIds()) {
-            if (!language.equals("en_us")) {
+            if (!language.equals(GriefLoggerConfig.Language.en_us)) {
                 if (modId.equals("minecraft")) {
-                    loadLanguage(server, language);
+                    loadLanguage(server, language.toString());
                 } else {
-                    loadLanguage(modId, language);
+                    loadLanguage(modId, language.toString());
                 }
             }
             loadLanguage(modId, "en_us");
@@ -76,7 +77,7 @@ public class LanguageManager {
         try {
             String mcVersion = server.getServerVersion();
 
-            Path cacheDir = YamlConfigExpectPlatform.getConfigDirectory().resolve(GriefLogger.MOD_ID).resolve("lang_cache");
+            Path cacheDir = ConfigLib.getConfigFolder().toPath().resolve(GriefLogger.MOD_ID).resolve("lang_cache");
             Files.createDirectories(cacheDir);
 
             Path cacheFile = cacheDir.resolve(languageCode + ".json");

@@ -9,7 +9,7 @@ import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.IHistory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -34,11 +34,11 @@ public class ContainerService {
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {
-        Identifier itemLocation = item.getItem().arch$registryName();
+        ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
             containerRepository.insert(System.currentTimeMillis(),
                     userUuid.toString(),
-                    level.dimension().location().toString(),
+                    level,
                     pos.getX(),
                     pos.getY(),
                     pos.getZ(),
@@ -50,7 +50,7 @@ public class ContainerService {
     public void insertList(UUID userUuid, Level level, BlockPos pos, List<SimpleItemStack> items, ItemAction itemAction) {
         containerRepository.insertList(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -61,7 +61,7 @@ public class ContainerService {
     public void insertMap(UUID userUuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         containerRepository.insertMap(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -70,7 +70,7 @@ public class ContainerService {
 
     public List<IHistory> getHistory(Level level, BlockPos pos) {
         return containerRepository.getHistory(
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ()
@@ -79,7 +79,7 @@ public class ContainerService {
 
     public List<IHistory> getHistory(Level level, BlockPos pos, BlockPos connectionPos) {
         return containerRepository.getHistory(
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -95,7 +95,7 @@ public class ContainerService {
             return List.of();
         }
         return containerRepository.getFilteredContainerHistory(
-                level.dimension().location().toString(),
+                level,
                 filterList
         );
     }

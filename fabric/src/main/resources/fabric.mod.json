@@ -27,6 +27,6 @@
     "fabric": "*",
     "minecraft": ">=${minecraft_version}",
     "architectury": ">=${architectury_version}",
-    "yamlconfig": ">=${config_library_version}"
+    "supermartijn642configlib": ">=${config_library_version}"
   }
 }

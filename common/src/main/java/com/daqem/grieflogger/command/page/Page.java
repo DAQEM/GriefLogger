@@ -51,7 +51,7 @@ public class Page {
     private Component getHeader() {
         MutableComponent header = GriefLogger.translate("lookup.history_header", GriefLogger.themedTranslate("lookup.history_title"));
         if (singleLocation && !history.isEmpty()) {
-            header.append(" ").append(history.getFirst().getPosition().getComponent());
+            header.append(" ").append(history.get(0).getPosition().getComponent());
         }
         return header;
     }
@@ -77,7 +77,7 @@ public class Page {
     }
 
     private ClickEvent getClickEvent(int page) {
-        return new ClickEvent.RunCommand("/grieflogger page " + page);
+        return new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/grieflogger page " + page);
     }
 
     private Style getStyle(int page, boolean enabled) {

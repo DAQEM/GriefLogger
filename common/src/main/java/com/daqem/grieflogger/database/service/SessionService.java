@@ -33,7 +33,7 @@ public class SessionService {
         sessionRepository.insert(
                 System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().identifier().toString(),
+                level.dimension().location().toString(),
                 pos.getX(), pos.getY(), pos.getZ(),
                 sessionAction.getId()
         );
@@ -50,7 +50,7 @@ public class SessionService {
             return List.of();
         }
         return sessionRepository.getFilteredSessionHistory(
-                level.dimension().identifier().toString(),
+                level.dimension().location().toString(),
                 filterList
         );
     }

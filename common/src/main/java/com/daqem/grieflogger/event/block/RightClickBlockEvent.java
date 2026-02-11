@@ -75,7 +75,7 @@ public class RightClickBlockEvent extends AbstractEvent {
                     return InspectBlockEvent.inspectBlock(serverPlayer, pos.relative(direction));
                 }
 
-                if (BlockHandler.isBlockIntractable(block)) {
+                if (BlockHandler.isBlockInteractable(block)) {
                     LogBlockEvent.logBlock(serverPlayer, level, state, pos, BlockAction.INTERACT_BLOCK);
                 }
             }

@@ -4,7 +4,7 @@ import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.action.BlockAction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.OwnableEntity;
@@ -30,11 +30,11 @@ public class EntityUtils {
 
         Services.USER.insertOrUpdateName(uuid, name);
 
-        Identifier materialLocation = state.getBlock().arch$registryName();
+        ResourceLocation materialLocation = state.getBlock().arch$registryName();
         if (materialLocation != null) {
             Services.BLOCK.insertMaterial(
                     uuid,
-                    level.dimension().identifier().toString(),
+                    level.dimension().location().toString(),
                     pos,
                     materialLocation.toString(),
                     action

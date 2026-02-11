@@ -5,18 +5,18 @@ import com.daqem.grieflogger.event.AbstractEvent;
 import com.daqem.grieflogger.model.action.BlockAction;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class LogBlockEvent extends AbstractEvent {
 
     public static void logBlock(GriefLoggerServerPlayer player, Level level, BlockState state, BlockPos pos, BlockAction blockAction) {
-        Identifier materialLocation = state.getBlock().arch$registryName();
+        ResourceLocation materialLocation = state.getBlock().arch$registryName();
         if (materialLocation != null) {
             Services.BLOCK.insertMaterial(
                     player.grieflogger$asServerPlayer().getUUID(),
-                    level.dimension().identifier().toString(),
+                    level.dimension().location().toString(),
                     pos,
                     materialLocation.toString(),
                     blockAction);

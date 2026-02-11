@@ -17,8 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 // [ADD THESE IMPORTS]
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
+
 
 public class BreakBlockEvent extends AbstractEvent {
 
@@ -29,7 +28,7 @@ public class BreakBlockEvent extends AbstractEvent {
             }
 
             Block block = state.getBlock();
-            if (BlockHandler.isBlockIntractable(block)) {
+            if (BlockHandler.isBlockInteractable(block)) {
                 if (block instanceof DoorBlock) {
                     RemoveDoorInteractionsEvent.removeDoorInteractions(level, pos, state);
                 } else {

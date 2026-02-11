@@ -7,16 +7,21 @@ import com.daqem.grieflogger.block.container.ContainersTransactionManager;
 import com.daqem.grieflogger.block.container.IContainerTransactionManager;
 import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.database.service.Services;
+import com.daqem.grieflogger.event.item.DropItemEvent;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.mojang.authlib.GameProfile;
+import dev.architectury.utils.EnvExecutor;
+import net.fabricmc.api.EnvType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -65,7 +70,7 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
         } else {
             List<Page> pages = Page.convertToPages(historyList, true);
             grieflogger$setPages(pages);
-            Page pageToDisplay = pages.getFirst();
+            Page pageToDisplay = pages.get(0);
             pageToDisplay.sendToPlayer(grieflogger$asServerPlayer());
         }
     }
