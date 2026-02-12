@@ -1,19 +1,28 @@
 package com.daqem.grieflogger;
 
+import com.daqem.grieflogger.event.*;
+import com.daqem.grieflogger.thread.ThreadManager;
+import net.minecraft.resources.ResourceLocation;
+import org.slf4j.Logger;
+
 import com.daqem.grieflogger.config.GriefLoggerConfig;
 import com.daqem.grieflogger.database.Database;
-import com.daqem.grieflogger.database.service.*;
-import com.daqem.grieflogger.event.*;
+import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.event.block.BlockEvents;
 import com.daqem.grieflogger.event.item.ItemEvents;
-import com.daqem.grieflogger.thread.ThreadManager;
+import com.daqem.grieflogger.i18n.LanguageManager;
 import com.mojang.logging.LogUtils;
+
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
-import org.slf4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GriefLogger {
     public static final String MOD_ID = "grieflogger";
@@ -27,6 +36,7 @@ public class GriefLogger {
             return;
         }
         registerEvents();
+        startHeartbeat();
     }
 
     private static void initConfigs() {
@@ -46,6 +56,8 @@ public class GriefLogger {
 
         ChatEvent.registerEvent();
         CommandEvent.registerEvent();
+        ServerStartedEvent.registerEvent();
+        ServerStoppedEvent.registerEvent();
     }
 
     private static boolean prepareDatabase() {
@@ -93,20 +105,85 @@ public class GriefLogger {
         return DATABASE;
     }
 
+    private static void startHeartbeat() {
+        int frequencyTicks = GriefLoggerConfig.helloFrequency.get();
+        long seconds = frequencyTicks / 20;
+        if (seconds < 1) seconds = 1;
+
+        ThreadManager.scheduleAtFixedRate(() -> {
+            Database database = getDatabase();
+            if (database != null) {
+                database.queue.hello();
+                database.queue.execute();
+                database.batchQueue.execute();
+            }
+        }, seconds, seconds, TimeUnit.SECONDS);
+    }
+
     public static MutableComponent translate(String str) {
-        MutableComponent component = translate(str, TranslatableContents.NO_ARGS);
-        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
-            component = Component.literal(component.getString()).withStyle(component.getStyle());
-        }
-        return component;
+        return translate(str, TranslatableContents.NO_ARGS);
     }
 
     public static MutableComponent translate(String str, Object... args) {
-        MutableComponent component = Component.translatable(MOD_ID + "." + str, args);
-        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
-            component = Component.literal(component.getString()).withStyle(component.getStyle());
+        String translated = LanguageManager.getString(MOD_ID + "." + str);
+        try {
+            if (args.length == 0) {
+                return Component.literal(translated);
+            }
+            
+            boolean hasComponentArg = false;
+            for (Object arg : args) {
+                if (arg instanceof Component) {
+                    hasComponentArg = true;
+                    break;
+                }
+            }
+
+            if (!hasComponentArg) {
+                return Component.literal(String.format(translated, args));
+            }
+
+            Object[] newArgs = new Object[args.length];
+            Map<String, Component> componentMap = new HashMap<>();
+
+            for (int i = 0; i < args.length; i++) {
+                if (args[i] instanceof Component component) {
+                    String marker = "§_GL_COMP_" + i + "_§";
+                    componentMap.put(marker, component);
+                    newArgs[i] = marker;
+                } else {
+                    newArgs[i] = args[i];
+                }
+            }
+
+            String formatted = String.format(translated, newArgs);
+            MutableComponent root = Component.literal("");
+            Matcher matcher = Pattern.compile("§_GL_COMP_(\\d+)_§").matcher(formatted);
+            int lastEnd = 0;
+
+            while (matcher.find()) {
+                String textBefore = formatted.substring(lastEnd, matcher.start());
+                if (!textBefore.isEmpty()) {
+                    root.append(Component.literal(textBefore));
+                }
+                String marker = matcher.group();
+                Component component = componentMap.get(marker);
+                if (component != null) {
+                    root.append(component);
+                }
+                lastEnd = matcher.end();
+            }
+
+            String textAfter = formatted.substring(lastEnd);
+            if (!textAfter.isEmpty()) {
+                root.append(Component.literal(textAfter));
+            }
+
+            return root;
+
+        } catch (Exception e) {
+            return Component.literal(translated);
         }
-        return component;
     }
 
     public static MutableComponent literal(String str) {
@@ -114,35 +191,19 @@ public class GriefLogger {
     }
 
     public static MutableComponent themedTranslate(String str) {
-        MutableComponent component = themedTranslate(str, TranslatableContents.NO_ARGS);
-        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
-            component = Component.literal(component.getString()).withStyle(component.getStyle());
-        }
-        return component;
+        return themedTranslate(str, TranslatableContents.NO_ARGS);
     }
 
     public static MutableComponent themedTranslate(String str, Object... args) {
-        MutableComponent component = Component.translatable(MOD_ID + "." + str, args).withStyle(getTheme());
-        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
-            component = Component.literal(component.getString()).withStyle(component.getStyle());
-        }
-        return component;
+        return translate(str, args).withStyle(getTheme());
     }
 
     public static MutableComponent themedLiteral(String str) {
-        MutableComponent component = Component.literal(str).withStyle(getTheme());
-        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
-            component = Component.literal(component.getString()).withStyle(component.getStyle());
-        }
-        return component;
+        return Component.literal(str).withStyle(getTheme());
     }
 
     public static Component getName() {
-        Component component = translate("name").withStyle(getTheme());
-        if (GriefLoggerConfig.serverSideOnlyMode.get()) {
-            component = Component.literal(component.getString()).withStyle(component.getStyle());
-        }
-        return component;
+        return translate("name").withStyle(getTheme());
     }
 
     public static Style getTheme() {

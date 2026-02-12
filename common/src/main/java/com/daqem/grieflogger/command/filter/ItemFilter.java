@@ -28,7 +28,7 @@ public abstract class ItemFilter implements IFilter {
     }
 
     protected List<Item> getItemsFromSuffix(StringReader reader, String suffix) throws CommandSyntaxException {
-        String[] split = suffix.split(",");
+        String[] split = Arrays.stream(suffix.split(",")).map(s -> s.replace("minecraft:", "").trim()).toArray(String[]::new);
         List<Item> items = BuiltInRegistries.ITEM.stream()
                 .filter(item -> Arrays.asList(split).contains(item.arch$registryName().toString().replace("minecraft:", "")))
                 .toList();

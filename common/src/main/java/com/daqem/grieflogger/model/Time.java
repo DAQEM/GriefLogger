@@ -40,6 +40,6 @@ public record Time(long time) {
                         .withColor(ChatFormatting.GRAY)
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                 GriefLogger.literal(new Date(time).toString())
-                                .withStyle(ChatFormatting.GRAY))));
+                                        .withStyle(ChatFormatting.GRAY))));
     }
 }

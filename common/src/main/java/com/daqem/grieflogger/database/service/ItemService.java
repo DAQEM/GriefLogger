@@ -1,18 +1,20 @@
 package com.daqem.grieflogger.database.service;
 
+import com.daqem.grieflogger.command.filter.ActionFilter;
 import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.ItemRepository;
 import com.daqem.grieflogger.model.SimpleItemStack;
+import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.ItemHistory;
-import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ItemService {
@@ -36,7 +38,7 @@ public class ItemService {
         if (itemLocation != null) {
             itemRepository.insert(System.currentTimeMillis(),
                     userUuid.toString(),
-                    level.dimension().location().toString(),
+                    level,
                     pos.getX(),
                     pos.getY(),
                     pos.getZ(),
@@ -48,7 +50,7 @@ public class ItemService {
     public void insertMap(UUID userUuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         itemRepository.insertMap(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -56,9 +58,17 @@ public class ItemService {
     }
 
     public List<ItemHistory> getFilteredItemHistory(Level level, FilterList filterList) {
+        Optional<ActionFilter> actionFilter = filterList.getActionFilter();
+        if (actionFilter.isPresent() && actionFilter.get().getActions().stream().noneMatch(ItemService::isValidItemAction)) {
+            return List.of();
+        }
         return itemRepository.getFilteredItemHistory(
-                level.dimension().location().toString(),
+                level,
                 filterList
         );
+    }
+
+    private static boolean isValidItemAction(IAction action) {
+        return action instanceof ItemAction && (!action.equals(ItemAction.ADD_ITEM) || !action.equals(ItemAction.REMOVE_ITEM));
     }
 }

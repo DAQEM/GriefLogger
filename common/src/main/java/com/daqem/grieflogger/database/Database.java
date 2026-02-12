@@ -1,24 +1,33 @@
 package com.daqem.grieflogger.database;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.GriefLoggerExpectPlatform;
-import com.daqem.grieflogger.config.GriefLoggerConfig;
-import com.daqem.grieflogger.database.queue.IQueue;
-import com.daqem.grieflogger.database.queue.Queue;
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
+import com.supermartijn642.configlib.ConfigLib;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.file.Path;
-import java.sql.*;
-import java.util.List;
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.config.GriefLoggerConfig;
+import com.daqem.grieflogger.database.dialect.IDatabaseDialect;
+import com.daqem.grieflogger.database.dialect.SQLiteDialect;
+import com.daqem.grieflogger.database.queue.IQueue;
+import com.daqem.grieflogger.database.queue.Queue;
+import com.daqem.grieflogger.database.queue.SqlTask;
 
 public class Database {
 
     @Nullable
     private Connection connection;
-    @Nullable
-    private Statement statement;
     public final IQueue queue;
     public final IQueue batchQueue;
+    private IDatabaseDialect dialect;
+    private final Object lock = new Object();
 
     public Database() {
         queue = new Queue(this, false);
@@ -29,17 +38,13 @@ public class Database {
         boolean connected;
         if (GriefLoggerConfig.useMysql.get()) {
             connected = createMysqlConnection();
+            dialect = new MySQLDialect();
         } else {
             connected = createSqliteConnection();
+            dialect = new SQLiteDialect();
         }
         if (connection != null) {
             GriefLogger.LOGGER.info("Connected to database");
-            try {
-                statement = connection.createStatement();
-            } catch (SQLException e) {
-                GriefLogger.LOGGER.error("Failed to create statement", e);
-                return false;
-            }
             try {
                 connection.setAutoCommit(false);
             } catch (SQLException e) {
@@ -47,7 +52,7 @@ public class Database {
                 return false;
             }
         }
-        return connected && connection != null && statement != null;
+        return connected && connection != null;
     }
 
     public boolean createMysqlConnection() {
@@ -80,13 +85,14 @@ public class Database {
             GriefLogger.LOGGER.error("Failed to load SQLite driver", e);
             return false;
         }
-        Path path = GriefLoggerExpectPlatform.getConfigDirectory().resolve(GriefLogger.MOD_ID);
+        Path path = ConfigLib.getConfigFolder().toPath().resolve(GriefLogger.MOD_ID);
         if (!path.toFile().exists()) {
             //noinspection ResultOfMethodCallIgnored
             path.toFile().mkdirs();
         }
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:database.db");
+            String dbPath = path.resolve("database.db").toString();
+            connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
         } catch (SQLException e) {
             GriefLogger.LOGGER.error("Failed to connect to SQLite database", e);
             return false;
@@ -95,23 +101,25 @@ public class Database {
     }
 
     public void createTable(String sql) {
-        try {
-            if (statement != null) {
-                statement.execute(sql);
-            }
-        } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to create table", e);
-        }
+        execute(sql, true);
     }
 
     public void execute(String sql, boolean logError) {
-        try {
-            if (statement != null) {
+        if (connection == null) return;
+
+        synchronized (lock) {
+            try (Statement statement = connection.createStatement()) {
                 statement.execute(sql);
-            }
-        } catch (SQLException e) {
-            if (logError) {
-                GriefLogger.LOGGER.error("Failed to execute statement", e);
+                connection.commit();
+            } catch (SQLException e) {
+                if (logError) {
+                    GriefLogger.LOGGER.error("Failed to execute statement", e);
+                }
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    GriefLogger.LOGGER.error("Failed to rollback", ex);
+                }
             }
         }
     }
@@ -124,34 +132,46 @@ public class Database {
         }
     }
 
-    public void executeStatements(List<PreparedStatement> statements, boolean isBatch) {
-        try {
-            for (PreparedStatement statement : statements) {
-                if (statement == null) {
-                    GriefLogger.LOGGER.error("Statement is null");
-                    continue;
-                }
+    public void executeQueue(List<Object> items, boolean isBatch) {
+        if (connection == null) return;
 
-                if (statement.isClosed()) {
-                    GriefLogger.LOGGER.error("Statement is closed");
-                    continue;
-                }
-
-                try (statement) {
-                    if (isBatch) {
-                        statement.executeBatch(); // Execute as a batch
-                    } else {
-                        statement.executeUpdate(); // Execute individually
+        synchronized (lock) {
+            try {
+                for (Object item : items) {
+                    if (item instanceof PreparedStatement preparedStatement) {
+                        if (preparedStatement.isClosed()) {
+                            continue;
+                        }
+                        try (preparedStatement) {
+                            if (isBatch) {
+                                preparedStatement.executeBatch();
+                            } else {
+                                preparedStatement.executeUpdate();
+                            }
+                        }
+                    } else if (item instanceof SqlTask task) {
+                        task.execute(connection);
                     }
                 }
-            }
-            if (!statements.isEmpty()) {
-                if (connection != null) {
-                    connection.commit();
+                if (!items.isEmpty()) {
+                    if (connection != null && !connection.isClosed()) {
+                        connection.commit();
+                    }
+                }
+            } catch (SQLException e) {
+                GriefLogger.LOGGER.error("Failed to execute database queue", e);
+                try {
+                    if (connection != null && !connection.isClosed()) {
+                        connection.rollback();
+                    }
+                } catch (SQLException ex) {
+                    GriefLogger.LOGGER.error("Failed to rollback transaction", ex);
                 }
             }
-        } catch (SQLException e) {
-            GriefLogger.LOGGER.error("Failed to execute statements", e);
         }
+    }
+
+    public IDatabaseDialect getDialect() {
+        return dialect;
     }
 }

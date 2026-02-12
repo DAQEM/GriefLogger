@@ -1,6 +1,7 @@
 package com.daqem.grieflogger.command;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.GriefLoggerPermissions;
 import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -16,7 +17,7 @@ public class PageCommand implements ICommand {
     @Override
     public LiteralArgumentBuilder<CommandSourceStack> getCommand() {
         return Commands.literal("page")
-                .requires(source -> source.hasPermission(2))
+                .requires(source -> GriefLoggerPermissions.check(source, "grieflogger.command.page", 2))
                 .then(Commands.argument("page", IntegerArgumentType.integer())
                         .executes(context -> page(context.getSource(), IntegerArgumentType.getInteger(context, "page"))));
     }

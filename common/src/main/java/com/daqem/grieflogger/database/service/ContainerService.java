@@ -1,19 +1,20 @@
 package com.daqem.grieflogger.database.service;
 
+import com.daqem.grieflogger.command.filter.ActionFilter;
 import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.database.repository.ContainerRepository;
 import com.daqem.grieflogger.model.SimpleItemStack;
+import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.IHistory;
-import com.daqem.grieflogger.thread.OnComplete;
-import com.daqem.grieflogger.thread.ThreadManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ContainerService {
@@ -37,7 +38,7 @@ public class ContainerService {
         if (itemLocation != null) {
             containerRepository.insert(System.currentTimeMillis(),
                     userUuid.toString(),
-                    level.dimension().location().toString(),
+                    level,
                     pos.getX(),
                     pos.getY(),
                     pos.getZ(),
@@ -49,7 +50,7 @@ public class ContainerService {
     public void insertList(UUID userUuid, Level level, BlockPos pos, List<SimpleItemStack> items, ItemAction itemAction) {
         containerRepository.insertList(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -60,7 +61,7 @@ public class ContainerService {
     public void insertMap(UUID userUuid, Level level, BlockPos pos, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
         containerRepository.insertMap(System.currentTimeMillis(),
                 userUuid.toString(),
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -69,7 +70,7 @@ public class ContainerService {
 
     public List<IHistory> getHistory(Level level, BlockPos pos) {
         return containerRepository.getHistory(
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ()
@@ -78,7 +79,7 @@ public class ContainerService {
 
     public List<IHistory> getHistory(Level level, BlockPos pos, BlockPos connectionPos) {
         return containerRepository.getHistory(
-                level.dimension().location().toString(),
+                level,
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
@@ -89,9 +90,17 @@ public class ContainerService {
     }
 
     public List<IHistory> getFilteredContainerHistory(Level level, FilterList filterList) {
+        Optional<ActionFilter> actionFilter = filterList.getActionFilter();
+        if ((actionFilter.isPresent() && actionFilter.get().getActions().stream().noneMatch(ContainerService::isValidItemAction))) {
+            return List.of();
+        }
         return containerRepository.getFilteredContainerHistory(
-                level.dimension().location().toString(),
+                level,
                 filterList
         );
+    }
+
+    private static boolean isValidItemAction(IAction action) {
+        return action.equals(ItemAction.ADD_ITEM) || action.equals(ItemAction.REMOVE_ITEM);
     }
 }

@@ -7,7 +7,12 @@
   ],
   "mixins": [
     "ItemMixin",
+    "MixinArmorStand",
+    "MixinBucketItem",
+    "MixinEnderManLeaveBlockGoal",
+    "MixinEnderManTakeBlockGoal",
     "MixinItemStack",
+    "MixinServerExplosion",
     "MixinServerPlayer",
     "ProjectileMixin"
   ],

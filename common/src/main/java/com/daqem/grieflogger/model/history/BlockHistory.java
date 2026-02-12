@@ -1,6 +1,7 @@
 package com.daqem.grieflogger.model.history;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.i18n.LanguageManager;
 import com.daqem.grieflogger.model.BlockPosition;
 import com.daqem.grieflogger.model.Time;
 import com.daqem.grieflogger.model.User;
@@ -10,6 +11,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 import java.util.UUID;
 
@@ -37,17 +42,34 @@ public class BlockHistory extends History {
     }
 
     public Component getMaterialComponent() {
-        MutableComponent mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
-        return mutableComponent
-                .withStyle(mutableComponent
-                        .getStyle()
-                        .withHoverEvent(
-                                new HoverEvent(
+        ResourceLocation id = ResourceLocation.tryParse(material);
+        Block block = id != null ? BuiltInRegistries.BLOCK.get(id) : Blocks.AIR;
+        Item item = block.asItem();
+        MutableComponent mutableComponent;
+        if (block != Blocks.AIR) {
+            mutableComponent = GriefLogger.themedLiteral(LanguageManager.getString(block.getDescriptionId()));
+        } else {
+            mutableComponent = GriefLogger.themedLiteral(this.material.replace("minecraft:", ""));
+        }
+        if (item != Items.AIR) {
+            return mutableComponent
+                    .withStyle(mutableComponent
+                            .getStyle()
+                            .withHoverEvent(
+                                    new HoverEvent(
                                         HoverEvent.Action.SHOW_ITEM,
                                         new HoverEvent.ItemStackInfo(
-                                                BuiltInRegistries.BLOCK.get(
-                                                        new ResourceLocation(material)
-                                                ).asItem()
-                                                        .getDefaultInstance()))));
+                                            item.getDefaultInstance()
+                                        ))));
+        } else {
+            return mutableComponent
+                    .withStyle(mutableComponent
+                            .getStyle()
+                            .withHoverEvent(
+                                    new HoverEvent(
+                                        HoverEvent.Action.SHOW_TEXT,
+                                        Component.literal(this.material)
+                                    )));
+        }
     }
 }

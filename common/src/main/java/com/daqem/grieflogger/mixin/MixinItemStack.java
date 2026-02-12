@@ -1,10 +1,6 @@
 package com.daqem.grieflogger.mixin;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.service.ItemService;
 import com.daqem.grieflogger.event.item.BreakItemEvent;
-import com.daqem.grieflogger.model.SimpleItemStack;
-import com.daqem.grieflogger.model.action.ItemAction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;

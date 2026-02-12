@@ -1,10 +1,11 @@
 package com.daqem.grieflogger.database.repository;
 
-import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.database.Database;
-
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.database.Database;
+import com.daqem.grieflogger.database.dialect.MySQLDialect;
 
 public class LevelRepository extends Repository {
 
@@ -15,43 +16,26 @@ public class LevelRepository extends Repository {
     }
 
     public void createTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS levels (
-                	id integer PRIMARY KEY,
-                	name text NOT NULL UNIQUE
-                );
-                """;
-        if (isMysql()) {
-            sql = """
-                    CREATE TABLE IF NOT EXISTS levels (
-                    	id int PRIMARY KEY AUTO_INCREMENT,
-                    	name varchar(256) NOT NULL UNIQUE
-                    )
-                    ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-                    """;
+        String sql = "CREATE TABLE IF NOT EXISTS levels (" +
+                "id " + database.getDialect().getDataType("integer") + " PRIMARY KEY" + (database.getDialect() instanceof MySQLDialect ? " AUTO_INCREMENT" : "") + "," +
+                "name " + database.getDialect().getDataType("text") + " NOT NULL UNIQUE" +
+                ")";
+        if (database.getDialect() instanceof MySQLDialect) {
+            sql += " ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;";
+        } else {
+            sql += ";";
         }
         database.createTable(sql);
     }
 
     public void insert(String name) {
-        String query = """
-                INSERT OR IGNORE INTO levels(name)
-                VALUES(?);
-                """;
+        String query = database.getDialect().getInsertIgnore() + " INTO levels(name) VALUES(?);";
 
-        if (isMysql()) {
-            query = """
-                    INSERT IGNORE INTO levels(name)
-                    VALUES(?);
-                    """;
-        }
-
-        try {
-            PreparedStatement preparedStatement = database.prepareStatement(query);
-            preparedStatement.setString(1, name);
-            database.queue.add(preparedStatement);
-        } catch (SQLException exception) {
-            GriefLogger.LOGGER.error("Failed to insert level into database", exception);
-        }
+        database.queue.add(connection -> {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, name);
+                preparedStatement.executeUpdate();
+            }
+        });
     }
 }

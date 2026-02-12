@@ -7,6 +7,7 @@ import com.daqem.grieflogger.block.container.ContainersTransactionManager;
 import com.daqem.grieflogger.block.container.IContainerTransactionManager;
 import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.database.service.Services;
+import com.daqem.grieflogger.event.item.DropItemEvent;
 import com.daqem.grieflogger.model.SimpleItemStack;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.IHistory;
@@ -18,7 +19,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -62,7 +65,8 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
     @Unique
     public void grieflogger$sendInspectMessage(List<IHistory> historyList) {
         if (historyList.isEmpty()) {
-            sendSystemMessage(GriefLogger.translate("lookup.no_history", GriefLogger.getName()));
+            if (((Player) this) instanceof ServerPlayer serverPlayer)
+                serverPlayer.sendSystemMessage(GriefLogger.translate("lookup.no_history", GriefLogger.getName()));
         } else {
             List<Page> pages = Page.convertToPages(historyList, true);
             grieflogger$setPages(pages);
@@ -89,14 +93,17 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
 
     @Inject(at = @At("HEAD"), method = "openMenu")
     public void openMenu(MenuProvider menuProvider, CallbackInfoReturnable<OptionalInt> cir) {
-        Optional<BaseContainerBlockEntity> container = ContainerHandler.getContainer(menuProvider);
-        if (container.isPresent()) {
-            this.grieflogger$containerTransactionManager = new ContainerTransactionManager(container.get());
-        } else {
-            ContainerHandler.getContainers(menuProvider).ifPresent(containers -> {
-                this.grieflogger$containerTransactionManager = new ContainersTransactionManager(containers);
-            });
-        }
+        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
+            Optional<BaseContainerBlockEntity> container = ContainerHandler.getContainer(menuProvider);
+            if (container.isPresent()) {
+                this.grieflogger$containerTransactionManager = new ContainerTransactionManager(container.get());
+            } else {
+                ContainerHandler.getContainers(menuProvider).ifPresent(containers -> {
+                    this.grieflogger$containerTransactionManager = new ContainersTransactionManager(containers);
+                });
+            }
+            return null;
+        });
     }
 
     @Inject(at = @At("HEAD"), method = "doCloseContainer()V")
@@ -116,6 +123,16 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
             if (!grieflogger$itemQueue.isEmpty()) {
                 Services.ITEM.insertMap(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
                 grieflogger$itemQueue.clear();
+            }
+            return null;
+        });
+    }
+
+    @Inject(method = "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("RETURN"))
+    private void drop(ItemStack itemStack, boolean bl, boolean bl2, CallbackInfoReturnable<ItemEntity> cir) {
+        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
+            if (cir.getReturnValue() != null) {
+                DropItemEvent.onDropItem(this, cir.getReturnValue());
             }
             return null;
         });

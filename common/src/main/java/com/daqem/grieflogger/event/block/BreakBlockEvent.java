@@ -16,6 +16,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+// [ADD THESE IMPORTS]
+
+
 public class BreakBlockEvent extends AbstractEvent {
 
     public static EventResult breakBlock(Level level, BlockPos pos, BlockState state, ServerPlayer player, @Nullable IntValue xp) {
@@ -25,7 +28,7 @@ public class BreakBlockEvent extends AbstractEvent {
             }
 
             Block block = state.getBlock();
-            if (BlockHandler.isBlockIntractable(block)) {
+            if (BlockHandler.isBlockInteractable(block)) {
                 if (block instanceof DoorBlock) {
                     RemoveDoorInteractionsEvent.removeDoorInteractions(level, pos, state);
                 } else {

@@ -23,7 +23,8 @@ public class GriefLoggerConfig {
 
     public static final Supplier<Integer> maxPageSize;
 
-    public static final Supplier<Boolean> serverSideOnlyMode;
+    public enum Language { en_us, nl_nl, zh_tw }
+    public static final Supplier<Language> language;
 
     public static final Supplier<Integer> queueFrequency;
     public static final Supplier<Integer> helloFrequency;
@@ -46,7 +47,7 @@ public class GriefLoggerConfig {
         config.pop();
 
         config.push("server");
-        serverSideOnlyMode = config.comment("Whether to run the mod in server side only mode").onlyOnServer().define("serverSideOnlyMode", true);
+        language = config.comment("The language to use for translations (en_us, nl_nl, zh_tw)").onlyOnServer().define("language", Language.en_us);
         config.pop();
 
         config.push("queue");

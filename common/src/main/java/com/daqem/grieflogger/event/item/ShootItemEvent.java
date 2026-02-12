@@ -8,7 +8,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class ShootItemEvent {
     public static void shootItem(Player player, ItemStack itemStack) {
-        if (player instanceof GriefLoggerServerPlayer serverPlayer) {
+        if (player instanceof GriefLoggerServerPlayer serverPlayer && itemStack != null) {
             serverPlayer.griefLogger$addItemToQueue(ItemAction.SHOOT_ITEM, new SimpleItemStack(itemStack));
         }
     }

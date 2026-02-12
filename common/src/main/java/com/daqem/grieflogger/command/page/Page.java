@@ -1,6 +1,7 @@
 package com.daqem.grieflogger.command.page;
 
 import com.daqem.grieflogger.GriefLogger;
+import com.daqem.grieflogger.config.GriefLoggerConfig;
 import com.daqem.grieflogger.model.history.IHistory;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
@@ -15,7 +16,6 @@ import java.util.stream.Collectors;
 
 public class Page {
 
-    public static final int MAX_PAGE_SIZE = 10;
     private final List<IHistory> history;
     private final int page;
     private final int maxPage;
@@ -57,10 +57,14 @@ public class Page {
     }
 
     private Component getFooter() {
-        return getArrowLeft().append(" ")
-                .append(GriefLogger.themedTranslate("lookup.page")).append(" ")
-                .append(GriefLogger.translate("lookup.pages", page, maxPage).withStyle(ChatFormatting.WHITE)).append(" ")
-                .append(getArrowRight());
+        return Component.empty()
+                .append(getArrowLeft()
+                        .append(" ")
+                        .append(GriefLogger.themedTranslate("lookup.page"))
+                        .append(" "))
+                .append(GriefLogger.translate("lookup.pages", page, maxPage).withStyle(getStyle(page + 1, page < maxPage).withColor(ChatFormatting.WHITE))
+                        .append(" ")
+                        .append(getArrowRight()));
     }
 
     private MutableComponent getArrowLeft() {
@@ -90,11 +94,12 @@ public class Page {
 
     public static List<Page> convertToPages(List<IHistory> history, boolean singleLocation) {
         List<Page> pages = new ArrayList<>();
-        int maxPage = (int) Math.ceil((double) history.size() / (double) MAX_PAGE_SIZE);
+        Integer pageSize = GriefLoggerConfig.maxPageSize.get();
+        int maxPage = (int) Math.ceil((double) history.size() / (double) pageSize);
         int page = 1;
-        for (int i = 0; i < history.size(); i += MAX_PAGE_SIZE) {
+        for (int i = 0; i < history.size(); i += pageSize) {
             int finalPage = page;
-            pages.add(history.subList(i, Math.min(i + MAX_PAGE_SIZE, history.size()))
+            pages.add(history.subList(i, Math.min(i + pageSize, history.size()))
                     .stream()
                     .collect(Collectors.collectingAndThen(Collectors.toList(), x -> new Page(x, finalPage, maxPage, singleLocation))));
             page++;

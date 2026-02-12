@@ -15,7 +15,7 @@ public class UserCache implements ICache {
     private final Map<Integer, String> usernames = new HashMap<>();
 
     public Map<Integer, String> getAllUsernames() {
-        if (usernameTime + 1000 < System.currentTimeMillis()) {
+        if (usernameTime + 300000 < System.currentTimeMillis()) {
             usernames.clear();
             usernames.putAll(userService.getAllUsernames());
             usernameTime = System.currentTimeMillis();
