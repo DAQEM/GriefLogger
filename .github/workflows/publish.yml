@@ -28,15 +28,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-
-      - name: Grant Permissions
-        run: |
-          chmod +x gradlew
-          chmod +x relocate_natives/prepare.sh
+      - name: Grant Permissions to gradlew
+        run: chmod +x gradlew
 
       - name: Build Jars
         run: ./gradlew build
@@ -59,11 +52,8 @@ jobs:
       - name: Publish to DAQEM Maven
         run: ./gradlew publish
 
-      - name: Publish to Modrinth
-        run: ./gradlew modrinth
-
-      - name: Publish to CurseForge
-        run: ./gradlew curseforge
+      - name: Publish to CurseForge and Modrinth
+        run: ./gradlew publishUnified
 
       - name: Publish to GitHub Releases
         uses: ncipollo/release-action@v1

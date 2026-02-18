@@ -1,0 +1,39 @@
+apply plugin: "me.shedaniel.unified-publishing"
+
+unifiedPublishing {
+    var capitalizedProjectName = project.name == "fabric" ? "Fabric" : "NeoForge"
+
+    project {
+        displayName = "${project.mod_name} ${capitalizedProjectName} ${project.minecraft_version} - ${project.mod_version}"
+        version = project.mod_version
+        changelog = rootProject.file("changelog.md").exists() ? rootProject.file("changelog.md").text : "No changelog provided."
+        releaseType = project.release_type
+        gameVersions = rootProject.supported_minecraft_versions.split(",").toList()
+        gameLoaders = [project.name]
+
+        mainPublication tasks.renameJarForPublication
+
+        var cursetoken = System.getenv("CURSEFORGE_API_KEY")
+        if (cursetoken != null) {
+            curseforge {
+                token = cursetoken
+                id = rootProject.curse_forge_project_id
+                gameVersions.addAll "Java 21"
+                relations {
+                    rootProject.curse_forge_dependencies.split(",").each { depends it }
+                }
+            }
+        }
+
+        var modrinthtoken = System.getenv("MODRINTH_API_KEY")
+        if (modrinthtoken != null) {
+            modrinth {
+                token = modrinthtoken
+                id = rootProject.modrinth_project_id
+                relations {
+                    rootProject.modrinth_dependencies.split(",").each { depends it }
+                }
+            }
+        }
+    }
+}

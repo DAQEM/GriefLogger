@@ -3,35 +3,14 @@ architectury {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/grieflogger.accesswidener")
+    accessWidenerPath = file("src/main/resources/${rootProject.mod_id}.accesswidener")
 }
+
+apply from: rootProject.file("gradle/scripts/maven-publishing.gradle")
 
 dependencies {
-    // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
-    // Do NOT use other classes from fabric loader
+    // Fabric loader for annotations/mixins (Architectury standard)
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury:${rootProject.architectury_version}"
-
-    modImplementation "com.daqem.yamlconfig:yamlconfig-common:${project.config_library_version}"
-}
-
-publishing {
-    publications {
-        mavenFabric(MavenPublication) {
-            groupId = rootProject.maven_group
-            artifactId = rootProject.archives_base_name + "-common"
-            from components.java
-        }
-    }
-
-    repositories {
-        maven {
-            url = project.version.contains('-PR') ? 'https://maven.daqem.com/snapshots' : 'https://maven.daqem.com/releases'
-            credentials {
-                username = System.getenv("MAVEN_USER")
-                password = System.getenv("MAVEN_PASS")
-            }
-        }
-    }
+    modApi "dev.architectury:architectury:${project.architectury_version}"
+    modImplementation "com.daqem.yamlconfig:yamlconfig-common:${project.yamlconfig_version}"
 }

@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 public class NativeTransformer implements Transformer {

@@ -1,0 +1,21 @@
+repositories {
+    mavenCentral()
+    maven {
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+    }
+    maven {
+        name = "NeoForged"
+        url = "https://maven.neoforged.net/releases/"
+    }
+
+    maven {
+        name = "DAQEM Studios Snapshot"
+        url = "https://maven.daqem.com/snapshots"
+    }
+
+    maven {
+        name = "DAQEM Studios Release"
+        url = "https://maven.daqem.com/releases"
+    }
+}
