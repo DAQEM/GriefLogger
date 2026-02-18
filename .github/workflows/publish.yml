@@ -28,8 +28,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Grant Permissions to gradlew
-        run: chmod +x gradlew
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Grant Permissions
+        run: |
+          chmod +x gradlew
+          chmod +x relocate_natives/prepare.sh
 
       - name: Build Jars
         run: ./gradlew build
