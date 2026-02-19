@@ -1,0 +1,21 @@
+apply plugin: "maven-publish"
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = rootProject.maven_group
+            artifactId = "${rootProject.archives_base_name}-${project.name}"
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            url = project.version.contains('-PR') ? 'https://maven.daqem.com/snapshots' : 'https://maven.daqem.com/releases'
+            credentials {
+                username = System.getenv("MAVEN_USER")
+                password = System.getenv("MAVEN_PASS")
+            }
+        }
+    }
+}

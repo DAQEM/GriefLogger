@@ -59,11 +59,8 @@ jobs:
       - name: Publish to DAQEM Maven
         run: ./gradlew publish
 
-      - name: Publish to Modrinth
-        run: ./gradlew modrinth
-
-      - name: Publish to CurseForge
-        run: ./gradlew curseforge
+      - name: Publish to CurseForge and Modrinth
+        run: ./gradlew publishUnified
 
       - name: Publish to GitHub Releases
         uses: ncipollo/release-action@v1
