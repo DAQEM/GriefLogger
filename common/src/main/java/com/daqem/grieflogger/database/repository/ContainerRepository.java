@@ -89,45 +89,36 @@ public class ContainerRepository extends Repository {
             return;
         }
 
-        String insertMaterialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
-
-        if (isMysql()) {
-            insertMaterialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String insertItemQuery = """
-                INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?, ?, ?);
-                """;
+        boolean mysql = isMysql();
+        String levelQuery = mysql ? ContainerSql.LEVEL_UPSERT_MYSQL : ContainerSql.LEVEL_UPSERT_SQLITE;
+        String materialQuery = mysql ? ContainerSql.MATERIAL_UPSERT_MYSQL : ContainerSql.MATERIAL_UPSERT_SQLITE;
+        String insertItemQuery = mysql ? ContainerSql.CONTAINER_INSERT_MYSQL : ContainerSql.CONTAINER_INSERT_SQLITE;
 
         ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
             try {
-                PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
-                PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
+                String materialName = itemLocation.toString().replace("minecraft:", "");
+                String levelName = level.dimension().location().toString();
 
-                materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                // Ensure parent rows exist before the dependent insert so the FK sub-selects
+                // resolve; otherwise a not-yet-persisted level/material yields NULL -> NOT NULL
+                // violation -> the plain INSERT throws and aborts the whole flush batch. (GAP E)
+                PreparedStatement levelStatement = database.prepareStatement(levelQuery);
+                levelStatement.setString(1, levelName);
+                database.queue.add(levelStatement);
+
+                PreparedStatement materialStatement = database.prepareStatement(materialQuery);
+                materialStatement.setString(1, materialName);
                 database.queue.add(materialStatement);
 
+                PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
                 itemStatement.setLong(1, time);
                 itemStatement.setString(2, userUuid);
-                itemStatement.setString(3, level.dimension().location().toString());
+                itemStatement.setString(3, levelName);
                 itemStatement.setInt(4, x);
                 itemStatement.setInt(5, y);
                 itemStatement.setInt(6, z);
-                itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                itemStatement.setString(7, materialName);
                 itemStatement.setBytes(8, item.getTagBytes(level));
                 itemStatement.setInt(9, item.getCount());
                 itemStatement.setInt(10, itemAction);
@@ -139,30 +130,19 @@ public class ContainerRepository extends Repository {
     }
 
     public void insertList(long time, String userUuid, Level level, int x, int y, int z, List<SimpleItemStack> items, int itemAction) {
-        String insertMaterialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
-
-        if (isMysql()) {
-            insertMaterialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String insertItemQuery = """
-                INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?, ?, ?);
-                """;
+        boolean mysql = isMysql();
+        String levelQuery = mysql ? ContainerSql.LEVEL_UPSERT_MYSQL : ContainerSql.LEVEL_UPSERT_SQLITE;
+        String insertMaterialQuery = mysql ? ContainerSql.MATERIAL_UPSERT_MYSQL : ContainerSql.MATERIAL_UPSERT_SQLITE;
+        String insertItemQuery = mysql ? ContainerSql.CONTAINER_INSERT_MYSQL : ContainerSql.CONTAINER_INSERT_SQLITE;
 
         try {
+            String levelName = level.dimension().location().toString();
+
+            // Upsert the (single) level parent in the same batch, ahead of the inserts. (GAP E)
+            PreparedStatement levelStatement = database.prepareStatement(levelQuery);
+            levelStatement.setString(1, levelName);
+            levelStatement.addBatch();
+
             PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
             PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
 
@@ -172,22 +152,24 @@ public class ContainerRepository extends Repository {
                 }
                 ResourceLocation itemLocation = item.getItem().arch$registryName();
                 if (itemLocation != null) {
-                    materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                    String materialName = itemLocation.toString().replace("minecraft:", "");
+                    materialStatement.setString(1, materialName);
                     materialStatement.addBatch();
 
                     itemStatement.setLong(1, time);
                     itemStatement.setString(2, userUuid);
-                    itemStatement.setString(3, level.dimension().location().toString());
+                    itemStatement.setString(3, levelName);
                     itemStatement.setInt(4, x);
                     itemStatement.setInt(5, y);
                     itemStatement.setInt(6, z);
-                    itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                    itemStatement.setString(7, materialName);
                     itemStatement.setBytes(8, item.getTagBytes(level));
                     itemStatement.setInt(9, item.getCount());
                     itemStatement.setInt(10, itemAction);
                     itemStatement.addBatch();
                 }
             }
+            database.batchQueue.add(levelStatement);
             database.batchQueue.add(materialStatement);
             database.batchQueue.add(itemStatement);
         } catch (SQLException e) {
@@ -196,30 +178,19 @@ public class ContainerRepository extends Repository {
     }
 
     public void insertMap(long time, String userUuid, Level level, int x, int y, int z, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
-        String insertMaterialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
-
-        if (isMysql()) {
-            insertMaterialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String insertItemQuery = """
-                INSERT INTO containers(time, user, level, x, y, z, type, data, amount, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?, ?, ?);
-                """;
+        boolean mysql = isMysql();
+        String levelQuery = mysql ? ContainerSql.LEVEL_UPSERT_MYSQL : ContainerSql.LEVEL_UPSERT_SQLITE;
+        String insertMaterialQuery = mysql ? ContainerSql.MATERIAL_UPSERT_MYSQL : ContainerSql.MATERIAL_UPSERT_SQLITE;
+        String insertItemQuery = mysql ? ContainerSql.CONTAINER_INSERT_MYSQL : ContainerSql.CONTAINER_INSERT_SQLITE;
 
         try {
+            String levelName = level.dimension().location().toString();
+
+            // Upsert the (single) level parent in the same batch, ahead of the inserts. (GAP E)
+            PreparedStatement levelStatement = database.prepareStatement(levelQuery);
+            levelStatement.setString(1, levelName);
+            levelStatement.addBatch();
+
             PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
             PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
 
@@ -230,16 +201,17 @@ public class ContainerRepository extends Repository {
                     }
                     ResourceLocation itemLocation = item.getItem().arch$registryName();
                     if (itemLocation != null) {
-                        materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                        String materialName = itemLocation.toString().replace("minecraft:", "");
+                        materialStatement.setString(1, materialName);
                         materialStatement.addBatch();
 
                         itemStatement.setLong(1, time);
                         itemStatement.setString(2, userUuid);
-                        itemStatement.setString(3, level.dimension().location().toString());
+                        itemStatement.setString(3, levelName);
                         itemStatement.setInt(4, x);
                         itemStatement.setInt(5, y);
                         itemStatement.setInt(6, z);
-                        itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                        itemStatement.setString(7, materialName);
                         itemStatement.setBytes(8, item.getTagBytes(level));
                         itemStatement.setInt(9, item.getCount());
                         itemStatement.setInt(10, entry.getKey().getId());
@@ -247,6 +219,7 @@ public class ContainerRepository extends Repository {
                     }
                 }
             }
+            database.batchQueue.add(levelStatement);
             database.batchQueue.add(materialStatement);
             database.batchQueue.add(itemStatement);
         } catch (SQLException e) {
@@ -256,17 +229,7 @@ public class ContainerRepository extends Repository {
 
     public List<IHistory> getHistory(Level level, int x, int y, int z) {
         List<IHistory> containerHistory = new ArrayList<>();
-        String query = """
-                SELECT containers.time, users.name, users.uuid, containers.x, containers.y, containers.z, materials.name, containers.data, containers.amount, containers.action
-                FROM containers
-                INNER JOIN users ON containers.user = users.id
-                INNER JOIN levels ON containers.level = (
-                    SELECT id FROM levels WHERE name = ?
-                )
-                INNER JOIN materials ON containers.type = materials.id
-                WHERE containers.level = levels.id AND containers.x = ? AND containers.y = ? AND containers.z = ? AND (containers.action = 0 OR containers.action = 1)
-                ORDER BY containers.time DESC
-                """;
+        String query = isMysql() ? ContainerSql.CONTAINER_HISTORY_BY_POSITION_MYSQL : ContainerSql.CONTAINER_HISTORY_BY_POSITION_SQLITE;
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setString(1, level.dimension().location().toString());
@@ -300,17 +263,7 @@ public class ContainerRepository extends Repository {
 
     public List<IHistory> getHistory(Level level, int x, int y, int z, int x2, int y2, int z2) {
         List<IHistory> containerHistory = new ArrayList<>();
-        String query = """
-                SELECT containers.time, users.name, users.uuid, containers.x, containers.y, containers.z, materials.name, containers.data, containers.amount, containers.action
-                FROM containers
-                INNER JOIN users ON containers.user = users.id
-                INNER JOIN levels ON containers.level = (
-                    SELECT id FROM levels WHERE name = ?
-                )
-                INNER JOIN materials ON containers.type = materials.id
-                WHERE containers.level = levels.id AND containers.x BETWEEN ? AND ? AND containers.y BETWEEN ? AND ? AND containers.z BETWEEN ? AND ? AND (containers.action = 0 OR containers.action = 1)
-                ORDER BY containers.time DESC
-                """;
+        String query = isMysql() ? ContainerSql.CONTAINER_HISTORY_BY_RANGE_MYSQL : ContainerSql.CONTAINER_HISTORY_BY_RANGE_SQLITE;
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setString(1, level.dimension().location().toString());

@@ -87,45 +87,36 @@ public class ItemRepository extends Repository {
         if (item.isEmpty()) {
             return;
         }
-        String materialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
-
-        if (isMysql()) {
-            materialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String itemQuery = """
-                INSERT INTO items(time, user, level, x, y, z, type, data, amount, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?, ?, ?);
-                """;
+        boolean mysql = isMysql();
+        String levelQuery = mysql ? ItemSql.LEVEL_UPSERT_MYSQL : ItemSql.LEVEL_UPSERT_SQLITE;
+        String materialQuery = mysql ? ItemSql.MATERIAL_UPSERT_MYSQL : ItemSql.MATERIAL_UPSERT_SQLITE;
+        String itemQuery = mysql ? ItemSql.ITEM_INSERT_MYSQL : ItemSql.ITEM_INSERT_SQLITE;
 
         ResourceLocation itemLocation = item.getItem().arch$registryName();
         if (itemLocation != null) {
             try {
-                PreparedStatement preparedStatement = database.prepareStatement(itemQuery);
-                PreparedStatement materialStatement = database.prepareStatement(materialQuery);
+                String materialName = itemLocation.toString().replace("minecraft:", "");
+                String levelName = level.dimension().location().toString();
 
-                materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                // Ensure parent rows exist before the dependent insert so the FK sub-selects
+                // resolve; otherwise a not-yet-persisted level/material yields NULL -> NOT NULL
+                // violation -> the plain INSERT throws and aborts the whole flush batch. (GAP E)
+                PreparedStatement levelStatement = database.prepareStatement(levelQuery);
+                levelStatement.setString(1, levelName);
+                database.queue.add(levelStatement);
+
+                PreparedStatement materialStatement = database.prepareStatement(materialQuery);
+                materialStatement.setString(1, materialName);
                 database.queue.add(materialStatement);
 
+                PreparedStatement preparedStatement = database.prepareStatement(itemQuery);
                 preparedStatement.setLong(1, time);
                 preparedStatement.setString(2, userUuid);
-                preparedStatement.setString(3, level.dimension().location().toString());
+                preparedStatement.setString(3, levelName);
                 preparedStatement.setInt(4, x);
                 preparedStatement.setInt(5, y);
                 preparedStatement.setInt(6, z);
-                preparedStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                preparedStatement.setString(7, materialName);
                 preparedStatement.setBytes(8, item.getTagBytes(level));
                 preparedStatement.setInt(9, item.getCount());
                 preparedStatement.setInt(10, action);
@@ -137,30 +128,19 @@ public class ItemRepository extends Repository {
     }
 
     public void insertMap(long time, String userUuid, Level level, int x, int y, int z, Map<ItemAction, List<SimpleItemStack>> itemsMap) {
-        String insertMaterialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
-
-        if (isMysql()) {
-            insertMaterialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String insertItemQuery = """
-                INSERT INTO items(time, user, level, x, y, z, type, data, amount, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?, ?, ?);
-                """;
+        boolean mysql = isMysql();
+        String levelQuery = mysql ? ItemSql.LEVEL_UPSERT_MYSQL : ItemSql.LEVEL_UPSERT_SQLITE;
+        String insertMaterialQuery = mysql ? ItemSql.MATERIAL_UPSERT_MYSQL : ItemSql.MATERIAL_UPSERT_SQLITE;
+        String insertItemQuery = mysql ? ItemSql.ITEM_INSERT_MYSQL : ItemSql.ITEM_INSERT_SQLITE;
 
         try {
+            String levelName = level.dimension().location().toString();
+
+            // Upsert the (single) level parent in the same batch, ahead of the inserts. (GAP E)
+            PreparedStatement levelStatement = database.prepareStatement(levelQuery);
+            levelStatement.setString(1, levelName);
+            levelStatement.addBatch();
+
             PreparedStatement itemStatement = database.prepareStatement(insertItemQuery);
             PreparedStatement materialStatement = database.prepareStatement(insertMaterialQuery);
 
@@ -171,16 +151,17 @@ public class ItemRepository extends Repository {
                     }
                     ResourceLocation itemLocation = item.getItem().arch$registryName();
                     if (itemLocation != null) {
-                        materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                        String materialName = itemLocation.toString().replace("minecraft:", "");
+                        materialStatement.setString(1, materialName);
                         materialStatement.addBatch();
 
                         itemStatement.setLong(1, time);
                         itemStatement.setString(2, userUuid);
-                        itemStatement.setString(3, level.dimension().location().toString());
+                        itemStatement.setString(3, levelName);
                         itemStatement.setInt(4, x);
                         itemStatement.setInt(5, y);
                         itemStatement.setInt(6, z);
-                        itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                        itemStatement.setString(7, materialName);
                         itemStatement.setBytes(8, item.getTagBytes(level));
                         itemStatement.setInt(9, item.getCount());
                         itemStatement.setInt(10, entry.getKey().getId());
@@ -188,6 +169,7 @@ public class ItemRepository extends Repository {
                     }
                 }
             }
+            database.batchQueue.add(levelStatement);
             database.batchQueue.add(materialStatement);
             database.batchQueue.add(itemStatement);
         } catch (SQLException e) {
