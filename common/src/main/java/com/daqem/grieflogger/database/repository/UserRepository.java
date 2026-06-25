@@ -64,6 +64,18 @@ public class UserRepository extends Repository {
         }
     }
 
+    public void ensureExists(String name, String uuid) {
+        String query = isMysql() ? BlockSql.USER_ENSURE_MYSQL : BlockSql.USER_ENSURE_SQLITE;
+        try {
+            PreparedStatement preparedStatement = database.prepareStatement(query);
+            preparedStatement.setString(1, name);
+            preparedStatement.setString(2, uuid);
+            database.queue.add(preparedStatement);
+        } catch (SQLException exception) {
+            GriefLogger.LOGGER.error("Failed to ensure user exists in database", exception);
+        }
+    }
+
     public void insertNonPlayer(String name) {
         String query = """
                 INSERT INTO users(name)

@@ -26,6 +26,15 @@ public class UserService {
         usernameService.insert(uuid, name);
     }
 
+    /**
+     * Ensure the player's {@code users} row exists (idempotent, name-carrying) so an event insert's
+     * {@code user} foreign key resolves. Lighter than {@link #insertOrUpdateName}: no name rewrite and
+     * no username-history row per event — name refreshes still happen at join.
+     */
+    public void ensure(UUID uuid, String name) {
+        userRepository.ensureExists(name, uuid.toString());
+    }
+
     public Map<Integer, String> getAllUsernames() {
         return userRepository.getAllUsernames();
     }

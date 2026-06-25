@@ -118,6 +118,8 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
     public void grieflogger$tick(CallbackInfo ci) {
         EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
             if (!grieflogger$itemQueue.isEmpty()) {
+                // Ensure the actor's users row exists before logging the item events. (GAP E)
+                Services.USER.ensure(getUUID(), getGameProfile().getName());
                 Services.ITEM.insertMap(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
                 grieflogger$itemQueue.clear();
             }

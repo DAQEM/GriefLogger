@@ -30,12 +30,13 @@ public final class BlockSql {
     public static final String LEVEL_UPSERT_SQLITE = "INSERT OR IGNORE INTO levels(name) VALUES(?)";
     public static final String LEVEL_UPSERT_MYSQL = "INSERT IGNORE INTO levels(name) VALUES(?)";
 
-    // users.name is NOT NULL, so the upsert carries the player name; keyed on the unique uuid.
-    // Params: 1=name, 2=uuid, 3=name (conflict update)
-    public static final String USER_UPSERT_SQLITE =
-            "INSERT INTO users(name, uuid) VALUES(?, ?) ON CONFLICT(uuid) DO UPDATE SET name = ?";
-    public static final String USER_UPSERT_MYSQL =
-            "INSERT INTO users(name, uuid) VALUES(?, ?) ON DUPLICATE KEY UPDATE name = ?";
+    // Ensure the acting player's users row exists before an event insert resolves its user FK.
+    // Idempotent ensure-exists (mirrors the level/material upserts) — keyed on the unique uuid, so
+    // it neither rewrites the row nor touches username history on every event; name refreshes happen
+    // at join (UserRepository.insertOrUpdateName). users.name is NOT NULL, so carry the name.
+    // Params: 1=name, 2=uuid
+    public static final String USER_ENSURE_SQLITE = "INSERT OR IGNORE INTO users(name, uuid) VALUES(?, ?)";
+    public static final String USER_ENSURE_MYSQL = "INSERT IGNORE INTO users(name, uuid) VALUES(?, ?)";
 
     // --- event inserts (resolve FKs via sub-select; parents must already be upserted) ---
     // Params: 1=time, 2=uuid, 3=levelName, 4=x, 5=y, 6=z, 7=material|entity, 8=action

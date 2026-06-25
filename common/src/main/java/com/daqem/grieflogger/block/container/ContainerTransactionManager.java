@@ -31,6 +31,8 @@ public class ContainerTransactionManager implements IContainerTransactionManager
         List<SimpleItemStack> removedItems = getRemovedItems();
         List<SimpleItemStack> addedItems = getAddedItems();
 
+        // Ensure the actor's users row exists before logging the transaction. (GAP E)
+        Services.USER.ensure(serverPlayer.getUUID(), serverPlayer.getGameProfile().getName());
         Services.CONTAINER.insertMap(
                 serverPlayer.getUUID(),
                 blockEntity.getLevel() != null ? blockEntity.getLevel() : serverPlayer.level(),

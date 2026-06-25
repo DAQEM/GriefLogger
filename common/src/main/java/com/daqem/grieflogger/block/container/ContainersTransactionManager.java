@@ -32,6 +32,8 @@ public class ContainersTransactionManager implements IContainerTransactionManage
     }
 
     public void finalize(ServerPlayer serverPlayer) {
+        // Ensure the actor's users row exists before logging any of these transactions. (GAP E)
+        Services.USER.ensure(serverPlayer.getUUID(), serverPlayer.getGameProfile().getName());
         for (BaseContainerBlockEntity blockEntity : blockEntities) {
             constructFinalItems(blockEntity);
 

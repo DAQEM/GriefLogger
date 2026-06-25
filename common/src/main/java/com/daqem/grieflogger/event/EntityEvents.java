@@ -14,6 +14,8 @@ public class EntityEvents {
             if (source.getEntity() instanceof ServerPlayer serverPlayer) {
                 ResourceLocation entityLocation = entity.getType().arch$registryName();
                 if (entityLocation != null) {
+                    // Ensure the killer's users row exists before logging the kill. (GAP E)
+                    Services.USER.ensure(serverPlayer.getUUID(), serverPlayer.getGameProfile().getName());
                     Services.BLOCK.insertEntity(
                             serverPlayer.getUUID(),
                             entity.level().dimension().location().toString(),
