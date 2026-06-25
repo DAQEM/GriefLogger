@@ -120,7 +120,7 @@ public class ItemRepository extends Repository {
                 preparedStatement.setBytes(8, item.getTagBytes(level));
                 preparedStatement.setInt(9, item.getCount());
                 preparedStatement.setInt(10, action);
-                database.queue.add(preparedStatement);
+                database.queue.add(preparedStatement, "item");
             } catch (SQLException exception) {
                 GriefLogger.LOGGER.error("Failed to insert item into database", exception);
             }

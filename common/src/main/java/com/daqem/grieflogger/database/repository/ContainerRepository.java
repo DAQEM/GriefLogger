@@ -122,7 +122,7 @@ public class ContainerRepository extends Repository {
                 itemStatement.setBytes(8, item.getTagBytes(level));
                 itemStatement.setInt(9, item.getCount());
                 itemStatement.setInt(10, itemAction);
-                database.queue.add(itemStatement);
+                database.queue.add(itemStatement, "container");
             } catch (SQLException e) {
                 GriefLogger.LOGGER.error("Failed to insert item", e);
             }

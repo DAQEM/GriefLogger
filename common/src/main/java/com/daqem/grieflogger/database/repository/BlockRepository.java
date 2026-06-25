@@ -98,7 +98,7 @@ public class BlockRepository extends Repository {
             blockStatement.setInt(6, z);
             blockStatement.setString(7, material);
             blockStatement.setInt(8, blockAction);
-            database.queue.add(blockStatement);
+            database.queue.add(blockStatement, "block");
         } catch (SQLException exception) {
             GriefLogger.LOGGER.error("Failed to insert block into database", exception);
         }
@@ -129,7 +129,7 @@ public class BlockRepository extends Repository {
             blockStatement.setInt(6, z);
             blockStatement.setString(7, entity);
             blockStatement.setInt(8, blockAction);
-            database.queue.add(blockStatement);
+            database.queue.add(blockStatement, "entity");
         } catch (SQLException exception) {
             GriefLogger.LOGGER.error("Failed to insert block into database", exception);
         }

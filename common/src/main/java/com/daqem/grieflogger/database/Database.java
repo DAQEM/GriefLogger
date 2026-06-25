@@ -5,6 +5,7 @@ import com.daqem.grieflogger.GriefLoggerExpectPlatform;
 import com.daqem.grieflogger.config.GriefLoggerConfig;
 import com.daqem.grieflogger.database.queue.IQueue;
 import com.daqem.grieflogger.database.queue.Queue;
+import com.daqem.grieflogger.database.queue.QueuedStatement;
 import com.supermartijn642.configlib.ConfigLib;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,9 +126,10 @@ public class Database {
         }
     }
 
-    public void executeStatements(List<PreparedStatement> statements, boolean isBatch) {
+    public void executeStatements(List<QueuedStatement> statements, boolean isBatch) {
         try {
-            for (PreparedStatement statement : statements) {
+            for (QueuedStatement queued : statements) {
+                PreparedStatement statement = queued.statement();
                 if (statement == null) {
                     GriefLogger.LOGGER.error("Statement is null");
                     continue;
@@ -142,7 +144,16 @@ public class Database {
                     if (isBatch) {
                         statement.executeBatch(); // Execute as a batch
                     } else {
-                        statement.executeUpdate(); // Execute individually
+                        int affectedRows = statement.executeUpdate(); // Execute individually
+                        if (queued.shouldWarnDropped(affectedRows)) {
+                            // A tagged event insert that stored nothing: its level/user/material
+                            // reference was missing at flush time, so INSERT OR IGNORE discarded it.
+                            // Previously invisible (the affected-row count was ignored). (GAP E)
+                            GriefLogger.LOGGER.warn(
+                                    "Dropped a logged {} event: the insert affected 0 rows because a referenced "
+                                            + "level/user/material row was missing at flush time. The event was not stored.",
+                                    queued.eventLabel());
+                        }
                     }
                 }
             }

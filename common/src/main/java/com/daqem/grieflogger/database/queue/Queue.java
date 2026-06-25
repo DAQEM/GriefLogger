@@ -11,7 +11,7 @@ public class Queue implements IQueue {
 
     private final Database database;
     private final boolean isBatch;
-    private final List<PreparedStatement> statements = new ArrayList<>();
+    private final List<QueuedStatement> statements = new ArrayList<>();
 
     public Queue(Database database, boolean isBatch) {
         this.database = database;
@@ -20,7 +20,12 @@ public class Queue implements IQueue {
 
     @Override
     public void add(PreparedStatement statement) {
-        this.statements.add(statement);
+        this.statements.add(QueuedStatement.untagged(statement));
+    }
+
+    @Override
+    public void add(PreparedStatement statement, String eventLabel) {
+        this.statements.add(new QueuedStatement(statement, eventLabel));
     }
 
     @Override
@@ -28,7 +33,7 @@ public class Queue implements IQueue {
         if (this.statements.isEmpty()) {
             return;
         }
-        List<PreparedStatement> statements = new ArrayList<>(this.statements);
+        List<QueuedStatement> statements = new ArrayList<>(this.statements);
         this.statements.clear();
         this.database.executeStatements(statements, isBatch);
     }
