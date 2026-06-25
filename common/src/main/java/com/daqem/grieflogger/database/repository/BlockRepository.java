@@ -72,43 +72,19 @@ public class BlockRepository extends Repository {
     }
 
     public void insertMaterial(long time, String userUuid, String levelName, int x, int y, int z, String material, int blockAction) {
-        String materialQuery = """
-                INSERT OR IGNORE INTO materials(name)
-                VALUES(?);
-                """;
-
-        if (isMysql()) {
-            materialQuery = """
-                    INSERT IGNORE INTO materials(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String blockQuery = """
-                INSERT OR IGNORE INTO blocks(time, user, level, x, y, z, type, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM materials WHERE name = ?
-                ), ?);
-                """;
-
-        if (isMysql()) {
-            blockQuery = """
-                    INSERT IGNORE INTO blocks(time, user, level, x, y, z, type, action)
-                    VALUES(?, (
-                        SELECT id FROM users WHERE uuid = ?
-                    ), (
-                        SELECT id FROM levels WHERE name = ?
-                    ), ?, ?, ?, (
-                        SELECT id FROM materials WHERE name = ?
-                    ), ?);
-                    """;
-        }
+        boolean mysql = isMysql();
+        String levelQuery = mysql ? BlockSql.LEVEL_UPSERT_MYSQL : BlockSql.LEVEL_UPSERT_SQLITE;
+        String materialQuery = mysql ? BlockSql.MATERIAL_UPSERT_MYSQL : BlockSql.MATERIAL_UPSERT_SQLITE;
+        String blockQuery = mysql ? BlockSql.BLOCK_INSERT_MYSQL : BlockSql.BLOCK_INSERT_SQLITE;
 
         try {
+            // Ensure parent rows exist before the dependent insert so the FK sub-selects resolve;
+            // otherwise a not-yet-persisted level/material yields NULL -> NOT NULL violation ->
+            // the event is silently dropped by INSERT OR IGNORE. (GAP E)
+            PreparedStatement levelStatement = database.prepareStatement(levelQuery);
+            levelStatement.setString(1, levelName);
+            database.queue.add(levelStatement);
+
             PreparedStatement materialStatement = database.prepareStatement(materialQuery);
             materialStatement.setString(1, material);
             database.queue.add(materialStatement);
@@ -129,49 +105,22 @@ public class BlockRepository extends Repository {
     }
 
     public void insertEntity(long time, String userUuid, String levelName, int x, int y, int z, String entity, int blockAction) {
-        String materialQuery = """
-                INSERT OR IGNORE INTO entities(name)
-                VALUES(?);
-                """;
-
-        if (isMysql()) {
-            materialQuery = """
-                    INSERT IGNORE INTO entities(name)
-                    VALUES(?);
-                    """;
-        }
-
-        String blockQuery = """
-                INSERT OR IGNORE INTO blocks(time, user, level, x, y, z, type, action)
-                VALUES(?, (
-                    SELECT id FROM users WHERE uuid = ?
-                ), (
-                    SELECT id FROM levels WHERE name = ?
-                ), ?, ?, ?, (
-                    SELECT id FROM entities WHERE name = ?
-                ), ?);
-                """;
-
-        if (isMysql()) {
-            blockQuery = """
-                    INSERT IGNORE INTO blocks(time, user, level, x, y, z, type, action)
-                    VALUES(?, (
-                        SELECT id FROM users WHERE uuid = ?
-                    ), (
-                        SELECT id FROM levels WHERE name = ?
-                    ), ?, ?, ?, (
-                        SELECT id FROM entities WHERE name = ?
-                    ), ?);
-                    """;
-        }
-
+        boolean mysql = isMysql();
+        String levelQuery = mysql ? BlockSql.LEVEL_UPSERT_MYSQL : BlockSql.LEVEL_UPSERT_SQLITE;
+        String entityQuery = mysql ? BlockSql.ENTITY_UPSERT_MYSQL : BlockSql.ENTITY_UPSERT_SQLITE;
+        String blockQuery = mysql ? BlockSql.ENTITY_BLOCK_INSERT_MYSQL : BlockSql.ENTITY_BLOCK_INSERT_SQLITE;
 
         try {
-            PreparedStatement materialStatement = database.prepareStatement(materialQuery);
-            PreparedStatement blockStatement = database.prepareStatement(blockQuery);
-            materialStatement.setString(1, entity);
-            database.queue.add(materialStatement);
+            // Ensure parent rows exist before the dependent insert (see insertMaterial / GAP E).
+            PreparedStatement levelStatement = database.prepareStatement(levelQuery);
+            levelStatement.setString(1, levelName);
+            database.queue.add(levelStatement);
 
+            PreparedStatement entityStatement = database.prepareStatement(entityQuery);
+            entityStatement.setString(1, entity);
+            database.queue.add(entityStatement);
+
+            PreparedStatement blockStatement = database.prepareStatement(blockQuery);
             blockStatement.setLong(1, time);
             blockStatement.setString(2, userUuid);
             blockStatement.setString(3, levelName);
@@ -188,17 +137,7 @@ public class BlockRepository extends Repository {
 
     public List<IHistory> getBlockHistory(String levelName, int x, int y, int z) {
         List<IHistory> blockHistory = new ArrayList<>();
-        String query = """
-                SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z, materials.name, blocks.action
-                FROM blocks
-                INNER JOIN users ON blocks.user = users.id
-                INNER JOIN levels ON blocks.level = (
-                    SELECT id FROM levels WHERE name = ?
-                )
-                INNER JOIN materials ON blocks.type = materials.id
-                WHERE blocks.level = levels.id AND blocks.x = ? AND blocks.y = ? AND blocks.z = ? AND (blocks.action = 0 OR blocks.action = 1)
-                ORDER BY blocks.time DESC
-                """;
+        String query = isMysql() ? BlockSql.BLOCK_HISTORY_BY_POSITION_MYSQL : BlockSql.BLOCK_HISTORY_BY_POSITION_SQLITE;
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setString(1, levelName);
@@ -226,17 +165,7 @@ public class BlockRepository extends Repository {
 
     public List<IHistory> getInteractionHistory(String levelName, int x, int y, int z) {
         List<IHistory> blockHistory = new ArrayList<>();
-        String query = """
-                SELECT blocks.time, users.name, users.uuid, blocks.x, blocks.y, blocks.z, materials.name, blocks.action
-                FROM blocks
-                INNER JOIN users ON blocks.user = users.id
-                INNER JOIN levels ON blocks.level = (
-                    SELECT id FROM levels WHERE name = ?
-                )
-                INNER JOIN materials ON blocks.type = materials.id
-                WHERE blocks.level = levels.id AND blocks.x = ? AND blocks.y = ? AND blocks.z = ? AND blocks.action = 2
-                ORDER BY blocks.time DESC
-                """;
+        String query = isMysql() ? BlockSql.INTERACTION_HISTORY_BY_POSITION_MYSQL : BlockSql.INTERACTION_HISTORY_BY_POSITION_SQLITE;
 
         try (PreparedStatement preparedStatement = database.prepareStatement(query)) {
             preparedStatement.setString(1, levelName);
