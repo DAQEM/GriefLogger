@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.daqem.grieflogger.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+  ],
+  "mixins": [
+    "MixinBucketItem"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
