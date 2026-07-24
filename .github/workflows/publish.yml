@@ -12,12 +12,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-      MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
-      MAVEN_USER: ${{ secrets.MAVEN_USER }}
-      MAVEN_PASS: ${{ secrets.MAVEN_PASS }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -55,12 +49,6 @@ jobs:
       - name: Fail if tag exists
         if: steps.checkTag.outputs.exists == 'true'
         run: exit 1
-
-      - name: Publish to DAQEM Maven
-        run: ./gradlew publish
-
-      - name: Publish to CurseForge and Modrinth
-        run: ./gradlew publishUnified
 
       - name: Publish to GitHub Releases
         uses: ncipollo/release-action@v1
