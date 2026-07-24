@@ -4,6 +4,22 @@ import requests
 import tarfile
 import zipfile
 from pathlib import Path
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+
+def _session_with_retries():
+    session = requests.Session()
+    retry = Retry(
+        total=5,
+        backoff_factor=2,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET"],
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
 
 
 def get_platform_specific_filename():
@@ -35,9 +51,11 @@ def download_and_unpack():
     repo_url = "https://api.github.com/repos/indygreg/apple-platform-rs/releases/latest"
     dest_dir.mkdir(exist_ok=True)
 
+    session = _session_with_retries()
+
     # Fetch the latest release info from GitHub
     print("Fetching latest release information...")
-    response = requests.get(repo_url)
+    response = session.get(repo_url)
     response.raise_for_status()
     release_data = response.json()
 
@@ -57,7 +75,7 @@ def download_and_unpack():
     download_url = asset["browser_download_url"]
     archive_path = dest_dir / asset["name"]
 
-    with requests.get(download_url, stream=True) as r:
+    with session.get(download_url, stream=True) as r:
         r.raise_for_status()
         with open(archive_path, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
