@@ -25,7 +25,7 @@
   ],
   "accessWidener": "grieflogger.accesswidener",
   "depends": {
-    "fabric": ">=${fabric_api_version}",
+    "fabric-api": ">=${fabric_api_version}",
     "minecraft": ">=${minecraft_version}",
     "architectury": ">=${architectury_version}",
     "yamlconfig": ">=${yamlconfig_version}"
