@@ -1,46 +1,129 @@
 plugins {
-    id "java-library"
-    id "dev.architectury.loom" version "1.13-SNAPSHOT" apply false
-    id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "com.github.johnrengelman.shadow" apply false
-    id "me.shedaniel.unified-publishing" version "0.1.+" apply false
+    id "net.fabricmc.fabric-loom" version "1.17-SNAPSHOT"
+    id "me.shedaniel.unified-publishing" version "0.1.13"
+    id "maven-publish"
 }
 
-architectury {
-    minecraft = rootProject.minecraft_version
+// Applied the legacy way (not via the versioned `plugins {}` block) because buildSrc already
+// puts the Shadow plugin on the buildscript classpath (needed for NativeTransformer to compile).
+apply plugin: "com.gradleup.shadow"
+
+group = maven_group
+version = mod_version
+
+base {
+    archivesName = archives_base_name
 }
 
-subprojects {
-    apply plugin: "dev.architectury.loom"
-    apply plugin: "architectury-plugin"
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.toVersion(java_version as int)
+    targetCompatibility = JavaVersion.toVersion(java_version as int)
+}
 
-    apply from: rootProject.file("gradle/scripts/java.gradle")
-    apply from: rootProject.file("gradle/scripts/dependencies.gradle")
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = java_version as int
+    it.options.encoding = "UTF-8"
+}
 
-    base {
-        archivesName = rootProject.archives_base_name
+loom {
+    accessWidenerPath = file("src/main/resources/grieflogger.accesswidener")
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "Architectury"
+        url = "https://maven.architectury.dev/"
     }
-
-    loom {
-        silentMojangMappingsLicense()
+    maven {
+        name = "DAQEM Studios Snapshot"
+        url = "https://maven.daqem.com/snapshots"
     }
-
-    dependencies {
-        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
-        mappings loom.layered() {
-            officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-${rootProject.parchment_version}@zip")
-        }
+    maven {
+        name = "DAQEM Studios Release"
+        url = "https://maven.daqem.com/releases"
     }
 }
 
-allprojects {
-    group = rootProject.maven_group
-    version = rootProject.mod_version
+configurations {
+    // Dependencies that need to be shaded (relocated) into the final jar.
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    compileClasspath.extendsFrom shadowBundle
+    runtimeClasspath.extendsFrom shadowBundle
+}
 
-    task printVersionName {
-        doLast {
-            println version
-        }
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    implementation "dev.architectury:architectury-fabric:${architectury_version}"
+    implementation "com.daqem.yamlconfig:yamlconfig-fabric:${yamlconfig_version}"
+    runtimeOnly "com.daqem.uilib:uilib-fabric:${uilib_version}"
+
+    shadowBundle "org.xerial:sqlite-jdbc:${sqlite_version}"
+    shadowBundle "com.mysql:mysql-connector-j:${mysql_version}"
+
+    compileOnly "me.lucko:fabric-permissions-api:0.7.0"
+}
+
+processResources {
+    var replaceProperties = [
+            "version"              : project.version,
+            "mod_id"               : mod_id,
+            "mod_name"             : mod_name,
+            "mod_description"      : mod_description,
+            "mod_author"           : mod_author,
+            "mod_license"          : mod_license,
+            "mod_website"          : mod_website,
+            "mod_repository"       : mod_repository,
+            "minecraft_version"    : minecraft_version,
+            "fabric_loader_version": fabric_loader_version,
+            "fabric_api_version"   : fabric_api_version,
+            "architectury_version" : architectury_version,
+            "yamlconfig_version"   : yamlconfig_version
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching("fabric.mod.json") {
+        expand replaceProperties
     }
 }
+
+shadowJar {
+    relocate "org.sqlite", "gl_sqlite", {
+        exclude "org/sqlite/native/**"
+        exclude "og/sqlite/util/ProcessRunner.class"
+    }
+
+    relocate "jdbc:sqlite", "jdbc:gl_sqlite"
+
+    transform(NativeTransformer.class) {
+        rootDir = project.rootDir
+        relocateNative "org/sqlite", "gl_sqlite"
+        relocateNative "org_sqlite", "gl_1sqlite"
+    }
+
+    relocate "com.mysql", "gl_mysql"
+
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = "fabric"
+
+    mergeServiceFiles()
+}
+
+assemble.dependsOn shadowJar
+
+task printVersionName {
+    doLast {
+        println version
+    }
+}
+
+apply from: rootProject.file("gradle/scripts/publishing.gradle")
+apply from: rootProject.file("gradle/scripts/maven-publishing.gradle")

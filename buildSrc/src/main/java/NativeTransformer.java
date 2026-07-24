@@ -1,4 +1,4 @@
-import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer;
+import com.github.jengelman.gradle.plugins.shadow.transformers.ResourceTransformer;
 import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipOutputStream;
@@ -10,7 +10,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.*;
 
-public class NativeTransformer implements Transformer {
+public class NativeTransformer implements ResourceTransformer {
 	private final Map<String, String> relocations = new HashMap<>();
 	private final HashMap<String, byte[]> rewrittenFiles = new HashMap<>();
 	private NativeRelocator relocator;
@@ -31,7 +31,7 @@ public class NativeTransformer implements Transformer {
 	public void transform(@Nonnull TransformerContext context) {
 		byte[] content;
 		try {
-			content = context.getIs().readAllBytes();
+			content = context.getInputStream().readAllBytes();
 		} catch (IOException e) {
 			throw new GradleException("Failed to read resource content", e);
 		}

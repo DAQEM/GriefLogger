@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_author}"
+  ],
+  "contact": {
+    "homepage": "${mod_website}",
+    "sources": "${mod_repository}"
+  },
+  "license": "${mod_license}",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "server": [
+      "com.daqem.grieflogger.fabric.GriefLoggerFabricServer"
+    ]
+  },
+  "mixins": [
+    "grieflogger.mixins.json",
+    "grieflogger-fabric.mixins.json"
+  ],
+  "accessWidener": "grieflogger.accesswidener",
+  "depends": {
+    "fabric": ">=${fabric_api_version}",
+    "minecraft": ">=${minecraft_version}",
+    "architectury": ">=${architectury_version}",
+    "yamlconfig": ">=${yamlconfig_version}"
+  }
+}

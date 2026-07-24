@@ -9,15 +9,15 @@ repositories {
 
 dependencies {
     // Shadow plugin
-    implementation 'com.github.johnrengelman.shadow:com.github.johnrengelman.shadow.gradle.plugin:8.1.1'
+    implementation 'com.gradleup.shadow:com.gradleup.shadow.gradle.plugin:9.4.1'
 
     // Ant (Required for Shadow)
     implementation 'org.apache.ant:ant:1.10.14'
 
-    // Force latest ASM (Fixes "Unsupported class file major version 65")
-    implementation 'org.ow2.asm:asm:9.7'
-    implementation 'org.ow2.asm:asm-commons:9.7'
-    implementation 'org.ow2.asm:asm-util:9.7'
-    implementation 'org.ow2.asm:asm-tree:9.7'
-    implementation 'org.ow2.asm:asm-analysis:9.7'
+    // Force latest ASM (Fixes "Unsupported class file major version" on newer Java bytecode)
+    implementation 'org.ow2.asm:asm:9.10.1'
+    implementation 'org.ow2.asm:asm-commons:9.10.1'
+    implementation 'org.ow2.asm:asm-util:9.10.1'
+    implementation 'org.ow2.asm:asm-tree:9.10.1'
+    implementation 'org.ow2.asm:asm-analysis:9.10.1'
 }

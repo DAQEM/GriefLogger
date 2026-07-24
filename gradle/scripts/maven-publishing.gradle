@@ -3,8 +3,8 @@ apply plugin: "maven-publish"
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = rootProject.maven_group
-            artifactId = "${rootProject.archives_base_name}-${project.name}"
+            groupId = maven_group
+            artifactId = "${archives_base_name}-fabric"
             from components.java
         }
     }

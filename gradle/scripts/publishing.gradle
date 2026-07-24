@@ -1,26 +1,24 @@
 apply plugin: "me.shedaniel.unified-publishing"
 
 unifiedPublishing {
-    var capitalizedProjectName = project.name == "fabric" ? "Fabric" : "NeoForge"
-
     project {
-        displayName = "${project.mod_name} ${capitalizedProjectName} ${project.minecraft_version} - ${project.mod_version}"
-        version = project.mod_version
+        displayName = "${mod_name} Fabric ${minecraft_version} - ${mod_version}"
+        version = mod_version
         changelog = rootProject.file("changelog.md").exists() ? rootProject.file("changelog.md").text : "No changelog provided."
-        releaseType = project.release_type
-        gameVersions = rootProject.supported_minecraft_versions.split(",").toList()
-        gameLoaders = [project.name]
+        releaseType = release_type
+        gameVersions = supported_minecraft_versions.split(",").toList()
+        gameLoaders = ["fabric"]
 
-        mainPublication tasks.renameJarForPublication
+        mainPublication tasks.shadowJar
 
         var cursetoken = System.getenv("CURSEFORGE_API_KEY")
         if (cursetoken != null) {
             curseforge {
                 token = cursetoken
-                id = rootProject.curse_forge_project_id
-                gameVersions.addAll "Java 21"
+                id = curse_forge_project_id
+                gameVersions.addAll "Java 25"
                 relations {
-                    rootProject.curse_forge_dependencies.split(",").each { depends it }
+                    curse_forge_dependencies.split(",").each { depends it }
                 }
             }
         }
@@ -29,9 +27,9 @@ unifiedPublishing {
         if (modrinthtoken != null) {
             modrinth {
                 token = modrinthtoken
-                id = rootProject.modrinth_project_id
+                id = modrinth_project_id
                 relations {
-                    rootProject.modrinth_dependencies.split(",").each { depends it }
+                    modrinth_dependencies.split(",").each { depends it }
                 }
             }
         }
