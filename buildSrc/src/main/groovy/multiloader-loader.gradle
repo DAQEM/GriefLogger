@@ -47,7 +47,7 @@ tasks.named('sourcesJar', Jar) {
 shadowJar {
     relocate "org.sqlite", "gl_sqlite", {
         exclude "org/sqlite/native/**"
-        exclude "og/sqlite/util/ProcessRunner.class"
+        exclude "org/sqlite/util/ProcessRunner.class"
     }
 
     relocate "jdbc:sqlite", "jdbc:gl_sqlite"
