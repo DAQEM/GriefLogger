@@ -24,7 +24,7 @@ public class NativeTransformer implements ResourceTransformer {
     @Override
     public boolean canTransformResource(@Nonnull FileTreeElement element) {
         return relocations.keySet().stream()
-                .anyMatch(key -> element.getName().startsWith(key));
+                .anyMatch(key -> element.getRelativePath().getPathString().startsWith(key));
     }
 
     @Override
