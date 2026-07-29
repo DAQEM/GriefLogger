@@ -10,7 +10,7 @@ repositories {
 
 dependencies {
     // Shadow plugin
-    implementation 'com.github.johnrengelman.shadow:com.github.johnrengelman.shadow.gradle.plugin:8.1.1'
+    implementation 'com.gradleup.shadow:shadow-gradle-plugin:9.4.1'
 
     // Ant (Required for Shadow)
     implementation 'org.apache.ant:ant:1.10.14'

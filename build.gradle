@@ -6,5 +6,5 @@ plugins {
     // see https://modmuss50.github.io/mod-publish-plugin/ for new versions
     id "me.modmuss50.mod-publish-plugin" version "2.1.1"
 
-    id 'com.gradleup.shadow' version '9.4.1' apply false
+    id 'com.gradleup.shadow' apply false
 }
