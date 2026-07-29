@@ -1,25 +1,24 @@
-build/
-*.ipr
-run/
-*.iws
-out/
-*.iml
-.gradle/
-.gradle-cache/
-output/
-bin/
-libs/
-
+# eclipse
+bin
+*.launch
+.settings
+.metadata
 .classpath
 .project
-.idea/
-classes/
-.metadata
-.vscode
-.settings
-*.launch
 
-relocate_natives/.venv/
-relocate_natives/__pycache__/
-relocate_natives/apple-codesign/
-relocate_natives/cache/
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea/*
+!.idea/scopes
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run
+runs

@@ -18,7 +18,7 @@ public class BreakBlockEvent {
     public static EventResult breakBlock(Level level, BlockPos pos, BlockState state, ServerPlayer player) {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
             if (serverPlayer.grieflogger$isInspecting()) {
-                return EventResult.INTERRUPT;
+                return EventResult.INTERRUPT_FALSE;
             }
 
             Block block = state.getBlock();

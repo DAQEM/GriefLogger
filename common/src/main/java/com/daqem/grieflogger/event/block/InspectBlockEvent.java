@@ -12,6 +12,6 @@ public class InspectBlockEvent {
                 player.grieflogger$asServerPlayer().level(),
                 pos,
                 player::grieflogger$sendInspectMessage);
-        return EventResult.INTERRUPT;
+        return EventResult.INTERRUPT_FALSE;
     }
 }

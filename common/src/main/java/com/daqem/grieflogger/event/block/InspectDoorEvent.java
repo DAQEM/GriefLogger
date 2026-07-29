@@ -21,13 +21,13 @@ public class InspectDoorEvent {
                     level,
                     positions,
                     player::grieflogger$sendInspectMessage);
-            return EventResult.INTERRUPT;
+            return EventResult.INTERRUPT_FALSE;
         } else {
             Services.BLOCK.getBlockHistoryAsync(
                     level,
                     positions,
                     player::grieflogger$sendInspectMessage);
         }
-        return EventResult.INTERRUPT;
+        return EventResult.INTERRUPT_FALSE;
     }
 }

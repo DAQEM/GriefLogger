@@ -1,6 +1,5 @@
 package com.daqem.grieflogger.event.block;
 
-import com.daqem.knot.events.EventResult;
 import com.daqem.knot.events.EventsService;
 
 public class BlockEvents {

@@ -1,6 +1,7 @@
 package com.daqem.grieflogger.event.block;
 
 import com.daqem.grieflogger.model.action.BlockAction;
+import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.daqem.grieflogger.util.EntityUtils;
 import com.daqem.knot.events.EventResult;
 import net.minecraft.core.BlockPos;
@@ -11,6 +12,11 @@ import net.minecraft.world.level.block.state.BlockState;
 public class PlaceBlockEvent {
 
     public static EventResult placeBlock(Level level, BlockPos pos, BlockState state, Entity placer) {
+        if (placer instanceof GriefLoggerServerPlayer serverPlayer) {
+            if (serverPlayer.grieflogger$isInspecting()) {
+                return EventResult.INTERRUPT_FALSE;
+            }
+        }
         EntityUtils.logBlockAction(level, pos, state, placer, placer, BlockAction.PLACE_BLOCK);
         return EventResult.PASS;
     }

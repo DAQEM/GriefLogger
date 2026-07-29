@@ -28,7 +28,7 @@ public class InspectContainerEvent {
             history.sort((a, b) -> Long.compare(b.getTime().time(), a.getTime().time()));
             return history;
         }, serverPlayer::grieflogger$sendInspectMessage);
-        return EventResult.INTERRUPT;
+        return EventResult.INTERRUPT_FALSE;
     }
 
     public static EventResult inspectContainers(GriefLoggerServerPlayer serverPlayer, Level level, BlockPos pos, BlockPos connectionPos) {
@@ -47,6 +47,6 @@ public class InspectContainerEvent {
             history.sort((a, b) -> Long.compare(b.getTime().time(), a.getTime().time()));
             return history;
         }, serverPlayer::grieflogger$sendInspectMessage);
-        return EventResult.INTERRUPT;
+        return EventResult.INTERRUPT_FALSE;
     }
 }

@@ -27,11 +27,11 @@ ordering = "NONE"
 side = "SERVER"
 
 [[dependencies."${mod_id}"]]
-modId = "architectury"
-type = "required"
-versionRange = "[${architectury_version},)"
+modId = "knot"
+mandatory = true
+versionRange = "[${knot_version},)"
 ordering = "AFTER"
-side = "SERVER"
+side = "BOTH"
 
 [[dependencies."${mod_id}"]]
 modId = "yamlconfig"
