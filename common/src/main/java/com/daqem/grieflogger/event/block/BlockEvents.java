@@ -1,18 +1,14 @@
 package com.daqem.grieflogger.event.block;
 
-import dev.architectury.event.EventResult;
-import dev.architectury.event.events.common.BlockEvent;
-import dev.architectury.event.events.common.InteractionEvent;
+import com.daqem.knot.events.EventResult;
+import com.daqem.knot.events.EventsService;
 
 public class BlockEvents {
 
     public static void registerEvents() {
-        BlockEvent.BREAK.register(BreakBlockEvent::breakBlock);
-        BlockEvent.PLACE.register(((level, blockPos, blockState, entity) -> {
-            PlaceBlockEvent.placeBlock(level, blockPos, blockState, entity);
-            return EventResult.pass();
-        }));
-        InteractionEvent.LEFT_CLICK_BLOCK.register((player, hand, pos, direction) -> LeftClickBlockEvent.leftClickBlock(player, hand, pos, direction).asMinecraft());
-        InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, pos, direction) -> RightClickBlockEvent.rightClickBlock(player, hand, pos, direction).asMinecraft());
+        EventsService.Block.BREAK_BLOCK.register(BreakBlockEvent::breakBlock);
+        EventsService.Block.PLACE_BLOCK.register(PlaceBlockEvent::placeBlock);
+        EventsService.Block.LEFT_CLICK_BLOCK.register(LeftClickBlockEvent::leftClickBlock);
+        EventsService.Block.RIGHT_CLICK_BLOCK.register(RightClickBlockEvent::rightClickBlock);
     }
 }

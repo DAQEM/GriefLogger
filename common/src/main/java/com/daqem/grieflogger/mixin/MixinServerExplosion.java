@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.level.ServerExplosion;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
@@ -33,7 +32,7 @@ public abstract class MixinServerExplosion {
     @Shadow public abstract @Nullable LivingEntity getIndirectSourceEntity();
 
     @Inject(method = "interactWithBlocks", at = @At("HEAD"))
-    private void onInteractWithBlocks(List<BlockPos> list, CallbackInfo ci) {
+    private void onInteractWithBlocks(List<BlockPos> targetBlocks, CallbackInfo ci) {
         // actor = Who to blame (Player or the Mob itself)
         Entity actor = this.getIndirectSourceEntity();
         if (actor == null) actor = this.source;
@@ -43,7 +42,7 @@ public abstract class MixinServerExplosion {
 
         if (actor == null || original == null) return;
 
-        for (BlockPos pos : list) {
+        for (BlockPos pos : targetBlocks) {
             BlockState state = this.level.getBlockState(pos);
             if (!state.isAir()) {
                 // Pass both to our new utility

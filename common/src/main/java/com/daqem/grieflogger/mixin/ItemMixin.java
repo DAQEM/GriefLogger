@@ -15,8 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ItemMixin {
 
     @Inject(at = @At("RETURN"), method = "finishUsingItem")
-    public void onUse(ItemStack itemStack, Level level, LivingEntity livingEntity, CallbackInfoReturnable<ItemStack> cir) {
-        if (livingEntity instanceof Player player) {
+    public void onUse(ItemStack itemStack, Level level, LivingEntity entity, CallbackInfoReturnable<ItemStack> cir) {
+        if (entity instanceof Player player) {
             ConsumeItemEvent.consumeItem(player, itemStack);
         }
     }

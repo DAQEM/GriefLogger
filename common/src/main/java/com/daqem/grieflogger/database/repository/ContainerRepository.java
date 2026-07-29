@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.daqem.grieflogger.database.dialect.MySQLDialect;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
@@ -86,28 +87,26 @@ public class ContainerRepository extends Repository {
                 "SELECT id FROM materials WHERE name = ?" +
                 "), ?, ?, ?);";
 
-        Identifier itemLocation = item.getItem().arch$registryName();
-        if (itemLocation != null) {
-            database.queue.add(connection -> {
-                try (PreparedStatement materialStatement = connection.prepareStatement(insertMaterialQuery)) {
-                    materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
-                    materialStatement.executeUpdate();
-                }
-                try (PreparedStatement itemStatement = connection.prepareStatement(insertItemQuery)) {
-                    itemStatement.setLong(1, time);
-                    itemStatement.setString(2, userUuid);
-                    itemStatement.setString(3, level.dimension().identifier().toString());
-                    itemStatement.setInt(4, x);
-                    itemStatement.setInt(5, y);
-                    itemStatement.setInt(6, z);
-                    itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                    itemStatement.setBytes(8, item.getTagBytes(level));
-                    itemStatement.setInt(9, item.getCount());
-                    itemStatement.setInt(10, itemAction);
-                    itemStatement.executeUpdate();
-                }
-            });
-        }
+        Identifier itemLocation = BuiltInRegistries.ITEM.getKey(item.getItem());
+        database.queue.add(connection -> {
+            try (PreparedStatement materialStatement = connection.prepareStatement(insertMaterialQuery)) {
+                materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                materialStatement.executeUpdate();
+            }
+            try (PreparedStatement itemStatement = connection.prepareStatement(insertItemQuery)) {
+                itemStatement.setLong(1, time);
+                itemStatement.setString(2, userUuid);
+                itemStatement.setString(3, level.dimension().identifier().toString());
+                itemStatement.setInt(4, x);
+                itemStatement.setInt(5, y);
+                itemStatement.setInt(6, z);
+                itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                itemStatement.setBytes(8, item.getTagBytes(level));
+                itemStatement.setInt(9, item.getCount());
+                itemStatement.setInt(10, itemAction);
+                itemStatement.executeUpdate();
+            }
+        });
     }
 
     public void insertList(long time, String userUuid, Level level, int x, int y, int z, List<SimpleItemStack> items, int itemAction) {
@@ -130,23 +129,21 @@ public class ContainerRepository extends Repository {
                     if (item.isEmpty()) {
                         continue;
                     }
-                    Identifier itemLocation = item.getItem().arch$registryName();
-                    if (itemLocation != null) {
-                        materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
-                        materialStatement.addBatch();
+                    Identifier itemLocation = BuiltInRegistries.ITEM.getKey(item.getItem());
+                    materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                    materialStatement.addBatch();
 
-                        itemStatement.setLong(1, time);
-                        itemStatement.setString(2, userUuid);
-                        itemStatement.setString(3, level.dimension().identifier().toString());
-                        itemStatement.setInt(4, x);
-                        itemStatement.setInt(5, y);
-                        itemStatement.setInt(6, z);
-                        itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                        itemStatement.setBytes(8, item.getTagBytes(level));
-                        itemStatement.setInt(9, item.getCount());
-                        itemStatement.setInt(10, itemAction);
-                        itemStatement.addBatch();
-                    }
+                    itemStatement.setLong(1, time);
+                    itemStatement.setString(2, userUuid);
+                    itemStatement.setString(3, level.dimension().identifier().toString());
+                    itemStatement.setInt(4, x);
+                    itemStatement.setInt(5, y);
+                    itemStatement.setInt(6, z);
+                    itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                    itemStatement.setBytes(8, item.getTagBytes(level));
+                    itemStatement.setInt(9, item.getCount());
+                    itemStatement.setInt(10, itemAction);
+                    itemStatement.addBatch();
                 }
                 materialStatement.executeBatch();
                 itemStatement.executeBatch();
@@ -175,23 +172,21 @@ public class ContainerRepository extends Repository {
                         if (item.isEmpty()) {
                             continue;
                         }
-                        Identifier itemLocation = item.getItem().arch$registryName();
-                        if (itemLocation != null) {
-                            materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
-                            materialStatement.addBatch();
+                        Identifier itemLocation = BuiltInRegistries.ITEM.getKey(item.getItem());
+                        materialStatement.setString(1, itemLocation.toString().replace("minecraft:", ""));
+                        materialStatement.addBatch();
 
-                            itemStatement.setLong(1, time);
-                            itemStatement.setString(2, userUuid);
-                            itemStatement.setString(3, level.dimension().identifier().toString());
-                            itemStatement.setInt(4, x);
-                            itemStatement.setInt(5, y);
-                            itemStatement.setInt(6, z);
-                            itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
-                            itemStatement.setBytes(8, item.getTagBytes(level));
-                            itemStatement.setInt(9, item.getCount());
-                            itemStatement.setInt(10, entry.getKey().getId());
-                            itemStatement.addBatch();
-                        }
+                        itemStatement.setLong(1, time);
+                        itemStatement.setString(2, userUuid);
+                        itemStatement.setString(3, level.dimension().identifier().toString());
+                        itemStatement.setInt(4, x);
+                        itemStatement.setInt(5, y);
+                        itemStatement.setInt(6, z);
+                        itemStatement.setString(7, itemLocation.toString().replace("minecraft:", ""));
+                        itemStatement.setBytes(8, item.getTagBytes(level));
+                        itemStatement.setInt(9, item.getCount());
+                        itemStatement.setInt(10, entry.getKey().getId());
+                        itemStatement.addBatch();
                     }
                 }
                 materialStatement.executeBatch();

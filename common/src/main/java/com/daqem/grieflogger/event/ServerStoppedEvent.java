@@ -3,12 +3,13 @@ package com.daqem.grieflogger.event;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.thread.ThreadManager;
-import dev.architectury.event.events.common.LifecycleEvent;
+import com.daqem.knot.events.EventsService;
 
 public class ServerStoppedEvent {
 
     public static void registerEvent() {
-        LifecycleEvent.SERVER_STOPPED.register(server -> {
+
+        EventsService.Server.LIFECYCLE_STOPPING.register(server -> {
             GriefLogger.LOGGER.info("Stopping GriefLogger threads...");
 
             Database database = GriefLogger.getDatabase();

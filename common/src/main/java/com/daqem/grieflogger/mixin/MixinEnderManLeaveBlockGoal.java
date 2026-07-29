@@ -32,7 +32,7 @@ public class MixinEnderManLeaveBlockGoal {
             ),
             locals = LocalCapture.CAPTURE_FAILHARD
     )
-    private void onEndermanTakeBlock(CallbackInfo ci, RandomSource randomsource, Level level, int i, int j, int k, BlockPos blockpos, BlockState blockstate, BlockPos blockpos1, BlockState blockstate1, BlockState blockstate2) {
-        EntityUtils.logBlockAction(level, blockpos, blockstate2, this.enderman, this.enderman, BlockAction.PLACE_BLOCK);
+    private void onEndermanTakeBlock(CallbackInfo ci, RandomSource random, Level level, int xt, int yt, int zt, BlockPos pos, BlockState targetState, BlockPos below, BlockState belowState, BlockState carried) {
+        EntityUtils.logBlockAction(level, pos, carried, this.enderman, this.enderman, BlockAction.PLACE_BLOCK);
     }
 }

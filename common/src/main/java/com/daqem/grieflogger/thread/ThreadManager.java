@@ -1,6 +1,5 @@
 package com.daqem.grieflogger.thread;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -22,8 +21,8 @@ public class ThreadManager {
         executor.execute(runnable);
     }
 
-    public static ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        return scheduler.scheduleAtFixedRate(command, initialDelay, period, unit);
+    public static void scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
+        scheduler.scheduleAtFixedRate(command, initialDelay, period, unit);
     }
 
     public static <T> void submit(Callable<T> task, OnComplete<T> onComplete) {

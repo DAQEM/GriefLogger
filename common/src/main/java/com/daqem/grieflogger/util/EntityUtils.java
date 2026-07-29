@@ -30,16 +30,14 @@ public class EntityUtils {
 
         Services.USER.insertOrUpdateName(uuid, name);
 
-        Identifier materialLocation = state.getBlock().arch$registryName();
-        if (materialLocation != null) {
-            Services.BLOCK.insertMaterial(
-                    uuid,
-                    level.dimension().identifier().toString(),
-                    pos,
-                    materialLocation.toString(),
-                    action
-            );
-        }
+        Identifier materialLocation = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        Services.BLOCK.insertMaterial(
+                uuid,
+                level.dimension().identifier().toString(),
+                pos,
+                materialLocation.toString(),
+                action
+        );
     }
 
     private static Entity resolveLogicalActor(Entity entity) {

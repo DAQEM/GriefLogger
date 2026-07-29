@@ -1,12 +1,13 @@
 package com.daqem.grieflogger.event;
 
 import com.daqem.grieflogger.database.service.Services;
-import dev.architectury.event.EventResult;
+import com.daqem.knot.events.EventResult;
+import com.daqem.knot.events.EventsService;
 
 public class ChatEvent {
 
     public static void registerEvent() {
-        dev.architectury.event.events.common.ChatEvent.RECEIVED.register((player, component) -> {
+        EventsService.Server.CHAT_RECEIVED.register((player, component) -> {
             if (player != null) {
                 Services.CHAT.insert(
                         player.getUUID(),
@@ -15,7 +16,7 @@ public class ChatEvent {
                         component.getString()
                 );
             }
-            return EventResult.pass();
+            return EventResult.PASS;
         });
     }
 }

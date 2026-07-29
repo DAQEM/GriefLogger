@@ -24,13 +24,13 @@ public abstract class ItemFilter implements IFilter {
 
     @Override
     public List<String> getOptions() {
-        return new ArrayList<>(BuiltInRegistries.ITEM.stream().map(x -> x.arch$registryName().toString().replace("minecraft:", "")).toList());
+        return new ArrayList<>(BuiltInRegistries.ITEM.stream().map(x -> BuiltInRegistries.ITEM.getKey(x).toString().replace("minecraft:", "")).toList());
     }
 
     protected List<Item> getItemsFromSuffix(StringReader reader, String suffix) throws CommandSyntaxException {
         String[] split = Arrays.stream(suffix.split(",")).map(s -> s.replace("minecraft:", "").trim()).toArray(String[]::new);
         List<Item> items = BuiltInRegistries.ITEM.stream()
-                .filter(item -> Arrays.asList(split).contains(item.arch$registryName().toString().replace("minecraft:", "")))
+                .filter(item -> Arrays.asList(split).contains(BuiltInRegistries.ITEM.getKey(item).toString().replace("minecraft:", "")))
                 .toList();
         if (split.length != items.size()) {
             throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(reader);
@@ -41,14 +41,13 @@ public abstract class ItemFilter implements IFilter {
     @Override
     public String toString() {
         return "ItemFilter{" +
-                "items=" + items.stream().map(Item::arch$registryName).toList() +
+                "items=" + items.stream().map(item -> BuiltInRegistries.ITEM.getKey(item).toString().replace("minecraft:", "")).toList() +
                 '}';
     }
 
     public List<String> getMaterials() {
         return items.stream()
-                .map(Item::arch$registryName)
-                .filter(Objects::nonNull)
+                .map(BuiltInRegistries.ITEM::getKey)
                 .map(Object::toString)
                 .map(x -> x.replace("minecraft:", ""))
                 .toList();

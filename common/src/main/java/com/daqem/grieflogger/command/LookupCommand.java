@@ -1,7 +1,6 @@
 package com.daqem.grieflogger.command;
 
 import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.GriefLoggerPermissions;
 import com.daqem.grieflogger.command.argument.FilterArgument;
 import com.daqem.grieflogger.command.filter.FilterList;
 import com.daqem.grieflogger.command.filter.IFilter;
@@ -10,6 +9,7 @@ import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.daqem.grieflogger.thread.ThreadManager;
+import com.daqem.knot.Knot;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -20,6 +20,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class LookupCommand implements ICommand {
     @Override
     public LiteralArgumentBuilder<CommandSourceStack> getCommand() {
         return Commands.literal("lookup")
-                .requires(source -> GriefLoggerPermissions.check(source, "grieflogger.command.lookup", 2))
+                .requires(source -> Knot.PERMISSIONS.check(source, "grieflogger.command.lookup", PermissionLevel.GAMEMASTERS))
                 .then(Commands.argument("filters", StringArgumentType.greedyString())
                         .suggests(LookupCommand::suggestFilters)
                         .executes(context -> lookup(context.getSource(), StringArgumentType.getString(context, "filters"))))

@@ -17,13 +17,14 @@ import java.util.Map;
 import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.config.GriefLoggerConfig;
 
-import com.daqem.yamlconfig.YamlConfigExpectPlatform;
+import com.daqem.knot.api.platform.KnotPlatform;
+import com.daqem.knot.api.platform.ModInfo;
+import com.daqem.knot.api.platform.Platform;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import dev.architectury.platform.Platform;
 import net.minecraft.locale.Language;
 import net.minecraft.server.MinecraftServer;
 
@@ -39,7 +40,7 @@ public class LanguageManager {
         TRANSLATIONS.clear();
         String language = GriefLoggerConfig.language.get();
 
-        for (String modId : Platform.getModIds()) {
+        for (String modId : Platform.INFO.getAllMods().stream().map(ModInfo::getId).toList()) {
             if (!language.equals("en_us")) {
                 if (modId.equals("minecraft")) {
                     loadLanguage(server, language);
@@ -66,7 +67,7 @@ public class LanguageManager {
     }
 
     private static InputStream getInputStream(String location) {
-        if (Platform.isFabric()) {
+        if (Platform.INFO.getPlatform() == KnotPlatform.FABRIC) {
             return Language.class.getResourceAsStream(location);
         }
         return Thread.currentThread().getContextClassLoader().getResourceAsStream(location);
@@ -76,7 +77,7 @@ public class LanguageManager {
         try {
             String mcVersion = server.getServerVersion();
 
-            Path cacheDir = YamlConfigExpectPlatform.getConfigDirectory().resolve(GriefLogger.MOD_ID).resolve("lang_cache");
+            Path cacheDir = Platform.INFO.getConfigFolder().resolve(GriefLogger.MOD_ID).resolve("lang_cache");
             Files.createDirectories(cacheDir);
 
             Path cacheFile = cacheDir.resolve(languageCode + ".json");

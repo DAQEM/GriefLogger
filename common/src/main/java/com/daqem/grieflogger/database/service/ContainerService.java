@@ -9,6 +9,7 @@ import com.daqem.grieflogger.model.action.IAction;
 import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.IHistory;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
@@ -34,17 +35,14 @@ public class ContainerService {
     }
 
     public void insert(UUID userUuid, Level level, BlockPos pos, SimpleItemStack item, ItemAction itemAction) {
-        Identifier itemLocation = item.getItem().arch$registryName();
-        if (itemLocation != null) {
-            containerRepository.insert(System.currentTimeMillis(),
-                    userUuid.toString(),
-                    level,
-                    pos.getX(),
-                    pos.getY(),
-                    pos.getZ(),
-                    item,
-                    itemAction.getId());
-        }
+        containerRepository.insert(System.currentTimeMillis(),
+                userUuid.toString(),
+                level,
+                pos.getX(),
+                pos.getY(),
+                pos.getZ(),
+                item,
+                itemAction.getId());
     }
 
     public void insertList(UUID userUuid, Level level, BlockPos pos, List<SimpleItemStack> items, ItemAction itemAction) {

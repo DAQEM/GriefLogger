@@ -1,6 +1,7 @@
 package com.daqem.grieflogger.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -42,7 +43,7 @@ public class BlockHandler {
         ) {
             return true;
         }
-        return getIntractableBlocks().contains(block.arch$registryName().toString());
+        return getIntractableBlocks().contains(BuiltInRegistries.BLOCK.getKey(block).toString());
     }
 
     public static List<String> getIntractableBlocks() {

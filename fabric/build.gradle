@@ -1,32 +1,63 @@
-architectury {
-    platformSetupLoomIde()
-    fabric()
+plugins {
+    id 'multiloader-loader'
+    id 'net.fabricmc.fabric-loom'
 }
 
-loom {
-    accessWidenerPath = project(":common").loom.accessWidenerPath
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
+    implementation "com.daqem.knot:knot-fabric:${project.knot_version}"
+    implementation "com.daqem.uilib:uilib-fabric:${project.uilib_version}"
+    implementation "com.daqem.yamlconfig:yamlconfig-fabric:${project.yamlconfig_version}"
+
+    implementation "org.xerial:sqlite-jdbc:${project.sqlite_version}"
+    shadowBundle "org.xerial:sqlite-jdbc:${project.sqlite_version}"
+
+    implementation "com.mysql:mysql-connector-j:${project.mysql_version}"
+    shadowBundle "com.mysql:mysql-connector-j:${project.mysql_version}"
 }
 
-apply from: rootProject.file("gradle/scripts/platform.gradle")
 apply from: rootProject.file("gradle/scripts/publishing.gradle")
 apply from: rootProject.file("gradle/scripts/maven-publishing.gradle")
 
-dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+loom {
+    def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
+    runs {
+        client {
+            client()
+            setConfigName('Fabric Client')
+            ideConfigGenerated(true)
+            runDir('runs/client')
+        }
+        server {
+            server()
+            setConfigName('Fabric Server')
+            ideConfigGenerated(true)
+            runDir('runs/server')
+        }
+    }
+}
 
-    common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
-    shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
-
-    modApi "dev.architectury:architectury-fabric:${project.architectury_version}"
-    modRuntimeOnly "com.daqem.uilib:uilib-fabric:${project.uilib_version}"
-    modImplementation "com.daqem.yamlconfig:yamlconfig-fabric:${project.yamlconfig_version}"
-
-    modImplementation "org.xerial:sqlite-jdbc:${project.sqlite_version}"
-    shadowBundle "org.xerial:sqlite-jdbc:${project.sqlite_version}"
-
-    modImplementation "com.mysql:mysql-connector-j:${project.mysql_version}"
-    shadowBundle "com.mysql:mysql-connector-j:${project.mysql_version}"
-
-    modCompileOnly "me.lucko:fabric-permissions-api:0.3.1"
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'includeInternal', 'modCompileClasspath'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'fabric')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'fabric')
+            }
+        }
+    }
 }

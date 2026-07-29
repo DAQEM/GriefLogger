@@ -16,8 +16,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ProjectileMixin {
 
     @Inject(at = @At("HEAD"), method = "shootFromRotation(Lnet/minecraft/world/entity/Entity;FFFFF)V")
-    private void shootFromRotation(Entity entity, float f, float g, float h, float i, float j, CallbackInfo ci) {
-        if (entity instanceof Player player) {
+    private void shootFromRotation(Entity source, float xRot, float yRot, float yOffset, float pow, float uncertainty, CallbackInfo ci) {
+        if (source instanceof Player player) {
             if ((Projectile) (Object) this instanceof ThrowableItemProjectile throwableItemProjectile) {
                 ThrowItemEvent.throwItem(player, throwableItemProjectile.getItem());
             } else if ((Projectile) (Object) this instanceof AbstractArrow abstractArrow) {

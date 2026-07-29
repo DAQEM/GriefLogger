@@ -24,19 +24,17 @@ public abstract class MixinArmorStand extends LivingEntity {
         super(entityType, level);
     }
 
-    @Inject(method = "interactAt", at = @At("RETURN"))
-    private void onInteractAt(Player player, Vec3 vec3, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResult> cir) {
+    @Inject(method = "interact", at = @At("RETURN"))
+    private void onInteractAt(Player player, InteractionHand hand, Vec3 location, CallbackInfoReturnable<InteractionResult> cir) {
         if ((cir.getReturnValue() == InteractionResult.SUCCESS || cir.getReturnValue() == InteractionResult.SUCCESS_SERVER) && player instanceof GriefLoggerServerPlayer glPlayer) {
-            Identifier entityLocation = this.getType().arch$registryName();
-            if (entityLocation != null) {
-                Services.BLOCK.insertEntity(
-                        glPlayer.grieflogger$asServerPlayer().getUUID(),
-                        this.level().dimension().identifier().toString(),
-                        this.blockPosition(),
-                        entityLocation.toString(),
-                        BlockAction.INTERACT_ENTITY
-                );
-            }
+            Identifier entityLocation = EntityType.getKey(this.getType());
+            Services.BLOCK.insertEntity(
+                    glPlayer.grieflogger$asServerPlayer().getUUID(),
+                    this.level().dimension().identifier().toString(),
+                    this.blockPosition(),
+                    entityLocation.toString(),
+                    BlockAction.INTERACT_ENTITY
+            );
         }
     }
 }

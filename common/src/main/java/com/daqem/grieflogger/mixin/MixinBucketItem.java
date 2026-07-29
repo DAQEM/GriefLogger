@@ -1,14 +1,10 @@
 package com.daqem.grieflogger.mixin;
 
-import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.event.block.BreakBlockEvent;
-import com.daqem.grieflogger.event.block.PlaceBlockEvent;
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
@@ -30,9 +26,9 @@ public class MixinBucketItem {
                     ordinal = 0
             )
     )
-    private void onBucketFilled(Level level, Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResult> cir, @Local(ordinal = 1) ItemStack itemStack2, @Local BlockHitResult blockHitResult) {
-        if (player instanceof ServerPlayer serverPlayer && itemStack2.getItem() instanceof BucketItem bucketItem) {
-            BreakBlockEvent.breakBlock(level, blockHitResult.getBlockPos(), bucketItem.arch$getFluid().defaultFluidState().createLegacyBlock(), serverPlayer, null);
+    private void onBucketFilled(Level level, Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir, @Local(name = "taken") ItemStack taken, @Local(name = "hitResult") BlockHitResult hitResult) {
+        if (player instanceof ServerPlayer serverPlayer && taken.getItem() instanceof BucketItem bucketItem) {
+            BreakBlockEvent.breakBlock(level, hitResult.getBlockPos(), bucketItem.getContent().defaultFluidState().createLegacyBlock(), serverPlayer);
         }
     }
 }

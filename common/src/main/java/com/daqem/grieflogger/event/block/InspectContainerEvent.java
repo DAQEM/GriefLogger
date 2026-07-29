@@ -1,18 +1,17 @@
 package com.daqem.grieflogger.event.block;
 
 import com.daqem.grieflogger.database.service.Services;
-import com.daqem.grieflogger.event.AbstractEvent;
 import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.daqem.grieflogger.thread.ThreadManager;
-import dev.architectury.event.EventResult;
+import com.daqem.knot.events.EventResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class InspectContainerEvent extends AbstractEvent {
+public class InspectContainerEvent {
 
     public static EventResult inspectContainer(GriefLoggerServerPlayer serverPlayer, Level level, BlockPos pos) {
         ThreadManager.submit(() -> {
@@ -29,7 +28,7 @@ public class InspectContainerEvent extends AbstractEvent {
             history.sort((a, b) -> Long.compare(b.getTime().time(), a.getTime().time()));
             return history;
         }, serverPlayer::grieflogger$sendInspectMessage);
-        return interrupt();
+        return EventResult.INTERRUPT;
     }
 
     public static EventResult inspectContainers(GriefLoggerServerPlayer serverPlayer, Level level, BlockPos pos, BlockPos connectionPos) {
@@ -48,6 +47,6 @@ public class InspectContainerEvent extends AbstractEvent {
             history.sort((a, b) -> Long.compare(b.getTime().time(), a.getTime().time()));
             return history;
         }, serverPlayer::grieflogger$sendInspectMessage);
-        return interrupt();
+        return EventResult.INTERRUPT;
     }
 }

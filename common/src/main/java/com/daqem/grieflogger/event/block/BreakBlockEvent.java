@@ -2,11 +2,9 @@ package com.daqem.grieflogger.event.block;
 
 import com.daqem.grieflogger.block.BlockHandler;
 import com.daqem.grieflogger.block.container.ContainerHandler;
-import com.daqem.grieflogger.event.AbstractEvent;
 import com.daqem.grieflogger.model.action.BlockAction;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
-import dev.architectury.event.EventResult;
-import dev.architectury.utils.value.IntValue;
+import com.daqem.knot.events.EventResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -14,18 +12,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
 
-// [ADD THESE IMPORTS]
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
+public class BreakBlockEvent {
 
-public class BreakBlockEvent extends AbstractEvent {
-
-    public static EventResult breakBlock(Level level, BlockPos pos, BlockState state, ServerPlayer player, @Nullable IntValue xp) {
+    public static EventResult breakBlock(Level level, BlockPos pos, BlockState state, ServerPlayer player) {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
             if (serverPlayer.grieflogger$isInspecting()) {
-                return interrupt();
+                return EventResult.INTERRUPT;
             }
 
             Block block = state.getBlock();
@@ -44,6 +37,6 @@ public class BreakBlockEvent extends AbstractEvent {
 
             LogBlockEvent.logBlock(serverPlayer, level, state, pos, BlockAction.BREAK_BLOCK);
         }
-        return pass();
+        return EventResult.PASS;
     }
 }

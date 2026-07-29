@@ -2,34 +2,24 @@ package com.daqem.grieflogger.event;
 
 import com.daqem.grieflogger.database.service.Services;
 import com.daqem.grieflogger.model.action.BlockAction;
-import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
-import dev.architectury.event.EventResult;
-import dev.architectury.event.events.common.EntityEvent;
-import dev.architectury.event.events.common.InteractionEvent;
+import com.daqem.knot.events.EventResult;
+import com.daqem.knot.events.EventsService;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.decoration.ArmorStand;
-
-import java.util.List;
+import net.minecraft.world.entity.EntityType;
 
 public class EntityEvents {
 
     public static void registerEvents() {
-        EntityEvent.LIVING_DEATH.register((entity, source) -> {
-            if (source != null && source.getEntity() instanceof ServerPlayer serverPlayer) {
-                Identifier entityLocation = entity.getType().arch$registryName();
-                if (entityLocation != null) {
-                    Services.BLOCK.insertEntity(
-                            serverPlayer.getUUID(),
-                            entity.level().dimension().identifier().toString(),
-                            entity.blockPosition(),
-                            entityLocation.toString(),
-                            BlockAction.KILL_ENTITY
-                    );
-                }
-            }
-            return EventResult.pass();
+        EventsService.Entity.PLAYER_KILL_ENTITY.register((serverPlayer, entity, damageSource) -> {
+            Identifier entityLocation = EntityType.getKey(entity.getType());
+            Services.BLOCK.insertEntity(
+                    serverPlayer.getUUID(),
+                    entity.level().dimension().identifier().toString(),
+                    entity.blockPosition(),
+                    entityLocation.toString(),
+                    BlockAction.KILL_ENTITY
+            );
+            return EventResult.PASS;
         });
     }
 }

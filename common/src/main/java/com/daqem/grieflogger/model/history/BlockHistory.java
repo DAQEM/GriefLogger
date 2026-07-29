@@ -16,6 +16,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 
@@ -57,7 +58,9 @@ public class BlockHistory extends History {
                             .getStyle()
                             .withHoverEvent(
                                     new HoverEvent.ShowItem(
-                                            item.getDefaultInstance()
+                                            ItemStackTemplate.fromNonEmptyStack(
+                                                    item.getDefaultInstance()
+                                            )
                                     )));
         } else {
             return mutableComponent

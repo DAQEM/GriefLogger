@@ -1,8 +1,7 @@
 package com.daqem.grieflogger.event.block;
 
-import com.daqem.grieflogger.event.AbstractEvent;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
-import dev.architectury.event.EventResult;
+import com.daqem.knot.events.EventResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -12,7 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class LeftClickBlockEvent extends AbstractEvent {
+public class LeftClickBlockEvent {
 
     public static EventResult leftClickBlock(Player player, InteractionHand hand, BlockPos pos, Direction direction) {
         if (player instanceof GriefLoggerServerPlayer serverPlayer) {
@@ -30,6 +29,6 @@ public class LeftClickBlockEvent extends AbstractEvent {
                 }
             }
         }
-        return pass();
+        return EventResult.PASS;
     }
 }

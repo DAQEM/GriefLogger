@@ -1,12 +1,12 @@
 package com.daqem.grieflogger.event.item;
 
-import dev.architectury.event.events.common.PlayerEvent;
+import com.daqem.knot.events.EventsService;
 
 public class ItemEvents {
 
     public static void registerEvents() {
-        PlayerEvent.CRAFT_ITEM.register(CraftItemEvent::onCraftItem);
-        PlayerEvent.PICKUP_ITEM_POST.register(PickupItemEvent::onPickupItem);
-        PlayerEvent.SMELT_ITEM.register(SmeltItemEvent::onSmeltItem);
+        EventsService.Item.CRAFT_ITEM.register(CraftItemEvent::onCraftItem);
+        EventsService.Item.PICKUP_ITEM.register(PickupItemEvent::onPickupItem);
+        EventsService.Player.SMELT_ITEM.register(SmeltItemEvent::onSmeltItem);
     }
 }

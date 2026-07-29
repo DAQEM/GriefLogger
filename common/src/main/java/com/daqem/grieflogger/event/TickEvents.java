@@ -4,7 +4,7 @@ import com.daqem.grieflogger.GriefLogger;
 import com.daqem.grieflogger.config.GriefLoggerConfig;
 import com.daqem.grieflogger.database.Database;
 import com.daqem.grieflogger.thread.ThreadManager;
-import dev.architectury.event.events.common.TickEvent;
+import com.daqem.knot.events.EventsService;
 
 import java.util.concurrent.ExecutionException;
 
@@ -13,7 +13,7 @@ public class TickEvents {
     private static long lastTick = 0;
 
     public static void registerEvents() {
-        TickEvent.SERVER_POST.register(server -> {
+        EventsService.Tick.SERVER_POST.register(server -> {
             ThreadManager.getAndRemoveCompleted().forEach(
                     (future, onComplete) -> {
                         try {

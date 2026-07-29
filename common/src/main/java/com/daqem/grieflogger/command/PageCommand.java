@@ -1,14 +1,15 @@
 package com.daqem.grieflogger.command;
 
 import com.daqem.grieflogger.GriefLogger;
-import com.daqem.grieflogger.GriefLoggerPermissions;
 import com.daqem.grieflogger.command.page.Page;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
+import com.daqem.knot.Knot;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class PageCommand implements ICommand {
     @Override
     public LiteralArgumentBuilder<CommandSourceStack> getCommand() {
         return Commands.literal("page")
-                .requires(source -> GriefLoggerPermissions.check(source, "grieflogger.command.page", 2))
+                .requires(source -> Knot.PERMISSIONS.check(source, "grieflogger.command.page", PermissionLevel.GAMEMASTERS))
                 .then(Commands.argument("page", IntegerArgumentType.integer())
                         .executes(context -> page(context.getSource(), IntegerArgumentType.getInteger(context, "page"))));
     }

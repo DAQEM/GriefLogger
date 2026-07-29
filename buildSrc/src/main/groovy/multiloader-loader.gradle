@@ -1,0 +1,69 @@
+plugins {
+    id 'multiloader-common'
+    id 'com.gradleup.shadow'
+}
+
+configurations {
+    commonJava{
+        canBeResolved = true
+    }
+    commonResources{
+        canBeResolved = true
+    }
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    compileOnly(project(':common')) {
+        def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+        attributes {
+            attribute(loaderAttribute, 'common')
+        }
+    }
+    commonJava project(path: ':common', configuration: 'commonJava')
+    commonResources project(path: ':common', configuration: 'commonResources')
+}
+
+tasks.named('compileJava', JavaCompile) {
+    dependsOn(configurations.commonJava)
+    source(configurations.commonJava)
+}
+
+processResources {
+    dependsOn(configurations.commonResources)
+    from(configurations.commonResources)
+}
+
+tasks.named('sourcesJar', Jar) {
+    dependsOn(configurations.commonJava)
+    from(configurations.commonJava)
+    dependsOn(configurations.commonResources)
+    from(configurations.commonResources)
+}
+
+shadowJar {
+    relocate "org.sqlite", "gl_sqlite", {
+        exclude "org/sqlite/native/**"
+        exclude "og/sqlite/util/ProcessRunner.class"
+    }
+
+    relocate "jdbc:sqlite", "jdbc:gl_sqlite"
+
+    transform(NativeTransformer.class) {
+        rootDir = project.rootDir
+        relocateNative "org/sqlite", "gl_sqlite"
+        relocateNative "org_sqlite", "gl_1sqlite"
+    }
+
+    relocate "com.mysql", "gl_mysql"
+
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = ""
+
+    mergeServiceFiles()
+}
+
+assemble.dependsOn shadowJar

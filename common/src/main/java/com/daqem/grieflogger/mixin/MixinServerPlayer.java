@@ -13,8 +13,6 @@ import com.daqem.grieflogger.model.action.ItemAction;
 import com.daqem.grieflogger.model.history.IHistory;
 import com.daqem.grieflogger.player.GriefLoggerServerPlayer;
 import com.mojang.authlib.GameProfile;
-import dev.architectury.utils.EnvExecutor;
-import net.fabricmc.api.EnvType;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -87,50 +85,38 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
     }
 
     @Inject(at = @At("HEAD"), method = "openMenu")
-    public void openMenu(MenuProvider menuProvider, CallbackInfoReturnable<OptionalInt> cir) {
-        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
-            Optional<BaseContainerBlockEntity> container = ContainerHandler.getContainer(menuProvider);
-            if (container.isPresent()) {
-                this.grieflogger$containerTransactionManager = new ContainerTransactionManager(container.get());
-            } else {
-                ContainerHandler.getContainers(menuProvider).ifPresent(containers -> {
-                    this.grieflogger$containerTransactionManager = new ContainersTransactionManager(containers);
-                });
-            }
-            return null;
-        });
+    public void openMenu(MenuProvider provider, CallbackInfoReturnable<OptionalInt> cir) {
+        Optional<BaseContainerBlockEntity> container = ContainerHandler.getContainer(provider);
+        if (container.isPresent()) {
+            this.grieflogger$containerTransactionManager = new ContainerTransactionManager(container.get());
+        } else {
+            ContainerHandler.getContainers(provider).ifPresent(containers -> {
+                this.grieflogger$containerTransactionManager = new ContainersTransactionManager(containers);
+            });
+        }
     }
 
     @Inject(at = @At("HEAD"), method = "doCloseContainer()V")
     public void grieflogger$doCloseContainer(CallbackInfo ci) {
-        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
-            if (this.grieflogger$containerTransactionManager != null) {
-                this.grieflogger$containerTransactionManager.finalize(grieflogger$asServerPlayer());
-                this.grieflogger$containerTransactionManager = null;
-            }
-            return null;
-        });
+        if (this.grieflogger$containerTransactionManager != null) {
+            this.grieflogger$containerTransactionManager.finalize(grieflogger$asServerPlayer());
+            this.grieflogger$containerTransactionManager = null;
+        }
     }
 
     @Inject(at = @At("HEAD"), method = "tick")
     public void grieflogger$tick(CallbackInfo ci) {
-        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
-            if (!grieflogger$itemQueue.isEmpty()) {
-                Services.ITEM.insertMap(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
-                grieflogger$itemQueue.clear();
-            }
-            return null;
-        });
+        if (!grieflogger$itemQueue.isEmpty()) {
+            Services.ITEM.insertMap(getUUID(), level(), blockPosition(), new HashMap<>(grieflogger$itemQueue));
+            grieflogger$itemQueue.clear();
+        }
     }
 
     @Inject(method = "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("RETURN"))
     private void drop(ItemStack itemStack, boolean bl, boolean bl2, CallbackInfoReturnable<ItemEntity> cir) {
-        EnvExecutor.getInEnv(EnvType.SERVER, () -> () -> {
-            if (cir.getReturnValue() != null) {
-                DropItemEvent.onDropItem(this, cir.getReturnValue());
-            }
-            return null;
-        });
+        if (cir.getReturnValue() != null) {
+            DropItemEvent.onDropItem(this, cir.getReturnValue());
+        }
     }
 
     public void griefLogger$addItemToQueue(ItemAction action, SimpleItemStack itemStack) {

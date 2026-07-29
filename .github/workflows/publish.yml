@@ -2,8 +2,8 @@ name: Publish
 
 on:
   push:
-    branches: [ "1.21.11" ]
 
+    branches: [ "26.1.2" ]
 permissions:
   contents: write
 
@@ -22,10 +22,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v3
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'temurin'
 
       - name: Set up Python
@@ -59,8 +59,11 @@ jobs:
       - name: Publish to DAQEM Maven
         run: ./gradlew publish
 
-      - name: Publish to CurseForge and Modrinth
-        run: ./gradlew publishUnified
+      - name: Publish to Modrinth
+        run: ./gradlew publishModrinth
+
+      - name: Publish to CurseForge
+        run: ./gradlew publishCurseforge
 
       - name: Publish to GitHub Releases
         uses: ncipollo/release-action@v1

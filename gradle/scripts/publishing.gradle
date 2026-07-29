@@ -1,38 +1,42 @@
-apply plugin: "me.shedaniel.unified-publishing"
+apply plugin: "me.modmuss50.mod-publish-plugin"
 
-unifiedPublishing {
-    var capitalizedProjectName = project.name == "fabric" ? "Fabric" : "NeoForge"
+publishMods {
+    def capitalizedProjectName = project.name == "fabric" ? "Fabric" : "NeoForge"
+    file = shadowJar.archiveFile
+    displayName = "${project.mod_name} ${capitalizedProjectName} ${project.minecraft_version} - ${project.version}"
+    version = project.version
+    changelog = rootProject.file("changelog.md").exists() ? rootProject.file("changelog.md").text : "No changelog provided."
+    type = project.release_type == "release" ? STABLE : (project.release_type == "beta" ? BETA : ALPHA)
+    modLoaders.add(project.name.toLowerCase())
 
-    project {
-        displayName = "${project.mod_name} ${capitalizedProjectName} ${project.minecraft_version} - ${project.mod_version}"
-        version = project.mod_version
-        changelog = rootProject.file("changelog.md").exists() ? rootProject.file("changelog.md").text : "No changelog provided."
-        releaseType = project.release_type
-        gameVersions = rootProject.supported_minecraft_versions.split(",").toList()
-        gameLoaders = [project.name]
+    def cursetoken = System.getenv("CURSEFORGE_API_KEY")
+    if (cursetoken != null) {
+        curseforge {
+            accessToken = cursetoken
+            projectId = rootProject.curse_forge_project_id
 
-        mainPublication tasks.renameJarForPublication
+            minecraftVersionList(rootProject.supported_minecraft_versions)
+            javaVersions.add(JavaVersion.VERSION_25)
 
-        var cursetoken = System.getenv("CURSEFORGE_API_KEY")
-        if (cursetoken != null) {
-            curseforge {
-                token = cursetoken
-                id = rootProject.curse_forge_project_id
-                gameVersions.addAll "Java 21"
-                relations {
-                    rootProject.curse_forge_dependencies.split(",").each { depends it }
-                }
+            client = true
+            server = true
+
+            rootProject.curse_forge_dependencies.split(",").each {
+                requires(it.trim())
             }
         }
+    }
 
-        var modrinthtoken = System.getenv("MODRINTH_API_KEY")
-        if (modrinthtoken != null) {
-            modrinth {
-                token = modrinthtoken
-                id = rootProject.modrinth_project_id
-                relations {
-                    rootProject.modrinth_dependencies.split(",").each { depends it }
-                }
+    def modrinthtoken = System.getenv("MODRINTH_API_KEY")
+    if (modrinthtoken != null) {
+        modrinth {
+            accessToken = modrinthtoken
+            projectId = rootProject.modrinth_project_id
+
+            minecraftVersionList(rootProject.supported_minecraft_versions)
+
+            rootProject.modrinth_dependencies.split(",").each {
+                requires(it.trim())
             }
         }
     }

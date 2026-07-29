@@ -1,7 +1,7 @@
 package com.daqem.grieflogger.config;
 
 import com.daqem.grieflogger.GriefLogger;
-import com.daqem.yamlconfig.YamlConfigExpectPlatform;
+import com.daqem.knot.api.platform.Platform;
 import com.daqem.yamlconfig.api.config.ConfigExtension;
 import com.daqem.yamlconfig.api.config.ConfigType;
 import com.daqem.yamlconfig.api.config.entry.IConfigEntry;
@@ -36,7 +36,7 @@ public class GriefLoggerConfig {
                 "grieflogger-server",
                 ConfigExtension.YAML,
                 ConfigType.SERVER,
-                YamlConfigExpectPlatform.getConfigDirectory().resolve(GriefLogger.MOD_ID)
+                Platform.INFO.getConfigFolder().resolve(GriefLogger.MOD_ID)
         );
 
         config.push("database");

@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStackTemplate;
 
 public class ItemHistory extends History {
 
@@ -50,7 +51,7 @@ public class ItemHistory extends History {
         return mutableComponent
                 .withStyle(mutableComponent
                         .getStyle()
-                        .withHoverEvent(new HoverEvent.ShowItem(itemStack.toItemStack().copyWithCount(1))));
+                        .withHoverEvent(new HoverEvent.ShowItem(ItemStackTemplate.fromNonEmptyStack(this.itemStack.toItemStack().copyWithCount(1)))));
 
     }
 }
