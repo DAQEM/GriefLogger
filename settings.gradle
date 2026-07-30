@@ -27,4 +27,4 @@ include("common")
 include("fabric")
 include("neoforge")
 
-rootProject.name = "GriefLogger 26.1.2"
+rootProject.name = "GriefLogger 26.2"
