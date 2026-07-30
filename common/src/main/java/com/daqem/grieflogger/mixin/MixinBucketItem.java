@@ -23,7 +23,7 @@ public class MixinBucketItem {
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/player/Player;awardStat(Lnet/minecraft/stats/Stat;)V",
-                    ordinal = 0
+                    ordinal = 1
             )
     )
     private void onBucketFilled(Level level, Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir, @Local(name = "taken") ItemStack taken, @Local(name = "hitResult") BlockHitResult hitResult) {

@@ -22,3 +22,7 @@ build
 eclipse
 run
 runs
+
+relocate_natives/.venv/
+relocate_natives/__pycache__/
+relocate_natives/apple-codesign/

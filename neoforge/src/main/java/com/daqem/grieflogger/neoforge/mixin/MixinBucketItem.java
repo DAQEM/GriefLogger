@@ -24,9 +24,9 @@ public class MixinBucketItem {
                     shift = At.Shift.AFTER
             )
     )
-    private void onLiquidPlaced(LivingEntity livingEntity, Level level, BlockPos blockPos, BlockHitResult blockHitResult, ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
-        if (livingEntity instanceof ServerPlayer serverPlayer) {
-            PlaceBlockEvent.placeBlock(level, blockPos, level.getBlockState(blockPos), serverPlayer);
+    private void onLiquidPlaced(LivingEntity user, Level level, BlockPos pos, BlockHitResult hitResult, ItemStack containerItem, CallbackInfoReturnable<Boolean> cir) {
+        if (user instanceof ServerPlayer serverPlayer) {
+            PlaceBlockEvent.placeBlock(level, pos, level.getBlockState(pos), serverPlayer);
         }
     }
 }
