@@ -1,7 +1,6 @@
 plugins {
     id "com.github.johnrengelman.shadow"
-    id 'com.matthewprenger.cursegradle' version '1.4.0'
-    id "com.modrinth.minotaur" version "2.+"
+    id "me.modmuss50.mod-publish-plugin" version "2.1.1"
 }
 
 architectury {
@@ -79,43 +78,4 @@ remapSourcesJar {
     archiveClassifier = "neoforge-sources"
 }
 
-curseforge {
-    apiKey = System.getenv("CURSEFORGE_API_KEY")
-    project {
-        id = project.curse_forge_project_id
-        releaseType = project.curse_forge_release_type
-        changelogType = "markdown"
-        changelog = rootProject.file('changelog.md')
-        addGameVersion project.minecraft_version
-        addGameVersion "Java 21"
-        addGameVersion "NeoForge"
-
-        relations {
-            requiredDependency("architectury-api")
-            requiredDependency("supermartijn642s-config-lib")
-        }
-
-        mainArtifact(remapJar) {
-            displayName = "GriefLogger NeoForge $project.minecraft_version - $project.mod_version"
-        }
-
-        addArtifact(remapSourcesJar) {
-        }
-    }
-}
-
-modrinth {
-    token = System.getenv("MODRINTH_API_KEY")
-    projectId = "8oGVUFuX"
-    versionName = "GriefLogger NeoForge $rootProject.minecraft_version - $rootProject.mod_version"
-    versionNumber = "$rootProject.mod_version"
-    versionType = "$rootProject.curse_forge_release_type"
-    uploadFile = remapJar
-    additionalFiles = [remapSourcesJar]
-    gameVersions = ["$rootProject.minecraft_version"]
-    loaders = ["neoforge"]
-    dependencies {
-        required.project "architectury-api"
-        required.project "supermartijn642s-config-lib"
-    }
-}
+apply from: rootProject.file("gradle/scripts/publishing.gradle")

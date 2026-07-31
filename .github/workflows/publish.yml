@@ -48,10 +48,10 @@ jobs:
         run: exit 1
 
       - name: Publish to Modrinth
-        run: ./gradlew modrinth
+        run: ./gradlew publishModrinth
 
       - name: Publish to CurseForge
-        run: ./gradlew curseforge
+        run: ./gradlew publishCurseforge
 
       - name: Publish to GitHub Releases
         uses: ncipollo/release-action@v1

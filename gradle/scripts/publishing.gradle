@@ -1,0 +1,43 @@
+apply plugin: "me.modmuss50.mod-publish-plugin"
+
+publishMods {
+    def capitalizedProjectName = project.name == "fabric" ? "Fabric" : "NeoForge"
+    file = remapJar.archiveFile
+    displayName = "${project.mod_name} ${capitalizedProjectName} ${project.minecraft_version} - ${project.version}"
+    version = project.version
+    changelog = rootProject.file("changelog.md").exists() ? rootProject.file("changelog.md").text : "No changelog provided."
+    type = project.release_type == "release" ? STABLE : (project.release_type == "beta" ? BETA : ALPHA)
+    modLoaders.add(project.name.toLowerCase())
+
+    def cursetoken = System.getenv("CURSEFORGE_API_KEY")
+    if (cursetoken != null) {
+        curseforge {
+            accessToken = cursetoken
+            projectId = rootProject.curse_forge_project_id
+
+            minecraftVersionList(rootProject.supported_minecraft_versions)
+            javaVersions.add(JavaVersion.VERSION_25)
+
+            client = true
+            server = true
+
+            rootProject.curse_forge_dependencies.split(",").each {
+                requires(it.trim())
+            }
+        }
+    }
+
+    def modrinthtoken = System.getenv("MODRINTH_API_KEY")
+    if (modrinthtoken != null) {
+        modrinth {
+            accessToken = modrinthtoken
+            projectId = rootProject.modrinth_project_id
+
+            minecraftVersionList(rootProject.supported_minecraft_versions)
+
+            rootProject.modrinth_dependencies.split(",").each {
+                requires(it.trim())
+            }
+        }
+    }
+}
