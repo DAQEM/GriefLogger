@@ -2,9 +2,9 @@ package com.daqem.grieflogger.mixin;
 
 import com.daqem.grieflogger.event.item.ShootItemEvent;
 import com.daqem.grieflogger.event.item.ThrowItemEvent;
+import com.daqem.knot.api.world.entity.IAbstractArrow;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,8 +20,8 @@ public class ProjectileMixin {
         if (source instanceof Player player) {
             if ((Projectile) (Object) this instanceof ThrowableItemProjectile throwableItemProjectile) {
                 ThrowItemEvent.throwItem(player, throwableItemProjectile.getItem());
-            } else if ((Projectile) (Object) this instanceof AbstractArrow abstractArrow) {
-                ShootItemEvent.shootItem(player, abstractArrow.getPickupItem());
+            } else if ((Projectile) (Object) this instanceof IAbstractArrow abstractArrow) {
+                ShootItemEvent.shootItem(player, abstractArrow.knot$getPickupItem());
             }
         }
     }
