@@ -19,6 +19,7 @@
       "com.daqem.grieflogger.fabric.GriefLoggerFabricServer"
     ]
   },
+  "accessWidener": "grieflogger.accesswidener",
   "mixins": [
     "grieflogger-common.mixins.json",
     "grieflogger-fabric.mixins.json"
