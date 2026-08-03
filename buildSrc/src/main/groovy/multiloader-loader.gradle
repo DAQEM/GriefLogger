@@ -45,20 +45,20 @@ tasks.named('sourcesJar', Jar) {
 }
 
 shadowJar {
-    relocate "org.sqlite", "gl_sqlite", {
+    relocate "org.sqlite", "grieflogdb", {
         exclude "org/sqlite/native/**"
         exclude "org/sqlite/util/ProcessRunner.class"
     }
 
-    relocate "jdbc:sqlite", "jdbc:gl_sqlite"
+    relocate "jdbc:sqlite", "jdbc:grieflogdb"
 
     transform(NativeTransformer.class) {
         rootDir = project.rootDir
-        relocateNative "org/sqlite", "gl_sqlite"
-        relocateNative "org_sqlite", "gl_1sqlite"
+        relocateNative "org/sqlite", "grieflogdb"
+        relocateNative "org_sqlite", "grieflogdb"
     }
 
-    relocate "com.mysql", "gl_mysql"
+    relocate "com.mysql", "grieflodb"
 
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = ""
