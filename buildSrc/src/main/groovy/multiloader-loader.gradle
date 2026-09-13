@@ -1,3 +1,12 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.ResourceTransformer
+import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext
+import org.apache.tools.zip.ZipEntry
+import org.apache.tools.zip.ZipOutputStream
+
+import javax.annotation.Nonnull
+import java.util.function.Function
+import java.util.function.Predicate
+
 plugins {
     id 'multiloader-common'
     id 'com.gradleup.shadow'
@@ -44,21 +53,84 @@ tasks.named('sourcesJar', Jar) {
     from(configurations.commonResources)
 }
 
+class NativeTransformer implements ResourceTransformer {
+    private Predicate<String> fileMatcher
+    private Function<String, String> filePathMapper
+
+    private final HashMap<String, String> replacements = new HashMap()
+    private final HashMap<String, byte[]> rewrittenFiles = new HashMap()
+    private nativeRelocator
+
+    public File rootDir
+
+    void matchFiles(Predicate<String> matcher) {
+        fileMatcher = matcher
+    }
+
+    void mapPaths(Function<String, String> mapper) {
+        filePathMapper = mapper
+    }
+
+    void relocateNative(String target, String replacement) {
+        if (replacement.length() > target.length()) {
+            throw new GradleException("Length of value \"${replacement}\" exceeds the length of \"${target}\": ${replacement.length()} > ${target.length()}")
+        }
+        replacements.put(target, replacement)
+    }
+
+    @Override
+    boolean canTransformResource(@Nonnull FileTreeElement element) {
+        return fileMatcher != null && fileMatcher.test(element.relativePath.pathString)
+    }
+
+    @Override
+    void transform(@Nonnull TransformerContext context) {
+        byte[] content = context.inputStream.readAllBytes()
+
+        if (nativeRelocator == null) {
+            nativeRelocator = new NativeRelocator(rootDir.toPath().resolve("relocate_natives"))
+        }
+
+        try {
+            String path = filePathMapper != null
+                    ? filePathMapper.apply(context.path)
+                    : context.path
+            content = nativeRelocator.processBinary(path, content, replacements)
+            rewrittenFiles.put(path, content)
+        }
+        catch (Throwable e) {
+            throw new GradleException("Failed to relocate", e)
+        }
+    }
+
+    @Override
+    boolean hasTransformedResource() { return !rewrittenFiles.isEmpty() }
+
+    @Override
+    void modifyOutputStream(@Nonnull ZipOutputStream os, boolean preserveFileTimestamps) {
+        for (Map.Entry<String, byte[]> rewrittenFile : rewrittenFiles.entrySet()) {
+            os.putNextEntry(new ZipEntry(rewrittenFile.key))
+            os.write(rewrittenFile.value)
+        }
+    }
+}
+
 shadowJar {
-    relocate "org.sqlite", "grieflogdb", {
+    relocate "org.sqlite", "gl_sqlite", {
         exclude "org/sqlite/native/**"
-        exclude "org/sqlite/util/ProcessRunner.class"
     }
 
-    relocate "jdbc:sqlite", "jdbc:grieflogdb"
+    relocate "jdbc:sqlite", "jdbc:gl_sqlite"
 
-    transform(NativeTransformer.class) {
+    transform(NativeTransformer) {
         rootDir = project.rootDir
-        relocateNative "org/sqlite", "grieflogdb"
-        relocateNative "org_sqlite", "grieflogdb"
+        matchFiles { it.startsWith("org/sqlite") }
+        mapPaths { it.replace("org/sqlite", "gl_sqlite") }
+        relocateNative "org/sqlite", "gl_sqlite"
+        relocateNative "org_sqlite", "gl_1sqlite"
     }
 
-    relocate "com.mysql", "grieflodb"
+    relocate "com.mysql", "gl_mysql"
 
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = ""
