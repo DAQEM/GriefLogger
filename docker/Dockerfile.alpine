@@ -1,9 +1,0 @@
-FROM eclipse-temurin:25-jdk-alpine
-
-RUN apk add --no-cache python3 curl
-
-WORKDIR /server
-
-COPY test_server.py /test_server.py
-
-CMD ["python3", "/test_server.py"]

@@ -1,9 +1,0 @@
-FROM eclipse-temurin:25-jdk
-
-RUN apt-get update && apt-get install -y python3 curl && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /server
-
-COPY test_server.py /test_server.py
-
-CMD ["python3", "/test_server.py"]
