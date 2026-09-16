@@ -1,3 +1,13 @@
+import groovy.json.JsonSlurper
+
+import java.io.FileOutputStream
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
+
 plugins {
     id "com.github.johnrengelman.shadow"
     id "me.modmuss50.mod-publish-plugin" version "2.1.1"
@@ -32,6 +42,9 @@ repositories {
     }
 }
 
+def sqliteVersion = "3.47.2.0"
+def sqliteVersionRange = "[3.47.2.0,4.0)"
+
 dependencies {
     neoForge "net.neoforged:neoforge:$project.neoforge_version"
 
@@ -40,8 +53,13 @@ dependencies {
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
 
-    implementation "org.xerial:sqlite-jdbc:3.47.2.0"
-    shadowBundle "org.xerial:sqlite-jdbc:3.47.2.0"
+    include(implementation("org.xerial:sqlite-jdbc:$sqliteVersion")) {
+        version {
+            // NeoForge Jar-in-Jar selects one driver when another mod provides it.
+            strictly sqliteVersionRange
+            prefer sqliteVersion
+        }
+    }
 
     implementation "com.mysql:mysql-connector-j:8.4.0"
     shadowBundle "com.mysql:mysql-connector-j:8.4.0"
@@ -64,18 +82,160 @@ processResources {
 shadowJar {
     exclude "architectury.common.json"
     exclude "org/slf4j/**"
+    // SQLite must never be flat-shaded into the outer NeoForge mod JAR.
+    exclude "org/sqlite/**"
 
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = "neoforge-dev-shadow"
 }
 
+// Architectury Loom emits only a lower-bounded range for include dependencies.
+// Keep the published NeoForge metadata aligned with the supported driver range.
+def patchNeoForgeJarInJarMetadata = { File artifact ->
+    def temporaryArtifact = File.createTempFile("${artifact.name}.", ".tmp", artifact.parentFile)
+    try {
+        new ZipFile(artifact).withCloseable { outerJar ->
+            def metadataEntry = outerJar.getEntry("META-INF/jarjar/metadata.json")
+            if (metadataEntry == null) {
+                throw new GradleException("NeoForge Jar-in-Jar metadata is missing")
+            }
+
+            def metadata = new JsonSlurper().parse(outerJar.getInputStream(metadataEntry))
+            def metadataJars = metadata instanceof Map ? metadata.jars : metadata
+            if (!(metadataJars instanceof List)) {
+                throw new GradleException("NeoForge Jar-in-Jar metadata has an unsupported shape")
+            }
+
+            def sqliteJars = metadataJars.findAll { jar ->
+                jar instanceof Map
+                        && jar.identifier instanceof Map
+                        && jar.identifier.group == "org.xerial"
+                        && jar.identifier.artifact == "sqlite-jdbc"
+            }
+            if (sqliteJars.size() != 1) {
+                throw new GradleException("NeoForge Jar-in-Jar metadata must contain exactly one SQLite driver")
+            }
+            def sqlite = sqliteJars[0]
+            if (!(sqlite.version instanceof Map)
+                    || sqlite.version.artifactVersion != sqliteVersion
+                    || !(sqlite.path instanceof String)
+                    || !sqlite.path.startsWith("META-INF/jars/")
+                    || !sqlite.path.endsWith(".jar")) {
+                throw new GradleException("SQLite Jar-in-Jar metadata does not declare a valid nested driver")
+            }
+            sqlite.version.range = sqliteVersionRange
+
+            def metadataJson = groovy.json.JsonOutput.toJson(metadata).getBytes("UTF-8")
+            new ZipOutputStream(new FileOutputStream(temporaryArtifact)).withCloseable { output ->
+                outerJar.entries().each { entry ->
+                    def outputEntry = new ZipEntry(entry.name)
+                    if (entry.time >= 0) {
+                        outputEntry.time = entry.time
+                    }
+                    output.putNextEntry(outputEntry)
+                    if (entry.name == "META-INF/jarjar/metadata.json") {
+                        output.write(metadataJson)
+                    } else {
+                        outerJar.getInputStream(entry).withCloseable { input ->
+                            input.transferTo(output)
+                        }
+                    }
+                    output.closeEntry()
+                }
+            }
+        }
+
+        Files.move(
+                temporaryArtifact.toPath(),
+                artifact.toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+        )
+    } finally {
+        temporaryArtifact.delete()
+    }
+}
+
 remapJar {
     inputFile.set shadowJar.archiveFile
     archiveClassifier = "neoforge"
+    doLast {
+        patchNeoForgeJarInJarMetadata(archiveFile.get().asFile)
+    }
 }
 
 remapSourcesJar {
     archiveClassifier = "neoforge-sources"
+}
+
+tasks.register("verifyNeoForgeJarInJarPackaging") {
+    dependsOn remapJar
+    inputs.file(remapJar.archiveFile)
+
+    doLast {
+        def artifact = remapJar.archiveFile.get().asFile
+        new ZipFile(artifact).withCloseable { outerJar ->
+            if (outerJar.entries().any { it.name.startsWith("org/sqlite/") }) {
+                throw new GradleException("SQLite classes leaked into the outer NeoForge JAR")
+            }
+
+            def metadataEntry = outerJar.getEntry("META-INF/jarjar/metadata.json")
+            if (metadataEntry == null) {
+                throw new GradleException("NeoForge Jar-in-Jar metadata is missing")
+            }
+            def metadata = new JsonSlurper().parse(outerJar.getInputStream(metadataEntry))
+            def metadataJars = metadata instanceof Map ? metadata.jars : metadata
+            if (!(metadataJars instanceof List)) {
+                throw new GradleException("NeoForge Jar-in-Jar metadata has an unsupported shape")
+            }
+            def sqliteJars = metadataJars.findAll { jar ->
+                jar instanceof Map
+                        && jar.identifier instanceof Map
+                        && jar.identifier.group == "org.xerial"
+                        && jar.identifier.artifact == "sqlite-jdbc"
+            }
+            if (sqliteJars.size() != 1) {
+                throw new GradleException("NeoForge Jar-in-Jar metadata must contain exactly one SQLite driver")
+            }
+            def sqlite = sqliteJars[0]
+            if (!(sqlite.version instanceof Map)
+                    || sqlite.version.range != sqliteVersionRange
+                    || sqlite.version.artifactVersion != sqliteVersion) {
+                throw new GradleException("SQLite Jar-in-Jar metadata does not declare the supported range and preferred version")
+            }
+            if (!(sqlite.path instanceof String)
+                    || !sqlite.path.startsWith("META-INF/jars/")
+                    || !sqlite.path.endsWith(".jar")) {
+                throw new GradleException("SQLite Jar-in-Jar metadata does not declare a nested path")
+            }
+            def sqliteEntry = outerJar.getEntry(sqlite.path as String)
+            if (sqliteEntry == null) {
+                throw new GradleException("Nested SQLite driver is missing from the NeoForge JAR")
+            }
+            new ZipInputStream(outerJar.getInputStream(sqliteEntry)).withCloseable { sqliteJar ->
+                def entries = []
+                for (def entry = sqliteJar.nextEntry; entry != null; entry = sqliteJar.nextEntry) {
+                    entries.add(entry.name)
+                }
+                if (!entries.contains("org/sqlite/JDBC.class")) {
+                    throw new GradleException("Nested SQLite driver does not contain org.sqlite.JDBC")
+                }
+                if (!entries.contains("META-INF/services/java.sql.Driver")) {
+                    throw new GradleException("Nested SQLite driver does not contain its JDBC service descriptor")
+                }
+                if (!entries.any { it.startsWith("org/sqlite/native/") }) {
+                    throw new GradleException("Nested SQLite driver does not contain native SQLite libraries")
+                }
+            }
+
+            if (outerJar.getEntry("com/mysql/cj/jdbc/Driver.class") == null) {
+                throw new GradleException("MySQL driver is missing from the NeoForge JAR")
+            }
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn verifyNeoForgeJarInJarPackaging
 }
 
 apply from: rootProject.file("gradle/scripts/publishing.gradle")

@@ -1,6 +1,8 @@
 name: Run Tests
 
 on:
+  pull_request:
+    branches: [ "1.21.1", "1.21.1-dev" ]
   push:
     branches: [ "1.21.1-dev" ]
 
@@ -30,8 +32,8 @@ jobs:
       - name: Grant Permissions to gradlew
         run: chmod +x gradlew
         
-      - name: Test
-        run: ./gradlew :common:test
+      - name: Check
+        run: ./gradlew check
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
