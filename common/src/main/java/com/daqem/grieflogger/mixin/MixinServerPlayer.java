@@ -84,8 +84,26 @@ public abstract class MixinServerPlayer extends Player implements GriefLoggerSer
         grieflogger$pages.addAll(pages);
     }
 
-    @Inject(at = @At("HEAD"), method = "openMenu")
+    /**
+     * Snapshots the container the player just opened, so closing it can be diffed against what it
+     * held on the way in.
+     * <p>
+     * This has to run on RETURN, not HEAD. Reading a slot of a container that still carries a loot
+     * table generates the loot, and doing that before the menu exists generates it with no player:
+     * the {@code player_generates_container_loot} criterion never fires, so advancements like
+     * War Pigs stay locked, and the roll loses the player's luck. Letting the menu open first hands
+     * vanilla the player it needs, and the player cannot have moved anything yet, so the snapshot is
+     * still the contents they found.
+     * <p>
+     * An empty return means no menu opened - a locked chest, or a spectator - and leaves the player
+     * without a transaction to close.
+     */
+    @Inject(at = @At("RETURN"), method = "openMenu")
     public void openMenu(MenuProvider provider, CallbackInfoReturnable<OptionalInt> cir) {
+        if (cir.getReturnValue().isEmpty()) {
+            return;
+        }
+
         Optional<BaseContainerBlockEntity> container = ContainerHandler.getContainer(provider);
         if (container.isPresent()) {
             this.grieflogger$containerTransactionManager = new ContainerTransactionManager(container.get());
