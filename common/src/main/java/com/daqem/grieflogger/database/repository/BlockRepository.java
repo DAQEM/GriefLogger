@@ -46,13 +46,7 @@ public class BlockRepository extends Repository {
     }
 
     public void createIndexes() {
-        String sql;
-        if (database.getDialect() instanceof MySQLDialect) {
-            sql = "ALTER TABLE blocks ADD INDEX coordinates (x, y, z);";
-        } else {
-            sql = "CREATE INDEX IF NOT EXISTS coordinates ON blocks (x, y, z);";
-        }
-        database.execute(sql, false);
+        createPositionIndexes(database, "blocks");
     }
 
     public void insertMaterial(long time, String userUuid, String levelName, int x, int y, int z, String material, int blockAction) {

@@ -36,13 +36,7 @@ public class CommandRepository extends Repository {
     }
 
     public void createIndexes() {
-        String sql;
-        if (database.getDialect() instanceof MySQLDialect) {
-            sql = "ALTER TABLE commands ADD INDEX coordinates (x, y, z);";
-        } else {
-            sql = "CREATE INDEX IF NOT EXISTS coordinates ON commands (x, y, z);";
-        }
-        database.execute(sql, false);
+        createPositionIndexes(database, "commands");
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, String command) {

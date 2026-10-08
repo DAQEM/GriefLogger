@@ -36,13 +36,7 @@ public class ChatRepository extends Repository {
     }
 
     public void createIndexes() {
-        String sql;
-        if (database.getDialect() instanceof MySQLDialect) {
-            sql = "ALTER TABLE chats ADD INDEX coordinates (x, y, z);";
-        } else {
-            sql = "CREATE INDEX IF NOT EXISTS coordinates ON chats (x, y, z);";
-        }
-        database.execute(sql, false);
+        createPositionIndexes(database, "chats");
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, String message) {

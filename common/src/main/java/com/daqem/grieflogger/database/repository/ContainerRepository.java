@@ -62,13 +62,7 @@ public class ContainerRepository extends Repository {
     }
 
     public void createIndexes() {
-        String sql;
-        if (database.getDialect() instanceof MySQLDialect) {
-            sql = "ALTER TABLE containers ADD INDEX coordinates (x, y, z);";
-        } else {
-            sql = "CREATE INDEX IF NOT EXISTS coordinates ON containers (x, y, z);";
-        }
-        database.execute(sql, false);
+        createPositionIndexes(database, "containers");
     }
 
     public void insert(long time, String userUuid, Level level, int x, int y, int z, SimpleItemStack item, int itemAction) {

@@ -61,13 +61,7 @@ public class ItemRepository extends Repository {
     }
 
     public void createIndexes() {
-        String sql;
-        if (database.getDialect() instanceof MySQLDialect) {
-            sql = "ALTER TABLE items ADD INDEX coordinates (x, y, z);";
-        } else {
-            sql = "CREATE INDEX IF NOT EXISTS coordinates ON items (x, y, z);";
-        }
-        database.execute(sql, false);
+        createPositionIndexes(database, "items");
     }
 
     public void insert(long time, String userUuid, Level level, int x, int y, int z, SimpleItemStack item, int action) {

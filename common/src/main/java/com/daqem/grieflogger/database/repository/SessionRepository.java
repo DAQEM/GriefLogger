@@ -44,13 +44,7 @@ public class SessionRepository extends Repository {
     }
 
     public void createIndexes() {
-        String sql;
-        if (database.getDialect() instanceof MySQLDialect) {
-            sql = "ALTER TABLE sessions ADD INDEX coordinates (x, y, z);";
-        } else {
-            sql = "CREATE INDEX IF NOT EXISTS coordinates ON sessions (x, y, z);";
-        }
-        database.execute(sql, false);
+        createPositionIndexes(database, "sessions");
     }
 
     public void insert(long time, String userUuid, String levelName, int x, int y, int z, int sessionAction) {
